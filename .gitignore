@@ -1,0 +1,22 @@
+# Firebase caches
+.firebase/
+firebaserc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+deploy_final_attempt.txt
+deploy_final_attempt_utf8.txt
+
+# Node (se vieres a usar)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Public auto-generated (opcional, se quiseres manter o src como fonte da verdade)
+# app/public/src/

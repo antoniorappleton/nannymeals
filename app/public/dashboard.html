@@ -1,0 +1,264 @@
+<!doctype html>
+<html class="light" lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>NannyMeal - Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#13ec5b",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102216",
+            },
+            fontFamily: {
+              display: ["Manrope"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js",
+          "firebase/auth": "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js",
+          "firebase/functions": "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js"
+        }
+      }
+    </script>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen"
+  >
+    <div
+      class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-4xl mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden md:px-6"
+    >
+      <!-- Persistent Header -->
+      <header
+        class="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4 md:shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <div
+            class="size-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30"
+          >
+            <span
+              class="material-symbols-outlined text-background-dark font-bold"
+              >restaurant_menu</span
+            >
+          </div>
+          <span
+            class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+            >NannyMeal</span
+          >
+        </div>
+        <button
+          id="btn-logout"
+          class="p-2 text-slate-500 hover:text-primary transition-colors"
+        >
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+      </header>
+
+      <main class="flex-1 p-4 md:pt-8">
+        <!-- Hero Welcome -->
+        <div class="mb-8">
+          <h1
+            class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2"
+            id="welcome-msg"
+          >
+            Olá, Chef!
+          </h1>
+          <p class="text-slate-500 dark:text-slate-400">
+            O seu plano semanal personalizado está a ser preparado.
+          </p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard-content" class="grid gap-6 md:grid-cols-2">
+          <!-- Status Card -->
+          <div
+            class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-lg">Estado do Plano</h3>
+              <span
+                class="px-3 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-xs font-bold uppercase"
+                >Em Processamento</span
+              >
+            </div>
+            <p class="text-sm text-slate-500 mb-6">
+              Estamos a analisar as suas preferências para criar a ementa
+              perfeita.
+            </p>
+            <div class="flex gap-2">
+              <div class="h-1 flex-1 bg-primary rounded-full"></div>
+              <div
+                class="h-1 flex-1 bg-slate-100 dark:bg-slate-700 rounded-full"
+              ></div>
+              <div
+                class="h-1 flex-1 bg-slate-100 dark:bg-slate-700 rounded-full"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Quick Action Card -->
+          <div
+            class="bg-primary/10 border border-primary/20 p-6 rounded-2xl flex flex-col justify-between"
+          >
+            <div>
+              <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-2">
+                Novo Planeamento
+              </h3>
+              <p class="text-sm text-slate-600 dark:text-slate-300">
+                Quer ajustar a sua rotina ou mudar o número de jantares?
+              </p>
+            </div>
+            <button
+              id="btn-new-plan"
+              class="mt-6 w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+            >
+              Configurar Onboarding
+              <span class="material-symbols-outlined text-sm">settings</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading Placeholder -->
+        <div class="mt-12 text-center text-slate-400">
+          <span class="material-symbols-outlined text-4xl mb-2 animate-bounce"
+            >lunch_dining</span
+          >
+          <p class="text-sm">A carregar os detalhes da família...</p>
+        </div>
+      </main>
+
+      <!-- Bottom Navigation (Mobile Only) -->
+      <nav
+        class="md:hidden mt-auto sticky bottom-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-4 flex justify-around"
+      >
+        <button class="flex flex-col items-center gap-1 text-primary">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="text-[10px] font-bold uppercase">Home</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-slate-400">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <span class="text-[10px] font-bold uppercase">Plano</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-slate-400">
+          <span class="material-symbols-outlined">shopping_cart</span>
+          <span class="text-[10px] font-bold uppercase">Lista</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-slate-400">
+          <span class="material-symbols-outlined">person</span>
+          <span class="text-[10px] font-bold uppercase">Perfil</span>
+        </button>
+      </nav>
+      <div class="h-6 md:h-12"></div>
+    </div>
+
+    <script type="module">
+      import { initAuth, logout } from "./src/auth.js";
+      import { auth } from "./src/firebase-init.js";
+      import { onAuthStateChanged } from "firebase/auth";
+      import { doc, getDoc, getFirestore } from "firebase/firestore";
+      import { seedRecipes } from "./src/seed-recipes.js";
+      import { getLastPlan, generateWeeklyPlan } from "./src/db.js";
+
+      initAuth();
+      const db = getFirestore();
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          document.getElementById("welcome-msg").textContent =
+            `Olá, ${user.displayName || "Chef"}!`;
+
+          // 1. Sementear receitas se necessário
+          await seedRecipes();
+
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (!userData.householdId) {
+              window.location.href = "onboarding.html";
+              return;
+            }
+
+            // 2. Carregar Plano Semanal
+            let plan = await getLastPlan(userData.householdId);
+
+            if (!plan) {
+              console.log("A gerar primeiro plano...");
+              plan = await generateWeeklyPlan(userData.householdId);
+            }
+
+            renderPlan(plan);
+          } else {
+            window.location.href = "onboarding.html";
+          }
+        } else {
+          window.location.href = "index.html";
+        }
+      });
+
+      const renderPlan = (plan) => {
+        const container = document.getElementById("dashboard-content");
+        if (!plan || !plan.meals) return;
+
+        // Limpar placeholders
+        container.innerHTML = "";
+
+        plan.meals.forEach((meal) => {
+          const card = document.createElement("div");
+          card.className =
+            "bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between";
+          card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="size-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary">restaurant</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white">${meal.recipeName}</h4>
+                            <p class="text-xs text-slate-500">${meal.prepTime} min</p>
+                        </div>
+                    </div>
+                    <button class="size-8 rounded-full border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:border-primary transition-colors">
+                        <span class="material-symbols-outlined text-transparent text-sm hover:text-primary">check</span>
+                    </button>
+                `;
+          container.appendChild(card);
+        });
+
+        // Remover o placeholder de carregamento
+        const loading = document.querySelector(".mt-12.text-center");
+        if (loading) loading.classList.add("hidden");
+      };
+
+      document.getElementById("btn-logout").onclick = () => logout();
+      document.getElementById("btn-new-plan").onclick = () => {
+        window.location.href = "onboarding.html";
+      };
+    </script>
+  </body>
+</html>

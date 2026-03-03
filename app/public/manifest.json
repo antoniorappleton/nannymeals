@@ -1,0 +1,17 @@
+{
+  "name": "NannyMeal",
+  "short_name": "NannyMeal",
+  "description": "Reduce dinner stress with adaptive meal plans.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#F7F9FC",
+  "theme_color": "#FF6B6B",
+  "icons": [
+    {
+      "src": "assets/images/hero.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
