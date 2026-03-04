@@ -1,162 +1,163 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>Grocery List - NannyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="assets/styles.css" />
-    <style>
-      .section-title {
-        font-size: 1.1rem;
-        font-weight: 800;
-        margin: 24px 0 12px;
-        color: var(--primary);
-      }
-      .grocery-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
-      }
-      .grocery-item input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        margin: 0;
-        cursor: pointer;
-      }
-      .grocery-item.checked span {
-        text-decoration: line-through;
-        color: var(--text-light);
-      }
-      .item-qty {
-        font-weight: 600;
-        color: var(--text-light);
-        font-size: 0.9rem;
-        margin-left: auto;
-      }
-      .btn-action-bar {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-      }
-      .btn-action-bar button {
-        padding: 10px;
-        font-size: 0.9rem;
-      }
 
-      .nav-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        display: flex;
-        justify-content: space-around;
-        padding: 12px;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        z-index: 100;
-      }
-      .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 0.7rem;
-        color: var(--text-light);
-        text-decoration: none;
-        gap: 4px;
-      }
-      .nav-item.active {
-        color: var(--primary);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app-container" style="padding-bottom: 80px">
-      <header
-        class="plan-header"
-        style="
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Grocery List - NannyMeal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin: 24px 0 12px;
+      color: var(--primary);
+    }
+
+    .grocery-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .grocery-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .grocery-item.checked span {
+      text-decoration: line-through;
+      color: var(--text-light);
+    }
+
+    .item-qty {
+      font-weight: 600;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-left: auto;
+    }
+
+    .btn-action-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-action-bar button {
+      padding: 10px;
+      font-size: 0.9rem;
+    }
+
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--text-light);
+      text-decoration: none;
+      gap: 4px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container" style="padding-bottom: 80px">
+    <header class="plan-header" style="
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 24px;
-        "
-      >
-        <div class="logo" style="font-size: 1.5rem">NannyMeal</div>
-        <div style="font-weight: 600; font-size: 0.9rem">Shopping List</div>
-      </header>
+        ">
+      <div class="logo" style="font-size: 1.5rem">NannyMeal</div>
+      <div style="font-weight: 600; font-size: 0.9rem">Shopping List</div>
+    </header>
 
-      <main id="grocery-list">
-        <div class="section-title">Produce</div>
-        <div class="card">
-          <label class="grocery-item">
-            <input type="checkbox" />
-            <span>Fresh Basil</span>
-            <span class="item-qty">1 bunch</span>
-          </label>
-          <label class="grocery-item">
-            <input type="checkbox" />
-            <span>Lemons</span>
-            <span class="item-qty">2 units</span>
-          </label>
-        </div>
+    <main id="grocery-list">
+      <div class="section-title">Produce</div>
+      <div class="card">
+        <label class="grocery-item">
+          <input type="checkbox" />
+          <span>Fresh Basil</span>
+          <span class="item-qty">1 bunch</span>
+        </label>
+        <label class="grocery-item">
+          <input type="checkbox" />
+          <span>Lemons</span>
+          <span class="item-qty">2 units</span>
+        </label>
+      </div>
 
-        <div class="section-title">Pantry</div>
-        <div class="card">
-          <label class="grocery-item">
-            <input type="checkbox" />
-            <span>Spaghetti</span>
-            <span class="item-qty">500g</span>
-          </label>
-          <label class="grocery-item">
-            <input type="checkbox" />
-            <span>Taco Shells</span>
-            <span class="item-qty">1 pack</span>
-          </label>
-        </div>
+      <div class="section-title">Pantry</div>
+      <div class="card">
+        <label class="grocery-item">
+          <input type="checkbox" />
+          <span>Spaghetti</span>
+          <span class="item-qty">500g</span>
+        </label>
+        <label class="grocery-item">
+          <input type="checkbox" />
+          <span>Taco Shells</span>
+          <span class="item-qty">1 pack</span>
+        </label>
+      </div>
 
-        <div class="btn-action-bar">
-          <button class="outline" id="btn-show-basics">Show Basics</button>
-          <button class="outline" id="btn-clear-checked">Clear checked</button>
-        </div>
-      </main>
+      <div class="btn-action-bar">
+        <button class="outline" id="btn-show-basics">Show Basics</button>
+        <button class="outline" id="btn-clear-checked">Clear checked</button>
+      </div>
+    </main>
 
-      <nav class="nav-bar">
-        <a href="plan.html" class="nav-item">
-          <span style="font-size: 1.2rem">📅</span>
-          Plan
-        </a>
-        <a href="grocery.html" class="nav-item active">
-          <span style="font-size: 1.2rem">🛒</span>
-          Grocery
-        </a>
-        <a href="#" class="nav-item">
-          <span style="font-size: 1.2rem">⭐</span>
-          Feedback
-        </a>
-        <a href="#" class="nav-item">
-          <span style="font-size: 1.2rem">⚙️</span>
-          Settings
-        </a>
-      </nav>
-    </div>
+    <nav class="nav-bar">
+      <a href="plan.html" class="nav-item">
+        <span style="font-size: 1.2rem">📅</span>
+        Plan
+      </a>
+      <a href="grocery.html" class="nav-item active">
+        <span style="font-size: 1.2rem">🛒</span>
+        Grocery
+      </a>
+      <a href="#" class="nav-item">
+        <span style="font-size: 1.2rem">⭐</span>
+        Feedback
+      </a>
+      <a href="#" class="nav-item">
+        <span style="font-size: 1.2rem">⚙️</span>
+        Settings
+      </a>
+    </nav>
+  </div>
 
-    <script>
-      document.querySelectorAll(".grocery-item input").forEach((cb) => {
-        cb.addEventListener("change", (e) => {
-          const item = e.target.closest(".grocery-item");
-          item.classList.toggle("checked", e.target.checked);
-        });
+  <script>
+    document.querySelectorAll(".grocery-item input").forEach((cb) => {
+      cb.addEventListener("change", (e) => {
+        const item = e.target.closest(".grocery-item");
+        item.classList.toggle("checked", e.target.checked);
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
+
 </html>

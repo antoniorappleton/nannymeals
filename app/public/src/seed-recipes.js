@@ -116,17 +116,21 @@ const recipes = [
 ];
 
 export const seedRecipes = async () => {
-  const recipesRef = collection(db, "recipes");
-  const q = query(recipesRef, limit(1));
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    console.log("A semear receitas iniciais...");
-    for (const recipe of recipes) {
-      await addDoc(recipesRef, recipe);
+  try {
+    const recipesRef = collection(db, "recipes");
+    const q = query(recipesRef, limit(1));
+    const snap = await getDocs(q);
+  
+    if (snap.empty) {
+      console.log("A semear receitas iniciais...");
+      for (const recipe of recipes) {
+        await addDoc(recipesRef, recipe);
+      }
+      console.log("Receitas semeadas com sucesso!");
+    } else {
+      console.log("As receitas já existem na base de dados.");
     }
-    console.log("Receitas semeadas com sucesso!");
-  } else {
-    console.log("As receitas já existem na base de dados.");
+  } catch (error) {
+    console.warn("Aviso ao semear receitas (pode ser falta de permissões):", error.message);
   }
 };

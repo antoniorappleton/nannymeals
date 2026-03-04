@@ -5,7 +5,7 @@ service cloud.firestore {
     // Recipes are public
     match /recipes/{recipeId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if request.auth != null; // Temporariamente para seeding
     }
 
     // Households: access by owner
