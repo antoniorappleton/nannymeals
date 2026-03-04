@@ -53,19 +53,43 @@
     class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-[600px] mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl transition-all duration-300">
     <!-- Header -->
     <header
-      class="flex items-center p-4 justify-between bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4">
-      <div
-        class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-        id="btn-back">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-        </svg>
+      class="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4 md:shadow-lg md:shadow-primary/5">
+      <div class="flex items-center gap-2">
+        <!-- Mobile Back Button -->
+        <div
+          class="md:hidden text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors mr-2"
+          id="btn-back">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+        </div>
+
+        <!-- Logo -->
+        <a href="dashboard.html" class="flex items-center gap-2">
+          <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+              stroke="currentColor" class="w-6 h-6 text-primary">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">NannyMeal</span>
+        </a>
       </div>
-      <h2
-        class="text-slate-900 dark:text-slate-100 text-lg font-extrabold leading-tight tracking-tight flex-1 text-center">
-        Configuração Familiar
-      </h2>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="dashboard.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Home</a>
+        <a href="plan.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Plano</a>
+        <a href="grocery.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Lista</a>
+        <a href="onboarding.html"
+          class="text-sm font-black uppercase tracking-widest text-primary border-b-2 border-primary pb-1">Perfil</a>
+      </nav>
+
       <button id="btn-logout"
         class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
