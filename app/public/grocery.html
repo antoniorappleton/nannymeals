@@ -150,6 +150,17 @@
     </nav>
   </div>
 
+  <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js",
+        "firebase/functions": "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js"
+      }
+    }
+  </script>
+  <script type="module" src="src/auth.js?v=5.3"></script>
   <script>
     document.querySelectorAll(".grocery-item input").forEach((cb) => {
       cb.addEventListener("change", (e) => {

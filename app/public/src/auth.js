@@ -1,5 +1,5 @@
 import { auth } from "./firebase-init.js";
-import { syncUserProfile, getHousehold, getUserProfile } from "./db.js";
+import { syncUserProfile, getHousehold, getUserProfile, checkHouseholdExists } from "./db.js";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -16,14 +16,14 @@ import {
  * Lógica de Autenticação Centralizada
  */
 
-console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [FINAL-REDIRECT-V5]");
+console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [GLOBAL-AUTH-V5.3]");
 
 // Capturar erros globais para diagnóstico na UI (útil para telemóveis)
 window.onerror = function(message, source, lineno, colno, error) {
   const errorMsg = `Erro Crítico: ${message} em ${source}:${lineno}`;
   console.error(errorMsg);
   // Apenas mostrar erros que venham do nosso domínio
-  if (source.includes(window.location.hostname)) {
+  if (source && source.includes(window.location.hostname)) {
     showError(errorMsg);
   }
   return false;
@@ -40,7 +40,12 @@ const showError = (message) => {
     errorContainer.classList.remove("hidden");
     errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
-    alert(message);
+    console.warn("UI de erro não encontrada, usando fallback alert:", message);
+    // Evitar alerts repetitivos em loops
+    if (!window._alertTimeout) {
+      alert(message);
+      window._alertTimeout = setTimeout(() => window._alertTimeout = null, 3000);
+    }
   }
 };
 
@@ -63,8 +68,6 @@ setPersistence(auth, browserLocalPersistence)
       console.log("Login por redirecionamento bem-sucedido para:", result.user.email);
     } else {
       console.log("Nenhum resultado de redirecionamento detectado.");
-      // Se não detectou mas o utilizador já está logado (estado persistente),
-      // o onAuthStateChanged tratará disso.
     }
   })
   .catch((error) => {
@@ -148,25 +151,33 @@ onAuthStateChanged(auth, async (user) => {
       console.log("A sincronizar perfil...");
       await syncUserProfile(user);
       
-      const userData = await getUserProfile(user.uid);
-      console.log("Perfil carregado. HouseholdId:", userData ? userData.householdId : "Nenhum");
+      let userData = await getUserProfile(user.uid);
+      let householdId = userData ? userData.householdId : null;
 
-      // 2. Lógica de Redirecionamento
-      if (userData && userData.householdId) {
-        console.log("Household detectado -> Redirecionando para Dashboard se necessário");
-        if (!isDashboardPage && !path.includes("assets")) {
+      // 2. FALLBACK: Se o perfil não tem ID, verificar diretamente na coleção
+      if (!householdId) {
+        console.log("Verificando fallback direto em households...");
+        householdId = await checkHouseholdExists(user.uid);
+      }
+
+      console.log("Resumo da Sessão - HouseholdId:", householdId || "Nenhum");
+
+      // 3. Lógica de Redirecionamento Defensiva
+      if (householdId) {
+        if (!isDashboardPage && !path.includes("plan") && !path.includes("grocery")) {
+          console.log("Usuário com família encontrado -> Dashboard");
           location.replace("dashboard.html");
         }
       } 
       else {
         console.log("Sem household detectado.");
-        if (isLoginPage) {
-          console.log("Iniciando onboarding...");
+        if (!isOnboardingPage && !isLoginPage) {
+          console.log("Redirecionando para Onboarding...");
           location.replace("onboarding.html");
         }
       }
     } catch (error) {
-      console.error("Erro no processamento da sessão:", error);
+      console.error("Erro crítico na gestão de sessão:", error);
     }
   } else {
     // IMPORTANTE: Só redirecionar se não estivermos a processar um resultado de redirect do Google

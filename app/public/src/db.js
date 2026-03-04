@@ -167,6 +167,19 @@ export const generateWeeklyPlan = async (householdId) => {
   return { id: docRef.id, ...newPlan };
 };
 
+/**
+ * Fallback: Verificar se existe algum household onde o utilizador é dono
+ */
+export const checkHouseholdExists = async (uid) => {
+  const hRef = collection(db, "households");
+  const q = query(hRef, where("ownerUid", "==", uid));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    return snap.docs[0].id; // Retorna o ID da primeira casa encontrada
+  }
+  return null;
+};
+
 export const initDB = () => {
   console.log("Módulo de base de dados inicializado.");
 };
