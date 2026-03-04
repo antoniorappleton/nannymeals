@@ -82,10 +82,11 @@
             Pronto para planear a próxima refeição saudável da família?
           </p>
         </div>
-        <!-- Login Form -->
-        <form class="space-y-5" id="login-form">
+        <!-- Auth Form -->
+        <form class="space-y-5" id="auth-form">
           <div class="flex flex-col gap-2">
             <label
+              id="email-label"
               class="text-slate-700 dark:text-slate-300 text-sm font-semibold px-1"
               >Email</label
             >
@@ -106,10 +107,12 @@
           <div class="flex flex-col gap-2">
             <div class="flex justify-between items-center px-1">
               <label
+                id="password-label"
                 class="text-slate-700 dark:text-slate-300 text-sm font-semibold"
                 >Palavra-passe</label
               >
               <a
+                id="forgot-password"
                 class="text-primary font-semibold text-xs hover:underline"
                 href="#"
                 >Esqueceu-se?</a
@@ -139,8 +142,9 @@
               </button>
             </div>
           </div>
-          <!-- Primary Sign In Button -->
+          <!-- Primary Auth Button -->
           <button
+            id="btn-submit"
             class="w-full bg-primary hover:opacity-90 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all mt-4 flex items-center justify-center gap-2"
             type="submit"
           >
@@ -190,10 +194,10 @@
         </form>
         <!-- Footer Link -->
         <p class="text-center mt-8 text-sm text-slate-500 dark:text-slate-400">
-          Novo por aqui?
-          <a class="text-primary font-bold hover:underline" href="#"
-            >Registe-se grátis</a
-          >
+          <span id="auth-footer-text">Novo por aqui?</span>
+          <button id="toggle-auth-mode" class="text-primary font-bold hover:underline">
+            Registe-se grátis
+          </button>
         </p>
       </div>
     </div>
@@ -210,6 +214,40 @@
             : "visibility";
         });
       }
+
+      // Lógica de alternância de modo (Login/Registo)
+      const toggleAuthBtn = document.getElementById("toggle-auth-mode");
+      const authTitle = document.querySelector("h1");
+      const authBtn = document.getElementById("btn-submit");
+      const authFooterText = document.getElementById("auth-footer-text");
+      const forgotLink = document.getElementById("forgot-password");
+
+      let isLoginMode = true;
+
+      if (toggleAuthBtn) {
+        toggleAuthBtn.addEventListener("click", () => {
+          isLoginMode = !isLoginMode;
+          
+          if (isLoginMode) {
+            authTitle.textContent = "Bem-vindo de volta, Chef!";
+            authBtn.textContent = "Entrar";
+            authFooterText.textContent = "Novo por aqui?";
+            toggleAuthBtn.textContent = "Registe-se grátis";
+            forgotLink.classList.remove("hidden");
+          } else {
+            authTitle.textContent = "Crie a sua conta, Chef!";
+            authBtn.textContent = "Criar Conta";
+            authFooterText.textContent = "Já tem conta?";
+            toggleAuthBtn.textContent = "Inicie sessão";
+            forgotLink.classList.add("hidden");
+          }
+          
+          // Guardar estado no window para o auth.js
+          window.isLoginMode = isLoginMode;
+        });
+      }
+      // Inicializar estado global
+      window.isLoginMode = true;
     </script>
   </body>
 </html>
