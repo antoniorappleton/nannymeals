@@ -1,17 +1,23 @@
 {
   "name": "NannyMeal",
   "short_name": "NannyMeal",
-  "description": "Reduce dinner stress with adaptive meal plans.",
+  "description": "Reduza o stress dos jantares com planos de refeições adaptativos.",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#F7F9FC",
-  "theme_color": "#FF6B6B",
+  "background_color": "#102216",
+  "theme_color": "#13ec5b",
   "icons": [
     {
-      "src": "assets/images/hero.webp",
+      "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuCwmN_0KnGdM6ExB5Fq5e_7QS5WxAjCmIr0ffa1-gc6tx71L9Ta57IrlkHjJJOOZJKudwAojhXIkACtlrh6RaEpcZeJQ_pfu9mlMuJHMOI60nsbf1z-QKqYXQ6Ww0g__3Uq1Bcn1u1YqfpvHilfIZTSKUqInxYdrY3srmb1M6SNGzdzTUlAryAw6YSdxtXORClRR02FZVHJoKjMqDvyptc88MxqX7eLFgaBcgvlhqCg1dXi2e05Z5IJy0lQp9j4gRJXQaQDIxJTB_Ou",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuCwmN_0KnGdM6ExB5Fq5e_7QS5WxAjCmIr0ffa1-gc6tx71L9Ta57IrlkHjJJOOZJKudwAojhXIkACtlrh6RaEpcZeJQ_pfu9mlMuJHMOI60nsbf1z-QKqYXQ6Ww0g__3Uq1Bcn1u1YqfpvHilfIZTSKUqInxYdrY3srmb1M6SNGzdzTUlAryAw6YSdxtXORClRR02FZVHJoKjMqDvyptc88MxqX7eLFgaBcgvlhqCg1dXi2e05Z5IJy0lQp9j4gRJXQaQDIxJTB_Ou",
       "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

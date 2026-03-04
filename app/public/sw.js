@@ -43,7 +43,13 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+      // Retornar do cache se encontrado, senão buscar da rede
+      return response || fetch(event.request).catch(() => {
+        // Fallback para index.html se a navegação falhar (offline)
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+      });
     }),
   );
 });
