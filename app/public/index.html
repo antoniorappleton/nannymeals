@@ -203,12 +203,25 @@
       </p>
     </div>
   </div>
-  <script type="module" src="src/auth.js?v=4"></script>
+  <script type="module" src="src/auth.js?v=5"></script>
+  <script>
+    // Script de emergência para limpar cache se detectar versão antiga nos logs
+    if (localStorage.getItem('app_version') !== 'v5') {
+      console.log("Detectada versão antiga em cache. Forçando limpeza...");
+      localStorage.setItem('app_version', 'v5');
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (let reg of regs) reg.unregister();
+          window.location.reload(true);
+        });
+      }
+    }
+  </script>
   <script type="module">
     // Registo do Service Worker (na raiz)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('sw.js')
           .then(reg => console.log('Service Worker registrado:', reg.scope))
           .catch(err => console.log('Erro ao registrar Service Worker:', err));
       });
