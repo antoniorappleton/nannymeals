@@ -7,176 +7,167 @@
   <title>Weekly Plan - NannyMeal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/styles.css" />
-  <style>
-    .plan-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .day-slot {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-      padding-bottom: 24px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .day-label {
-      font-weight: 800;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      color: var(--text-light);
-      letter-spacing: 1px;
-    }
-
-    .recipe-card {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      background: white;
-      padding: 16px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .recipe-img {
-      width: 80px;
-      height: 80px;
-      border-radius: 12px;
-      background: #f0f0f0;
-      object-fit: cover;
-    }
-
-    .recipe-info {
-      flex: 1;
-    }
-
-    .recipe-title {
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin-bottom: 4px;
-    }
-
-    .recipe-meta {
-      font-size: 0.85rem;
-      color: var(--text-light);
-      display: flex;
-      gap: 12px;
-    }
-
-    .badge {
-      background: #f0f2f5;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .badge.quick {
-      background: #e3fcef;
-      color: #006644;
-    }
-
-    .badge.kid {
-      background: #eae6ff;
-      color: #403294;
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-icon {
-      background: white;
-      border: 1px solid #e0e0e0;
-      color: var(--text);
-      width: 40px;
-      height: 40px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .nav-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 12px;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-      z-index: 100;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 0.7rem;
-      color: var(--text-light);
-      text-decoration: none;
-      gap: 4px;
-    }
-
-    .nav-item.active {
-      color: var(--primary);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#13ec5b",
+            "background-light": "#f6f8f6",
+            "background-dark": "#102216",
+          },
+          fontFamily: {
+            display: ["Plus Jakarta Sans"],
+          },
+          borderRadius: {
+            DEFAULT: "0.5rem",
+            lg: "1rem",
+            xl: "1.5rem",
+            full: "9999px",
+          },
+        },
+      },
+    };
+  </script>
 </head>
 
-<body>
-  <div class="app-container" style="padding-bottom: 80px">
-    <header class="plan-header">
-      <div class="logo" style="font-size: 1.5rem">NannyMeal</div>
-      <div style="font-weight: 600; font-size: 0.9rem">Mar 2 – Mar 8</div>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+  <div
+    class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-4xl mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden md:px-6">
+    <header
+      class="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4 md:shadow-lg md:shadow-primary/5">
+      <a href="dashboard.html" class="flex items-center gap-2">
+        <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor" class="w-6 h-6 text-primary">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">NannyMeal</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="dashboard.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Home</a>
+        <a href="plan.html"
+          class="text-sm font-black uppercase tracking-widest text-primary border-b-2 border-primary pb-1">Plano</a>
+        <a href="grocery.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Lista</a>
+      </nav>
+
+      <button id="btn-logout"
+        class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+      </button>
     </header>
 
-    <main id="weekly-plan-list">
+    <main id="weekly-plan-list" class="flex-1 p-4 pb-24">
+      <div
+        class="mb-8 p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800">
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">Plano Semanal
+        </h2>
+        <p class="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">2 Mar – 8 Mar</p>
+      </div>
       <!-- Monday -->
-      <div class="day-slot">
-        <label class="day-label">Monday</label>
-        <div class="recipe-card">
-          <div class="recipe-img" style="background: #ffeaa7"></div>
-          <div class="recipe-info">
-            <h3 class="recipe-title">15-Min Lemon Pasta</h3>
-            <div class="recipe-meta">
-              <span class="badge quick">Quick</span>
-              <span class="badge kid">Kid-Friendly</span>
+      <div class="mb-6">
+        <label
+          class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2 mb-2 block">Segunda-feira</label>
+        <div
+          class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
+          <div class="flex items-center gap-4">
+            <div
+              class="size-14 bg-yellow-400/10 rounded-xl flex items-center justify-center group-hover:bg-yellow-400/20 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-7 h-7 text-yellow-500">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-extrabold text-slate-900 dark:text-white leading-tight text-lg">Massa de Limão (15 Min)
+              </h3>
+              <div class="flex gap-2 mt-1">
+                <span
+                  class="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-[10px] font-black uppercase tracking-wider">Rápido</span>
+                <span
+                  class="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-wider">Crianças</span>
+              </div>
             </div>
           </div>
-          <div class="actions">
-            <button class="btn-icon" title="Swap">🔄</button>
-            <button class="btn-icon" title="Lock">🔒</button>
+          <div class="flex gap-2">
+            <button
+              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-primary/20 group-hover:scale-105 transition-all text-slate-400 hover:text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </button>
+            <button
+              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-primary/20 group-hover:scale-105 transition-all text-slate-400 hover:text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Tuesday -->
-      <div class="day-slot">
-        <label class="day-label">Tuesday</label>
-        <div class="recipe-card">
-          <div class="recipe-img" style="background: #fab1a0"></div>
-          <div class="recipe-info">
-            <h3 class="recipe-title">Oven-Baked Tacos</h3>
-            <div class="recipe-meta">
-              <span>25 min</span>
-              <span class="badge kid">Kid-Friendly</span>
+      <div class="mb-6">
+        <label
+          class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2 mb-2 block">Terça-feira</label>
+        <div
+          class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
+          <div class="flex items-center gap-4">
+            <div
+              class="size-14 bg-orange-400/10 rounded-xl flex items-center justify-center group-hover:bg-orange-400/20 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-7 h-7 text-orange-500">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-extrabold text-slate-900 dark:text-white leading-tight text-lg">Tacos No Forno</h3>
+              <div class="flex gap-2 mt-1">
+                <span
+                  class="px-2 py-0.5 bg-slate-100 text-slate-500 dark:bg-slate-800 rounded-lg text-[10px] font-black uppercase tracking-wider">25
+                  MIN</span>
+                <span
+                  class="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-wider">Crianças</span>
+              </div>
             </div>
           </div>
-          <div class="actions">
-            <button class="btn-icon">🔄</button>
-            <button class="btn-icon">🔒</button>
+          <div class="flex gap-2">
+            <button
+              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </button>
+            <button
+              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -201,28 +192,40 @@
       </div>
     </main>
 
-    <div style="margin-top: 20px">
-      <button onclick="window.location.href = 'grocery.html'">
-        View Shopping List
-      </button>
-    </div>
-
-    <nav class="nav-bar">
-      <a href="plan.html" class="nav-item active">
-        <span style="font-size: 1.2rem">📅</span>
-        Plan
+    <!-- Bottom Navigation -->
+    <nav
+      class="md:hidden mt-auto sticky bottom-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-4 flex justify-around">
+      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Home</span>
       </a>
-      <a href="grocery.html" class="nav-item">
-        <span style="font-size: 1.2rem">🛒</span>
-        Grocery
+      <a href="plan.html" class="flex flex-col items-center gap-1 text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
       </a>
-      <a href="#" class="nav-item">
-        <span style="font-size: 1.2rem">⭐</span>
-        Feedback
+      <a href="grocery.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Lista</span>
       </a>
-      <a href="#" class="nav-item">
-        <span style="font-size: 1.2rem">⚙️</span>
-        Settings
+      <a href="onboarding.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Perfil</span>
       </a>
     </nav>
   </div>
@@ -237,6 +240,10 @@
     }
   </script>
   <script type="module" src="src/auth.js?v=5.3"></script>
+  <script type="module">
+    import { logout } from "./src/auth.js";
+    document.getElementById("btn-logout").onclick = () => logout();
+  </script>
 </body>
 
 </html>

@@ -8,144 +8,170 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="assets/styles.css" />
-  <style>
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 800;
-      margin: 24px 0 12px;
-      color: var(--primary);
-    }
-
-    .grocery-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .grocery-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin: 0;
-      cursor: pointer;
-    }
-
-    .grocery-item.checked span {
-      text-decoration: line-through;
-      color: var(--text-light);
-    }
-
-    .item-qty {
-      font-weight: 600;
-      color: var(--text-light);
-      font-size: 0.9rem;
-      margin-left: auto;
-    }
-
-    .btn-action-bar {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .btn-action-bar button {
-      padding: 10px;
-      font-size: 0.9rem;
-    }
-
-    .nav-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 12px;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-      z-index: 100;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 0.7rem;
-      color: var(--text-light);
-      text-decoration: none;
-      gap: 4px;
-    }
-
-    .nav-item.active {
-      color: var(--primary);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#13ec5b",
+            "background-light": "#f6f8f6",
+            "background-dark": "#102216",
+          },
+          fontFamily: {
+            display: ["Plus Jakarta Sans"],
+          },
+          borderRadius: {
+            DEFAULT: "0.5rem",
+            lg: "1rem",
+            xl: "1.5rem",
+            full: "9999px",
+          },
+        },
+      },
+    };
+  </script>
 </head>
 
-<body>
-  <div class="app-container" style="padding-bottom: 80px">
-    <header class="plan-header" style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        ">
-      <div class="logo" style="font-size: 1.5rem">NannyMeal</div>
-      <div style="font-weight: 600; font-size: 0.9rem">Shopping List</div>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+  <div
+    class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-4xl mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden md:px-6">
+    <header
+      class="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4 md:shadow-lg md:shadow-primary/5">
+      <a href="dashboard.html" class="flex items-center gap-2">
+        <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor" class="w-6 h-6 text-primary">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">NannyMeal</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="dashboard.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Home</a>
+        <a href="plan.html"
+          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Plano</a>
+        <a href="grocery.html"
+          class="text-sm font-black uppercase tracking-widest text-primary border-b-2 border-primary pb-1">Lista</a>
+      </nav>
+
+      <button id="btn-logout"
+        class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+      </button>
     </header>
 
-    <main id="grocery-list">
-      <div class="section-title">Produce</div>
-      <div class="card">
-        <label class="grocery-item">
-          <input type="checkbox" />
-          <span>Fresh Basil</span>
-          <span class="item-qty">1 bunch</span>
-        </label>
-        <label class="grocery-item">
-          <input type="checkbox" />
-          <span>Lemons</span>
-          <span class="item-qty">2 units</span>
-        </label>
+    <main id="grocery-list" class="flex-1 p-4 pb-24">
+      <div
+        class="mb-8 p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800">
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">Lista de Compras
+        </h2>
+      </div>
+      <div class="mb-6">
+        <label
+          class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2 mb-2 block">Hortifrutis</label>
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <label
+            class="flex items-center gap-4 p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
+            <input type="checkbox"
+              class="size-6 rounded-lg border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 transition-all cursor-pointer" />
+            <span
+              class="flex-1 font-bold text-slate-700 dark:text-slate-200 group-[.checked]:line-through group-[.checked]:text-slate-400">Manjericão
+              Fresco</span>
+            <span class="text-sm font-black text-slate-400 uppercase tracking-widest">1 Maço</span>
+          </label>
+          <label
+            class="flex items-center gap-4 p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
+            <input type="checkbox"
+              class="size-6 rounded-lg border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 transition-all cursor-pointer" />
+            <span
+              class="flex-1 font-bold text-slate-700 dark:text-slate-200 group-[.checked]:line-through group-[.checked]:text-slate-400">Limões</span>
+            <span class="text-sm font-black text-slate-400 uppercase tracking-widest">2 unid</span>
+          </label>
+        </div>
       </div>
 
-      <div class="section-title">Pantry</div>
-      <div class="card">
-        <label class="grocery-item">
-          <input type="checkbox" />
-          <span>Spaghetti</span>
-          <span class="item-qty">500g</span>
-        </label>
-        <label class="grocery-item">
-          <input type="checkbox" />
-          <span>Taco Shells</span>
-          <span class="item-qty">1 pack</span>
-        </label>
+      <div class="mb-8">
+        <label
+          class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2 mb-2 block">Despensa</label>
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <label
+            class="flex items-center gap-4 p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
+            <input type="checkbox"
+              class="size-6 rounded-lg border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 transition-all cursor-pointer" />
+            <span
+              class="flex-1 font-bold text-slate-700 dark:text-slate-200 group-[.checked]:line-through group-[.checked]:text-slate-400">Esparguete</span>
+            <span class="text-sm font-black text-slate-400 uppercase tracking-widest">500g</span>
+          </label>
+          <label
+            class="flex items-center gap-4 p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
+            <input type="checkbox"
+              class="size-6 rounded-lg border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 transition-all cursor-pointer" />
+            <span
+              class="flex-1 font-bold text-slate-700 dark:text-slate-200 group-[.checked]:line-through group-[.checked]:text-slate-400">Taco
+              Shells</span>
+            <span class="text-sm font-black text-slate-400 uppercase tracking-widest">1 pack</span>
+          </label>
+        </div>
       </div>
 
-      <div class="btn-action-bar">
-        <button class="outline" id="btn-show-basics">Show Basics</button>
-        <button class="outline" id="btn-clear-checked">Clear checked</button>
+      <div class="flex gap-4">
+        <button
+          class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-black py-4 rounded-xl transition-all uppercase tracking-widest text-xs"
+          id="btn-show-basics">Básicos</button>
+        <button
+          class="flex-1 bg-primary/10 border border-primary/20 hover:bg-primary/20 text-primary font-black py-4 rounded-xl transition-all uppercase tracking-widest text-xs"
+          id="btn-clear-checked">Limpar</button>
       </div>
     </main>
 
-    <nav class="nav-bar">
-      <a href="plan.html" class="nav-item">
-        <span style="font-size: 1.2rem">📅</span>
-        Plan
+    <!-- Bottom Navigation -->
+    <nav
+      class="md:hidden mt-auto sticky bottom-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-4 flex justify-around">
+      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Home</span>
       </a>
-      <a href="grocery.html" class="nav-item active">
-        <span style="font-size: 1.2rem">🛒</span>
-        Grocery
+      <a href="plan.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
       </a>
-      <a href="#" class="nav-item">
-        <span style="font-size: 1.2rem">⭐</span>
-        Feedback
+      <a href="grocery.html" class="flex flex-col items-center gap-1 text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Lista</span>
       </a>
-      <a href="#" class="nav-item">
-        <span style="font-size: 1.2rem">⚙️</span>
-        Settings
+      <a href="onboarding.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+        <span class="text-[10px] font-black uppercase tracking-widest">Perfil</span>
       </a>
     </nav>
   </div>
@@ -161,6 +187,10 @@
     }
   </script>
   <script type="module" src="src/auth.js?v=5.3"></script>
+  <script type="module">
+    import { logout } from "./src/auth.js";
+    document.getElementById("btn-logout").onclick = () => logout();
+  </script>
   <script>
     document.querySelectorAll(".grocery-item input").forEach((cb) => {
       cb.addEventListener("change", (e) => {

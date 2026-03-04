@@ -5,7 +5,8 @@
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>NannyMeal - Configuração da Família</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
     tailwind.config = {
@@ -18,12 +19,12 @@
             "background-dark": "#102216",
           },
           fontFamily: {
-            display: ["Manrope"],
+            display: ["Plus Jakarta Sans"],
           },
           borderRadius: {
-            DEFAULT: "0.25rem",
-            lg: "0.5rem",
-            xl: "0.75rem",
+            DEFAULT: "0.5rem",
+            lg: "1rem",
+            xl: "1.5rem",
             full: "9999px",
           },
         },
@@ -51,31 +52,46 @@
   <div
     class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-[600px] mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl transition-all duration-300">
     <!-- Header -->
-    <div class="flex items-center p-4 pb-2 justify-between">
-      <div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center cursor-pointer" id="btn-back">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+    <header
+      class="flex items-center p-4 justify-between bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4">
+      <div
+        class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+        id="btn-back">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
           class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
       </div>
-      <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center">
+      <h2
+        class="text-slate-900 dark:text-slate-100 text-lg font-extrabold leading-tight tracking-tight flex-1 text-center">
         Configuração Familiar
       </h2>
-      <div class="size-12"></div>
-    </div>
+      <button id="btn-logout"
+        class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+      </button>
+    </header>
 
     <!-- Progress Bar -->
-    <div class="flex flex-col gap-3 p-4">
-      <div class="flex gap-6 justify-between">
-        <p class="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal" id="step-label">
+    <div
+      class="flex flex-col gap-3 p-6 bg-white dark:bg-slate-900 md:rounded-2xl md:mt-4 shadow-xl shadow-primary/5 border-b md:border border-slate-100 dark:border-slate-800">
+      <div class="flex gap-6 justify-between items-center">
+        <p class="text-slate-900 dark:text-slate-100 text-base font-black leading-normal" id="step-label">
           Passo 1 de 4
         </p>
+        <span
+          class="text-xs font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-1 rounded-lg">Perfil</span>
       </div>
-      <div class="rounded-full bg-primary/20">
-        <div class="h-2 rounded-full bg-primary transition-all duration-500" id="progress-bar" style="width: 25%"></div>
+      <div class="rounded-full bg-slate-100 dark:bg-slate-800 h-2 overflow-hidden">
+        <div class="h-full rounded-full bg-primary transition-all duration-700 shadow-[0_0_10px_rgba(19,236,91,0.5)]"
+          id="progress-bar" style="width: 25%"></div>
       </div>
-      <p class="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal">
-        Estamos a configurar o perfil da sua família
+      <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+        Estamos a personalizar a sua experiência para toda a família.
       </p>
     </div>
 
@@ -83,51 +99,54 @@
     <main class="flex-1 overflow-y-auto px-4 pt-4">
       <!-- Passo 1: Família -->
       <div id="setup-step-1" class="setup-step">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-              stroke="currentColor" class="w-6 h-6 text-primary">
+        <div class="flex items-center gap-4 mb-8">
+          <div class="size-14 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+              stroke="currentColor" class="w-7 h-7 text-primary">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a5.97 5.97 0 0 0-.942 3.197M12 10.5a3.375 3.375 0 1 0 0-6.75 3.375 3.375 0 0 0 0 6.75ZM21 12a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM3.75 12a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" />
             </svg>
           </div>
           <div>
-            <h2 class="text-2xl font-bold">A vossa família</h2>
-            <p class="text-sm text-slate-500">Quem vai jantar?</p>
+            <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">A vossa família</h2>
+            <p class="text-sm text-slate-500 font-medium">Quem vai jantar esta semana?</p>
           </div>
         </div>
 
-        <div class="space-y-8">
+        <div class="space-y-10">
           <div>
-            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-3">Adultos</label>
-            <div class="flex gap-2" id="adult-selector">
+            <label
+              class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 block mb-4">Adultos
+              ao Jantar</label>
+            <div class="flex gap-3" id="adult-selector">
               <button data-value="1"
-                class="w-12 h-12 rounded-xl font-bold transition-all text-slate-500 bg-slate-100 dark:bg-slate-800">
+                class="w-14 h-14 rounded-2xl font-black transition-all text-slate-500 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-primary/50">
                 1
               </button>
               <button data-value="2"
-                class="w-12 h-12 rounded-xl font-bold transition-all bg-primary text-slate-900 shadow-md">
+                class="w-14 h-14 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-xl shadow-primary/20 scale-110 border-2 border-primary">
                 2
               </button>
               <button data-value="3"
-                class="w-12 h-12 rounded-xl font-bold transition-all text-slate-500 bg-slate-100 dark:bg-slate-800">
+                class="w-14 h-14 rounded-2xl font-black transition-all text-slate-500 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-primary/50">
                 3
               </button>
               <button data-value="4"
-                class="w-12 h-12 rounded-xl font-bold transition-all text-slate-500 bg-slate-100 dark:bg-slate-800">
+                class="w-14 h-14 rounded-2xl font-black transition-all text-slate-500 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-primary/50">
                 4
               </button>
             </div>
           </div>
 
           <div>
-            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-3">Crianças</label>
-            <div id="children-list" class="space-y-3 mb-4">
+            <label
+              class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 block mb-4">Crianças</label>
+            <div id="children-list" class="space-y-4 mb-6">
               <!-- Crianças adicionadas dinamicamente aqui -->
             </div>
             <button id="btn-add-child"
-              class="flex items-center gap-2 text-sm font-bold text-primary hover:opacity-80 transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              class="flex items-center gap-3 px-6 py-4 rounded-2xl bg-primary/10 text-primary font-black uppercase tracking-widest text-xs hover:bg-primary/20 transition-all w-full justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                 stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round"
                   d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -387,27 +406,29 @@
     </main>
 
     <!-- Footer -->
-    <div class="mt-auto p-4 bg-white dark:bg-background-dark border-t border-slate-100 dark:border-slate-800">
-      <div class="flex gap-3">
+    <footer
+      class="mt-auto p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 md:rounded-t-2xl shadow-2xl">
+      <div class="flex gap-4">
         <button
-          class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold py-4 rounded-xl transition-all hidden"
+          class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black py-4 rounded-2xl transition-all hidden uppercase tracking-widest text-xs"
           id="btn-prev">
           Anterior
         </button>
         <button
-          class="flex-[2] bg-primary hover:bg-primary/90 text-slate-900 font-bold py-4 rounded-xl transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+          class="flex-[2] bg-primary hover:scale-[1.02] active:scale-95 text-slate-900 font-black py-5 rounded-2xl transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
           id="btn-next">
           Seguinte
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-            stroke="currentColor" class="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"
+            class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
         </button>
       </div>
-      <p class="text-center text-xs text-slate-400 mt-4 px-8" id="footer-note">
-        Escolha quem vai jantar para começar a planear.
+      <p class="text-center text-[10px] text-slate-400 font-black uppercase tracking-widest mt-6 px-4 leading-relaxed"
+        id="footer-note">
+        Configure o perfil para um plano 100% à medida.
       </p>
-    </div>
+    </footer>
     <div class="h-8"></div>
   </div>
 
