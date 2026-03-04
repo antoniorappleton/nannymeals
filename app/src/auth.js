@@ -37,6 +37,7 @@ if (authForm) {
     e.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirm-password") ? document.getElementById("confirm-password").value : null;
     const isLogin = window.isLoginMode !== false; // Default true
 
     try {
@@ -45,15 +46,20 @@ if (authForm) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         console.log("A criar conta...");
+        // Validar se as passwords coincidem
+        if (password !== confirmPassword) {
+          throw new Error("As palavras-passe não coincidem.");
+        }
         await createUserWithEmailAndPassword(auth, email, password);
       }
       // O onAuthStateChanged tratará do redirecionamento
     } catch (error) {
       console.error("Erro na autenticação:", error.code, error.message);
-      let msg = "Erro: " + error.message;
+      let msg = error.message;
       if (error.code === "auth/email-already-in-use") msg = "Este email já está registado.";
       if (error.code === "auth/wrong-password") msg = "Palavra-passe incorreta.";
       if (error.code === "auth/user-not-found") msg = "Utilizador não encontrado.";
+      if (error.code === "auth/weak-password") msg = "A palavra-passe deve ter pelo menos 6 caracteres.";
       alert(msg);
     }
   });

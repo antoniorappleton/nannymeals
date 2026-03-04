@@ -77,6 +77,12 @@ export const syncUserProfile = async (user) => {
   );
 };
 
+export const getUserProfile = async (uid) => {
+  const userRef = doc(db, "users", uid);
+  const snap = await getDoc(userRef);
+  return snap.exists() ? snap.data() : null;
+};
+
 /**
  * Households - Gestão de Famílias
  */

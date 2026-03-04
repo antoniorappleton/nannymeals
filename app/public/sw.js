@@ -1,4 +1,4 @@
-const CACHE_NAME = "nannymeal-v2";
+const CACHE_NAME = "nannymeal-v4";
 const ASSETS = [
   "/",
   "/index.html",
@@ -35,6 +35,9 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Ignorar pedidos internos do Firebase (essencial para OAuth Redirect)
+  if (event.request.url.includes('/__/auth/')) return;
+  
   // Ignorar pedidos que não sejam http ou https (ex: chrome-extension)
   if (!event.request.url.startsWith('http')) return;
 

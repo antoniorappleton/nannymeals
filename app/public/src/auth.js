@@ -1,11 +1,14 @@
 import { auth } from "./firebase-init.js";
-import { syncUserProfile } from "./db.js";
+import { syncUserProfile, getHousehold, getUserProfile } from "./db.js";
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithRedirect,
   getRedirectResult,
   onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
   signOut,
 } from "firebase/auth";
 
@@ -13,32 +16,100 @@ import {
  * Lógica de Autenticação Centralizada
  */
 
-// Lidar com o resultado do redirecionamento (necessário após o retorno do Google)
-getRedirectResult(auth)
+console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [CACHE-RESET-V3-PERSISTENCE]");
+
+// Capturar erros globais para diagnóstico na UI (útil para telemóveis)
+window.onerror = function(message, source, lineno, colno, error) {
+  const errorMsg = `Erro Crítico: ${message} em ${source}:${lineno}`;
+  console.error(errorMsg);
+  // Apenas mostrar erros que venham do nosso domínio
+  if (source.includes(window.location.hostname)) {
+    showError(errorMsg);
+  }
+  return false;
+};
+
+// Estado para evitar loops durante o processamento do redirect
+let isCheckingRedirect = true;
+
+// Função auxiliar para mostrar erros na UI
+const showError = (message) => {
+  const errorContainer = document.getElementById("auth-error");
+  if (errorContainer) {
+    errorContainer.textContent = message;
+    errorContainer.classList.remove("hidden");
+    errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    alert(message);
+  }
+};
+
+// Mostrar loading inicial se estivermos no ecrã de login
+if (window.setGoogleLoading) window.setGoogleLoading(true);
+
+// Configurar persistência local explícita ANTES de verificar o redirect
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Persistência configurada: LOCAL");
+    
+    // Lidar com o resultado do redirecionamento
+    return getRedirectResult(auth);
+  })
   .then((result) => {
+    isCheckingRedirect = false;
+    if (window.setGoogleLoading) window.setGoogleLoading(false);
+
     if (result) {
-      console.log("Login por redirecionamento bem-sucedido");
-      // O utilizador será detetado pelo onAuthStateChanged abaixo
+      console.log("Login por redirecionamento bem-sucedido para:", result.user.email);
+    } else {
+      console.log("Nenhum resultado de redirecionamento detectado.");
+      // Se não detectou mas o utilizador já está logado (estado persistente),
+      // o onAuthStateChanged tratará disso.
     }
   })
   .catch((error) => {
-    console.error("Erro no resultado do redirecionamento:", error.message);
+    isCheckingRedirect = false;
+    if (window.setGoogleLoading) window.setGoogleLoading(false);
+    console.error("Erro no arranque/redirect:", error.code, error.message);
+    if (error.code === "auth/unauthorized-domain") {
+       showError("ERRO DE DOMÍNIO: O domínio '" + window.location.hostname + "' não está autorizado no Firebase Console.");
+    } else if (error.code !== "auth/credential-already-in-use") {
+       showError("Erro ao finalizar login: " + error.message);
+    }
   });
 
-// Elementos da UI de Login
-const loginForm = document.getElementById("login-form");
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
+// Elementos da UI de Login/Registo
+const authForm = document.getElementById("auth-form");
+if (authForm) {
+  authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirm-password") ? document.getElementById("confirm-password").value : null;
+    const isLogin = window.isLoginMode !== false;
+
+    const errorContainer = document.getElementById("auth-error");
+    if (errorContainer) errorContainer.classList.add("hidden");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // O onAuthStateChanged tratará do redirecionamento
+      if (isLogin) {
+        console.log("A iniciar sessão...");
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        console.log("A criar conta...");
+        if (password !== confirmPassword) {
+          throw new Error("As palavras-passe não coincidem.");
+        }
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
     } catch (error) {
-      console.error("Erro no login:", error.message);
-      alert("Erro ao entrar: " + error.message);
+      console.error("Erro na autenticação:", error.code, error.message);
+      let msg = error.message;
+      if (error.code === "auth/email-already-in-use") msg = "Este email já está registado.";
+      if (error.code === "auth/wrong-password") msg = "Palavra-passe incorreta.";
+      if (error.code === "auth/user-not-found") msg = "Utilizador não encontrado.";
+      if (error.code === "auth/weak-password") msg = "A palavra-passe deve ter pelo menos 6 caracteres.";
+      showError(msg);
     }
   });
 
@@ -47,11 +118,13 @@ if (loginForm) {
     googleBtn.addEventListener("click", async () => {
       const provider = new GoogleAuthProvider();
       try {
-        // Usar Redirect em vez de Popup para compatibilidade com telemóveis
+        console.log("A iniciar redirect do Google...");
+        if (window.setGoogleLoading) window.setGoogleLoading(true);
         await signInWithRedirect(auth, provider);
       } catch (error) {
         console.error("Erro Google Login:", error.message);
-        alert("Erro no login Google. Por favor, tente novamente.");
+        if (window.setGoogleLoading) window.setGoogleLoading(false);
+        showError("Erro no login Google: " + error.message);
       }
     });
   }
@@ -59,28 +132,42 @@ if (loginForm) {
 
 // Observador do Estado da Sessão
 onAuthStateChanged(auth, async (user) => {
-  // Agora index.html é a página de login
-  const isLoginPage =
-    window.location.pathname === "/" ||
-    window.location.pathname.endsWith("index.html");
+  const path = window.location.pathname;
+  const hasAuthForm = !!document.getElementById("auth-form");
+  const isLoginPage = path === "/" || path.endsWith("index.html") || path === "" || path.endsWith("/") || hasAuthForm;
+  
+  const isOnboardingPage = path.endsWith("onboarding.html");
+  const isDashboardPage = path.endsWith("dashboard.html");
+
+  console.log("--- Diagnóstico Auth ---");
+  console.log("Path:", path, "| User:", user ? user.email : "Nenhum", "| isCheckingRedirect:", isCheckingRedirect);
 
   if (user) {
-    console.log("Usuário autenticado:", user.email);
+    syncUserProfile(user).catch(err => console.error("Erro na sincronização:", err));
 
-    // Sincronizar dados com o Firestore
-    try {
-      await syncUserProfile(user);
-    } catch (error) {
-      console.error("Erro ao sincronizar perfil:", error);
-    }
-
-    if (isLoginPage) {
-      window.location.href = "dashboard.html";
+    if (isLoginPage || isOnboardingPage) {
+      console.log("A verificar Household para utilizador autenticado...");
+      try {
+        const userData = await getUserProfile(user.uid);
+        
+        if (userData && userData.householdId) {
+          console.log("Household detectado -> Dashboard");
+          if (!isDashboardPage) location.replace("dashboard.html");
+        } 
+        else if (isLoginPage) {
+          console.log("Sem household detectado -> Onboarding");
+          location.replace("onboarding.html");
+        }
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+        if (isLoginPage) location.replace("onboarding.html");
+      }
     }
   } else {
-    console.log("Nenhum usuário logado.");
-    if (!isLoginPage && !window.location.pathname.endsWith("onboarding.html")) {
-      window.location.href = "index.html";
+    // IMPORTANTE: Só redirecionar se não estivermos a processar um resultado de redirect do Google
+    if (!isCheckingRedirect && !isLoginPage && !isOnboardingPage && !path.includes("assets")) {
+      console.log("Acesso não autorizado -> Redirect Login");
+      location.replace("index.html");
     }
   }
 });

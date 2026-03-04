@@ -1,47 +1,42 @@
 <!doctype html>
 <html class="light" lang="pt">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>NannyMeal - Login</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#13ec5b",
-              "background-light": "#f6f8f6",
-              "background-dark": "#102216",
-            },
-            fontFamily: {
-              display: ["Plus Jakarta Sans"],
-            },
-            borderRadius: {
-              DEFAULT: "0.5rem",
-              lg: "1rem",
-              xl: "1.5rem",
-              full: "9999px",
-            },
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>NannyMeal - Login</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#13ec5b",
+            "background-light": "#f6f8f6",
+            "background-dark": "#102216",
+          },
+          fontFamily: {
+            display: ["Plus Jakarta Sans"],
+          },
+          borderRadius: {
+            DEFAULT: "0.5rem",
+            lg: "1rem",
+            xl: "1.5rem",
+            full: "9999px",
           },
         },
-      };
-    </script>
-    <style>
-      body {
-        min-height: max(884px, 100dvh);
-      }
-    </style>
-    <script type="importmap">
+      },
+    };
+  </script>
+  <style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <script type="importmap">
       {
         "imports": {
           "firebase/app": "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js",
@@ -51,203 +46,246 @@
         }
       }
     </script>
-  </head>
-  <body
-    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center p-4"
-  >
-    <div
-      class="relative w-full max-w-[480px] bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-2xl shadow-primary/10 border border-slate-100 dark:border-slate-800"
-    >
-      <!-- Header Image Area -->
-      <div class="relative h-64 w-full bg-primary/10 overflow-hidden">
-        <div
-          class="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-slate-900 z-10"
-        ></div>
-        <div
-          class="w-full h-full bg-center bg-no-repeat bg-cover"
-          style="
+</head>
+
+<body
+  class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center p-4">
+  <div
+    class="relative w-full max-w-[480px] bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-2xl shadow-primary/10 border border-slate-100 dark:border-slate-800">
+    <!-- Header Image Area -->
+    <div class="relative h-64 w-full bg-primary/10 overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-slate-900 z-10"></div>
+      <div class="w-full h-full bg-center bg-no-repeat bg-cover" style="
             background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuCwmN_0KnGdM6ExB5Fq5e_7QS5WxAjCmIr0ffa1-gc6tx71L9Ta57IrlkHjJJOOZJKudwAojhXIkACtlrh6RaEpcZeJQ_pfu9mlMuJHMOI60nsbf1z-QKqYXQ6Ww0g__3Uq1Bcn1u1YqfpvHilfIZTSKUqInxYdrY3srmb1M6SNGzdzTUlAryAw6YSdxtXORClRR02FZVHJoKjMqDvyptc88MxqX7eLFgaBcgvlhqCg1dXi2e05Z5IJy0lQp9j4gRJXQaQDIxJTB_Ou&quot;);
-          "
-        ></div>
-      </div>
-      <div class="px-8 pb-12 -mt-12 relative z-20">
-        <!-- Welcome Header -->
-        <div class="text-center mb-10">
-          <h1
-            class="text-slate-900 dark:text-slate-50 tracking-tight text-3xl font-bold leading-tight"
-          >
-            Bem-vindo de volta, Chef!
-          </h1>
-          <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-            Pronto para planear a próxima refeição saudável da família?
-          </p>
-        </div>
-        <!-- Auth Form -->
-        <form class="space-y-5" id="auth-form">
-          <div class="flex flex-col gap-2">
-            <label
-              id="email-label"
-              class="text-slate-700 dark:text-slate-300 text-sm font-semibold px-1"
-              >Email</label
-            >
-            <div class="relative">
-              <span
-                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]"
-                >mail</span
-              >
-              <input
-                id="email"
-                class="form-input w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-4 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400 dark:text-white"
-                placeholder="chef@familia.com"
-                type="email"
-                required
-              />
-            </div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <div class="flex justify-between items-center px-1">
-              <label
-                id="password-label"
-                class="text-slate-700 dark:text-slate-300 text-sm font-semibold"
-                >Palavra-passe</label
-              >
-              <a
-                id="forgot-password"
-                class="text-primary font-semibold text-xs hover:underline"
-                href="#"
-                >Esqueceu-se?</a
-              >
-            </div>
-            <div
-              class="flex w-full items-stretch rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all"
-            >
-              <div class="flex items-center pl-4 text-slate-400">
-                <span class="material-symbols-outlined text-[20px]">lock</span>
-              </div>
-              <input
-                id="password"
-                class="form-input flex-1 border-none bg-transparent h-14 pl-3 pr-2 focus:ring-0 placeholder:text-slate-400 dark:text-white"
-                placeholder="••••••••"
-                type="password"
-                required
-              />
-              <button
-                id="toggle-password"
-                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pr-4 flex items-center"
-                type="button"
-              >
-                <span class="material-symbols-outlined text-[20px]"
-                  >visibility</span
-                >
-              </button>
-            </div>
-          </div>
-          <!-- Primary Auth Button -->
-          <button
-            id="btn-submit"
-            class="w-full bg-primary hover:opacity-90 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all mt-4 flex items-center justify-center gap-2"
-            type="submit"
-          >
-            Entrar
-          </button>
-          <!-- Divider -->
-          <div class="relative py-4 flex items-center">
-            <div
-              class="flex-grow border-t border-slate-200 dark:border-slate-700"
-            ></div>
-            <span
-              class="flex-shrink mx-4 text-slate-400 text-xs font-medium uppercase tracking-widest"
-              >ou continuar com</span
-            >
-            <div
-              class="flex-grow border-t border-slate-200 dark:border-slate-700"
-            ></div>
-          </div>
-          <!-- Social Login -->
-          <button
-            id="btn-google"
-            class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-            type="button"
-          >
-            <svg class="w-5 h-5" viewbox="0 0 24 24">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#4285F4"
-              ></path>
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              ></path>
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                fill="#FBBC05"
-              ></path>
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              ></path>
-            </svg>
-            <span class="text-slate-700 dark:text-slate-200 font-semibold"
-              >Google</span
-            >
-          </button>
-        </form>
-        <!-- Footer Link -->
-        <p class="text-center mt-8 text-sm text-slate-500 dark:text-slate-400">
-          <span id="auth-footer-text">Novo por aqui?</span>
-          <button id="toggle-auth-mode" class="text-primary font-bold hover:underline">
-            Registe-se grátis
-          </button>
+          "></div>
+    </div>
+    <div class="px-8 pb-12 -mt-12 relative z-20">
+      <!-- Welcome Header -->
+      <div class="text-center mb-10">
+        <h1 class="text-slate-900 dark:text-slate-50 tracking-tight text-3xl font-bold leading-tight">
+          Bem-vindo de volta, Chef!
+        </h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+          Pronto para planear a próxima refeição saudável da família?
         </p>
       </div>
+      <!-- Auth Form -->
+      <form class="space-y-5" id="auth-form">
+        <div class="flex flex-col gap-2">
+          <label id="email-label" class="text-slate-700 dark:text-slate-300 text-sm font-semibold px-1">Email</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+            </span>
+            <input id="email"
+              class="form-input w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-4 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400 dark:text-white"
+              placeholder="chef@familia.com" type="email" required />
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between items-center px-1">
+            <label id="password-label"
+              class="text-slate-700 dark:text-slate-300 text-sm font-semibold">Palavra-passe</label>
+            <a id="forgot-password" class="text-primary font-semibold text-xs hover:underline" href="#">Esqueceu-se?</a>
+          </div>
+          <div
+            class="flex w-full items-stretch rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <div class="flex items-center pl-4 text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <input id="password"
+              class="form-input flex-1 border-none bg-transparent h-14 pl-3 pr-2 focus:ring-0 placeholder:text-slate-400 dark:text-white"
+              placeholder="••••••••" type="password" required />
+            <button id="toggle-password"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pr-4 flex items-center"
+              type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5 eye-icon">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5 eye-off-icon hidden">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field (Hidden in Login Mode) -->
+        <div id="confirm-password-container" class="flex flex-col gap-2 hidden">
+          <label class="text-slate-700 dark:text-slate-300 text-sm font-semibold px-1">Confirmar Palavra-passe</label>
+          <div
+            class="flex w-full items-stretch rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <div class="flex items-center pl-4 text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <input id="confirm-password"
+              class="form-input flex-1 border-none bg-transparent h-14 pl-3 pr-2 focus:ring-0 placeholder:text-slate-400 dark:text-white"
+              placeholder="••••••••" type="password" />
+            <button id="toggle-confirm-password"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 pr-4 flex items-center"
+              type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5 eye-icon">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-5 h-5 eye-off-icon hidden">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error Message Container -->
+        <div id="auth-error"
+          class="hidden text-red-500 text-xs font-semibold px-1 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800/30">
+        </div>
+
+        <!-- Primary Auth Button -->
+        <button id="btn-submit"
+          class="w-full bg-primary hover:opacity-90 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all mt-4 flex items-center justify-center gap-2"
+          type="submit">
+          Entrar
+        </button>
+        <!-- Divider -->
+        <div class="relative py-4 flex items-center">
+          <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+          <span class="flex-shrink mx-4 text-slate-400 text-xs font-medium uppercase tracking-widest">ou continuar
+            com</span>
+          <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+        </div>
+        <!-- Social Login -->
+        <button id="btn-google"
+          class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+          type="button">
+          <svg class="w-5 h-5" viewbox="0 0 24 24">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4"></path>
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853"></path>
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+              fill="#FBBC05"></path>
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335"></path>
+          </svg>
+          <span class="text-slate-700 dark:text-slate-200 font-semibold">Google</span>
+        </button>
+      </form>
+      <!-- Footer Link -->
+      <p class="text-center mt-8 text-sm text-slate-500 dark:text-slate-400">
+        <span id="auth-footer-text">Novo por aqui?</span>
+        <button id="toggle-auth-mode" class="text-primary font-bold hover:underline">
+          Registe-se grátis
+        </button>
+      </p>
     </div>
-    <script type="module" src="src/auth.js"></script>
-    <script type="module">
-      const toggleBtn = document.getElementById("toggle-password");
-      const passInput = document.getElementById("password");
-      if (toggleBtn && passInput) {
-        toggleBtn.addEventListener("click", () => {
-          const isPass = passInput.type === "password";
-          passInput.type = isPass ? "text" : "password";
-          toggleBtn.querySelector("span").textContent = isPass
-            ? "visibility_off"
-            : "visibility";
+  </div>
+  <script type="module" src="src/auth.js?v=4"></script>
+  <script type="module">
+    // Registo do Service Worker (na raiz)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker registrado:', reg.scope))
+          .catch(err => console.log('Erro ao registrar Service Worker:', err));
+      });
+    }
+
+    const setupPasswordToggle = (btnId, inputId) => {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (btn && input) {
+        btn.addEventListener("click", () => {
+          const isPass = input.type === "password";
+          input.type = isPass ? "text" : "password";
+          btn.querySelector(".eye-icon").classList.toggle("hidden", isPass);
+          btn.querySelector(".eye-off-icon").classList.toggle("hidden", !isPass);
         });
       }
+    };
 
-      // Lógica de alternância de modo (Login/Registo)
-      const toggleAuthBtn = document.getElementById("toggle-auth-mode");
-      const authTitle = document.querySelector("h1");
-      const authBtn = document.getElementById("btn-submit");
-      const authFooterText = document.getElementById("auth-footer-text");
-      const forgotLink = document.getElementById("forgot-password");
+    setupPasswordToggle("toggle-password", "password");
+    setupPasswordToggle("toggle-confirm-password", "confirm-password");
 
-      let isLoginMode = true;
+    // Lógica de alternância de modo (Login/Registo)
+    const toggleAuthBtn = document.getElementById("toggle-auth-mode");
+    const authTitle = document.querySelector("h1");
+    const authBtn = document.getElementById("btn-submit");
+    const authFooterText = document.getElementById("auth-footer-text");
+    const forgotLink = document.getElementById("forgot-password");
+    const confirmPassContainer = document.getElementById("confirm-password-container");
 
-      if (toggleAuthBtn) {
-        toggleAuthBtn.addEventListener("click", () => {
-          isLoginMode = !isLoginMode;
-          
-          if (isLoginMode) {
-            authTitle.textContent = "Bem-vindo de volta, Chef!";
-            authBtn.textContent = "Entrar";
-            authFooterText.textContent = "Novo por aqui?";
-            toggleAuthBtn.textContent = "Registe-se grátis";
-            forgotLink.classList.remove("hidden");
-          } else {
-            authTitle.textContent = "Crie a sua conta, Chef!";
-            authBtn.textContent = "Criar Conta";
-            authFooterText.textContent = "Já tem conta?";
-            toggleAuthBtn.textContent = "Inicie sessão";
-            forgotLink.classList.add("hidden");
-          }
-          
-          // Guardar estado no window para o auth.js
-          window.isLoginMode = isLoginMode;
-        });
-      }
-      // Inicializar estado global
-      window.isLoginMode = true;
-    </script>
-  </body>
+    let isLoginMode = true;
+
+    if (toggleAuthBtn) {
+      toggleAuthBtn.addEventListener("click", () => {
+        isLoginMode = !isLoginMode;
+
+        if (isLoginMode) {
+          authTitle.textContent = "Bem-vindo de volta, Chef!";
+          authBtn.textContent = "Entrar";
+          authFooterText.textContent = "Novo por aqui?";
+          toggleAuthBtn.textContent = "Registe-se grátis";
+          forgotLink.classList.remove("hidden");
+          confirmPassContainer.classList.add("hidden");
+          document.getElementById("confirm-password").required = false;
+        } else {
+          authTitle.textContent = "Crie a sua conta, Chef!";
+          authBtn.textContent = "Criar Conta";
+          authFooterText.textContent = "Já tem conta?";
+          toggleAuthBtn.textContent = "Inicie sessão";
+          forgotLink.classList.add("hidden");
+          confirmPassContainer.classList.remove("hidden");
+          document.getElementById("confirm-password").required = true;
+        }
+
+        // Guardar estado no window para o auth.js
+        window.isLoginMode = isLoginMode;
+      });
+    }
+    // Inicializar estado global
+    window.isLoginMode = true;
+
+    // Estado visual do botão Google
+    const googleBtn = document.getElementById("btn-google");
+    if (googleBtn) {
+      window.setGoogleLoading = (loading) => {
+        const text = googleBtn.querySelector("span");
+        if (loading) {
+          googleBtn.disabled = true;
+          googleBtn.classList.add("opacity-50", "cursor-wait");
+          text.textContent = "A processar login...";
+        } else {
+          googleBtn.disabled = false;
+          googleBtn.classList.remove("opacity-50", "cursor-wait");
+          text.textContent = "Google";
+        }
+      };
+    }
+  </script>
+</body>
+
 </html>
