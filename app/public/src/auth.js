@@ -16,7 +16,7 @@ import {
  * Lógica de Autenticação Centralizada
  */
 
-console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [CACHE-RESET-V3-PERSISTENCE]");
+console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [DEEP-REDIRECT-V4]");
 
 // Capturar erros globais para diagnóstico na UI (útil para telemóveis)
 window.onerror = function(message, source, lineno, colno, error) {
