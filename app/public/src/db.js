@@ -90,6 +90,7 @@ export const createHousehold = async (ownerUid, data) => {
   const householdRef = doc(collection(db, "households"));
   const householdId = householdRef.id;
 
+  console.log("A criar household:", householdId, "para o dono:", ownerUid);
   await setDoc(householdRef, {
     ...data,
     ownerUid,
@@ -97,9 +98,11 @@ export const createHousehold = async (ownerUid, data) => {
   });
 
   // Associar household ao perfil do utilizador
+  console.log("A associar household ao utilizador...");
   const userRef = doc(db, "users", ownerUid);
   await setDoc(userRef, { householdId }, { merge: true });
 
+  console.log("Household criado e associado com sucesso!");
   return householdId;
 };
 

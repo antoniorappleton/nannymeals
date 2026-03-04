@@ -143,25 +143,30 @@ onAuthStateChanged(auth, async (user) => {
   console.log("Path:", path, "| User:", user ? user.email : "Nenhum", "| isCheckingRedirect:", isCheckingRedirect);
 
   if (user) {
-    syncUserProfile(user).catch(err => console.error("Erro na sincronização:", err));
+    try {
+      // 1. Sincronizar e esperar pelo perfil
+      console.log("A sincronizar perfil...");
+      await syncUserProfile(user);
+      
+      const userData = await getUserProfile(user.uid);
+      console.log("Perfil carregado. HouseholdId:", userData ? userData.householdId : "Nenhum");
 
-    if (isLoginPage || isOnboardingPage) {
-      console.log("A verificar Household para utilizador autenticado...");
-      try {
-        const userData = await getUserProfile(user.uid);
-        
-        if (userData && userData.householdId) {
-          console.log("Household detectado -> Dashboard");
-          if (!isDashboardPage) location.replace("dashboard.html");
-        } 
-        else if (isLoginPage) {
-          console.log("Sem household detectado -> Onboarding");
+      // 2. Lógica de Redirecionamento
+      if (userData && userData.householdId) {
+        console.log("Household detectado -> Redirecionando para Dashboard se necessário");
+        if (!isDashboardPage && !path.includes("assets")) {
+          location.replace("dashboard.html");
+        }
+      } 
+      else {
+        console.log("Sem household detectado.");
+        if (isLoginPage) {
+          console.log("Iniciando onboarding...");
           location.replace("onboarding.html");
         }
-      } catch (error) {
-        console.error("Erro ao carregar perfil:", error);
-        if (isLoginPage) location.replace("onboarding.html");
       }
+    } catch (error) {
+      console.error("Erro no processamento da sessão:", error);
     }
   } else {
     // IMPORTANTE: Só redirecionar se não estivermos a processar um resultado de redirect do Google
