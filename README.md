@@ -64,4 +64,4 @@ NannyMeal is a **Smart Meal Planner PWA** designed for busy families. It automat
    ```
 
 ---
-*Desenvolvido com ❤️ para transformar a rotina alimentar das famílias.*
+*Desenvolvido por antonioappleton@gmail.com para transformar a rotina alimentar das famílias.*
