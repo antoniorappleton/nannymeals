@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -13,8 +13,8 @@ import {
   getDocs,
   runTransaction,
   serverTimestamp
-} from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { getFunctions } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXYDmdlxSvPMHdazuQzJ29QB-hlb1rMOY",

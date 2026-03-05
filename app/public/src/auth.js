@@ -11,7 +11,7 @@ import {
   setPersistence,
   browserLocalPersistence,
   signOut,
-} from "firebase/auth";
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 /**
  * Lógica de Autenticação Centralizada (Refatorada)
