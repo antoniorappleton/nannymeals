@@ -22,14 +22,20 @@ console.log("Módulo de autenticação ativo. [V18]");
 // Helper para evitar redirecionamentos redundantes e loops
 const safeReplace = (url) => {
   const currentPath = window.location.pathname.toLowerCase();
-  const target = url.toLowerCase().replace(".html", "");
+  const cleanTarget = url.toLowerCase().replace(".html", "");
   
-  if (currentPath === `/${target}` || currentPath === target || (target === 'index' && (currentPath === '/' || currentPath === ''))) {
+  // Check if we are already on the target page (supporting both with and without .html)
+  if (
+    currentPath.endsWith(`/${cleanTarget}.html`) || 
+    currentPath.endsWith(`/${cleanTarget}`) ||
+    currentPath === `/${cleanTarget}` ||
+    (cleanTarget === 'index' && (currentPath === '/' || currentPath.endsWith('/')))
+  ) {
     return;
   }
   
-  console.log(`Encaminhando: ${currentPath} -> ${target}`);
-  window.location.replace(target);
+  console.log(`Encaminhando: ${currentPath} -> ${url}`);
+  window.location.replace(url);
 };
 
 // Capturar erros globais para diagnóstico
