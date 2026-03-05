@@ -122,15 +122,20 @@
       </p>
     </div>
   </div>
-  <script type="module" src="src/auth.js?v=11"></script>
+  <script type="module" src="src/auth.js?v=12"></script>
   <script>
     // Script de emergência para limpar cache se detectar versão antiga nos logs
-    if (localStorage.getItem('app_version') !== 'v11') {
-      console.log("Detectada versão antiga em cache. Forçando limpeza (v11)...");
-      localStorage.setItem('app_version', 'v11');
+    if (localStorage.getItem('app_version') !== 'v12') {
+      console.log("Detectada versão antiga em cache. Forçando limpeza nuclear (v12)...");
+      localStorage.setItem('app_version', 'v12');
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (let name of names) caches.delete(name);
           window.location.reload(true);
         });
       }
@@ -174,7 +179,7 @@
         const email = prompt("Insira o seu email para recuperar a palavra-passe:");
         if (email) {
           try {
-            const { resetPassword } = await import("./src/auth.js?v=11");
+            const { resetPassword } = await import("./src/auth.js?v=12");
             await resetPassword(email);
             alert("Email de recuperação enviado! Verifique a sua caixa de entrada.");
           } catch (error) {
