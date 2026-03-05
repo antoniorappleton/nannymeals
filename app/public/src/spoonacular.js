@@ -99,7 +99,7 @@ export async function analyzeIngredients(ingredientsList) {
  */
 export async function searchRecipesByCuisine(diet, count = 10) {
   try {
-    const url = `${BASE_URL}/recipes/complexSearch?diet=${encodeURIComponent(diet)}&addRecipeInformation=true&number=${count}&apiKey=${SPOONACULAR_API_KEY}`;
+    const url = `${BASE_URL}/recipes/complexSearch?diet=${encodeURIComponent(diet)}&addRecipeInformation=true&fillIngredients=true&number=${count}&apiKey=${SPOONACULAR_API_KEY}`;
     const response = await fetch(url);
     const data = await response.json();
     

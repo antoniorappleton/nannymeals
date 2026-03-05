@@ -1,4 +1,4 @@
-const CACHE_NAME = "nannymeal-v15";
+const CACHE_NAME = "nannymeal-v18";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,15 +10,18 @@ const ASSETS = [
   "./swaps.html",
   "./css/global.css",
   "./assets/styles.css",
+  "./onboarding.html",
+  "./add-recipe.html",
   "./manifest.json",
   "./favicon.ico",
+  "./src/config.js",
   "./src/firebase-init.js",
   "./src/auth.js",
   "./src/db.js",
   "./src/spoonacular.js",
   "./src/onboarding.js",
+  "./src/add-recipe.js",
   "./src/seed-recipes.js",
-  "./src/config.js",
   "./src/config.template.js"
 ];
 

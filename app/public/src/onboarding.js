@@ -1,5 +1,5 @@
 import { auth } from "./firebase-init.js";
-import { createHousehold, getHousehold } from "./db.js";
+import { createHousehold, getHousehold, generateWeeklyPlan } from "./db.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { logout } from "./auth.js";
 
@@ -291,6 +291,11 @@ btnNext.onclick = async () => {
       };
 
       await createHousehold(currentUser.uid, finalData);
+      
+      // Gerar o novo plano IMEDIATAMENTE com base nas alterações
+      console.log("Perfil guardado. A gerar novo plano inteligente...");
+      await generateWeeklyPlan(currentUser.uid);
+      
       window.location.href = "dashboard.html";
     } catch (error) {
       console.error("Erro no onboarding:", error);

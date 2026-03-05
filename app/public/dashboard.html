@@ -37,7 +37,23 @@
 
     <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32">
       <!-- Stats Cards -->
-      <section class="grid grid-cols-3 gap-3">
+      <section class="grid grid-cols-2 gap-3">
+        <div class="col-span-2 bg-slate-900 text-white rounded-3xl p-6 shadow-premium relative overflow-hidden group">
+          <div class="relative z-10 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Crie as suas Próprias</p>
+              <h3 class="text-2xl font-black tracking-tight">Novas Receitas</h3>
+            </div>
+            <a href="add-recipe.html"
+              class="size-14 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-lg group-active:scale-90 transition-all">
+              <span class="material-symbols-outlined text-3xl">add</span>
+            </a>
+          </div>
+          <div
+            class="absolute -right-6 -bottom-6 size-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all">
+          </div>
+        </div>
+
         <div
           class="bg-primary/10 dark:bg-primary/10 border border-primary/20 flex flex-col gap-2 rounded-3xl p-4 aspect-square items-center justify-center text-center shadow-premium">
           <span class="material-symbols-outlined text-primary text-3xl">payments</span>
@@ -52,14 +68,6 @@
           <div>
             <p class="text-lg font-black leading-none" id="stats-reduced">3.2kg</p>
             <p class="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1">Lixo</p>
-          </div>
-        </div>
-        <div
-          class="bg-primary/5 dark:bg-primary/5 border border-slate-100 dark:border-slate-800 flex flex-col gap-2 rounded-3xl p-4 aspect-square items-center justify-center text-center shadow-premium">
-          <span class="material-symbols-outlined text-primary text-3xl">sentiment_very_satisfied</span>
-          <div>
-            <p class="text-lg font-black leading-none" id="stats-happy">95%</p>
-            <p class="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1">Feliz</p>
           </div>
         </div>
       </section>
@@ -175,9 +183,13 @@
     });
 
     function renderStats(stats) {
-      document.getElementById("stats-saved").textContent = stats.monthlySavings + "€";
-      document.getElementById("stats-reduced").textContent = stats.wasteReduced + "kg";
-      document.getElementById("stats-happy").textContent = stats.satisfactionRate + "%";
+      const elSaved = document.getElementById("stats-saved");
+      const elReduced = document.getElementById("stats-reduced");
+      const elHappy = document.getElementById("stats-happy");
+
+      if (elSaved) elSaved.textContent = (stats.monthlySavings || 0) + "€";
+      if (elReduced) elReduced.textContent = (stats.wasteReduced || 0) + "kg";
+      if (elHappy) elHappy.textContent = (stats.satisfactionRate || 0) + "%";
 
       const insight = stats.insights[0];
       if (insight) {

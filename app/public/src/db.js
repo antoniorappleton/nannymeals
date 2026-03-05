@@ -200,14 +200,26 @@ export const getUserProfile = async (uid) => {
 };
 
 export const createHousehold = async (ownerUid, data) => {
-  const householdRef = doc(collection(db, "households"));
+  // Check if user already has a household
+  const existingHid = await checkHouseholdExists(ownerUid);
+  let householdRef;
+  
+  if (existingHid) {
+    console.log("A atualizar família existente:", existingHid);
+    householdRef = doc(db, "households", existingHid);
+  } else {
+    console.log("A criar nova família...");
+    householdRef = doc(collection(db, "households"));
+  }
+
   const householdId = householdRef.id;
 
   await setDoc(householdRef, {
     ...data,
     ownerUid,
-    createdAt: serverTimestamp(),
-  });
+    updatedAt: serverTimestamp(),
+    createdAt: existingHid ? undefined : serverTimestamp(), // Don't overwrite original creation
+  }, { merge: true });
 
   const userRef = doc(db, "users", ownerUid);
   await setDoc(userRef, { householdId }, { merge: true });
