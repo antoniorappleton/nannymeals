@@ -21,15 +21,15 @@ console.log("Módulo de autenticação ativo. [V18]");
 
 // Helper para evitar redirecionamentos redundantes e loops
 const safeReplace = (url) => {
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.pathname.toLowerCase();
+  const target = url.toLowerCase().replace(".html", "");
   
-  // Se já estamos na página alvo, não fazemos nada
-  if (currentPath.endsWith(url) || (url === 'index.html' && (currentPath === '/' || currentPath.endsWith('/')))) {
+  if (currentPath === `/${target}` || currentPath === target || (target === 'index' && (currentPath === '/' || currentPath === ''))) {
     return;
   }
   
-  console.log(`Encaminhando: ${currentPath} -> ${url}`);
-  window.location.replace(url);
+  console.log(`Encaminhando: ${currentPath} -> ${target}`);
+  window.location.replace(target);
 };
 
 // Capturar erros globais para diagnóstico
@@ -108,9 +108,9 @@ export const resetPassword = async (email) => {
 // Observer de Estado
 onAuthStateChanged(auth, async (user) => {
   const path = window.location.pathname.toLowerCase();
-  const isLoginPage = path === "/" || path.endsWith("index.html") || !!document.getElementById("auth-form");
-  const isOnboardingPage = path.endsWith("onboarding.html");
-  const isProtectedPage = path.endsWith("dashboard.html") || path.endsWith("plan.html") || path.endsWith("grocery.html");
+  const isLoginPage = path === "/" || path.includes("index") || !!document.getElementById("auth-form");
+  const isOnboardingPage = path.includes("onboarding");
+  const isProtectedPage = path.includes("dashboard") || path.includes("plan") || path.includes("grocery");
 
   if (user) {
     try {

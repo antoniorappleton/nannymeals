@@ -125,24 +125,29 @@
   <script type="module" src="src/auth.js?v=12"></script>
   <script>
     // Script de emergência para limpar cache se detectar versão antiga nos logs
-    if (localStorage.getItem('app_version') !== 'v20') {
-      console.log("Detectada versão antiga em cache. Forçando limpeza nuclear (v20)...");
-      localStorage.setItem('app_version', 'v20');
+    // EMERGÊNCIA V22: Limpeza Total e Correção do Onboarding
+    if (localStorage.getItem('app_version') !== 'v22') {
+      console.log("URGENTE: Limpando ambientes para v22...");
+      localStorage.setItem('app_version', 'v22');
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
-          for (let reg of regs) reg.unregister();
+          for (let reg of regs) {
+            reg.unregister().then(() => console.log("SW Unregistered"));
+          }
         });
       }
       if ('caches' in window) {
         caches.keys().then(names => {
           for (let name of names) caches.delete(name);
-          setTimeout(() => window.location.reload(true), 500);
+          console.log("Caches Cleared");
+          setTimeout(() => window.location.reload(true), 800);
         });
       }
     }
   </script>
   <script type="module">
-    // Registo do Service Worker (na raiz)
+    // Service Worker DESATIVADO temporariamente para estabilidade
+    /*
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
@@ -150,6 +155,7 @@
           .catch(err => console.log('Erro ao registrar Service Worker:', err));
       });
     }
+    */
 
     const setupPasswordToggle = (btnId, inputId) => {
       const btn = document.getElementById(btnId);

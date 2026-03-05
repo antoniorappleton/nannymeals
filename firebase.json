@@ -19,6 +19,7 @@
   },
   "hosting": {
     "public": "app/public",
+    "cleanUrls": true,
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   },
   "storage": {

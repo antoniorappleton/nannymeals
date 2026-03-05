@@ -13,6 +13,23 @@
   <script src="src/tailwind-config.js"></script>
   <link rel="stylesheet" href="css/global.css" />
   <link rel="manifest" href="manifest.json" />
+  <script>
+    // EMERGÊNCIA V23
+    if (localStorage.getItem('app_version') !== 'v23') {
+      localStorage.setItem('app_version', 'v23');
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (let reg of regs) reg.unregister();
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (let name of names) caches.delete(name);
+          setTimeout(() => window.location.reload(true), 500);
+        });
+      }
+    }
+  </script>
   <style>
     body {
       min-height: 100dvh;

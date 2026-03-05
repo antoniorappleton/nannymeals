@@ -214,12 +214,17 @@ export const createHousehold = async (ownerUid, data) => {
 
   const householdId = householdRef.id;
 
-  await setDoc(householdRef, {
+  const docData = {
     ...data,
     ownerUid,
     updatedAt: serverTimestamp(),
-    createdAt: existingHid ? undefined : serverTimestamp(), // Don't overwrite original creation
-  }, { merge: true });
+  };
+
+  if (!existingHid) {
+    docData.createdAt = serverTimestamp();
+  }
+
+  await setDoc(householdRef, docData, { merge: true });
 
   const userRef = doc(db, "users", ownerUid);
   await setDoc(userRef, { householdId }, { merge: true });
