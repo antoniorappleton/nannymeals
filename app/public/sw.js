@@ -1,4 +1,4 @@
-const CACHE_NAME = "nannymeal-v5";
+const CACHE_NAME = "nannymeal-v6";
 const ASSETS = [
   "/",
   "/index.html",

@@ -202,12 +202,12 @@
       </p>
     </div>
   </div>
-  <script type="module" src="src/auth.js?v=5"></script>
+  <script type="module" src="src/auth.js?v=6"></script>
   <script>
     // Script de emergência para limpar cache se detectar versão antiga nos logs
-    if (localStorage.getItem('app_version') !== 'v5') {
-      console.log("Detectada versão antiga em cache. Forçando limpeza...");
-      localStorage.setItem('app_version', 'v5');
+    if (localStorage.getItem('app_version') !== 'v6') {
+      console.log("Detectada versão antiga em cache. Forçando limpeza (v6)...");
+      localStorage.setItem('app_version', 'v6');
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();

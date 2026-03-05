@@ -16,7 +16,8 @@ import {
  * Lógica de Autenticação Centralizada
  */
 
-console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [GLOBAL-AUTH-V5.3]");
+console.log("Módulo de autenticação ativo. Host:", window.location.hostname, "Versão: [GLOBAL-AUTH-V6.0]");
+console.log("Estado do Browser - Cookies:", window.navigator.cookieEnabled, "| IndexedDB:", !!window.indexedDB);
 
 // Capturar erros globais para diagnóstico na UI (útil para telemóveis)
 window.onerror = function(message, source, lineno, colno, error) {
