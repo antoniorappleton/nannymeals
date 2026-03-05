@@ -1,28 +1,26 @@
-const CACHE_NAME = "nannymeal-v19";
+const CACHE_NAME = "nannymeal-v20";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./onboarding.html",
-  "./dashboard.html",
-  "./plan.html",
-  "./grocery.html",
-  "./feedback.html",
-  "./swaps.html",
-  "./css/global.css",
-  "./assets/styles.css",
-  "./onboarding.html",
-  "./add-recipe.html",
-  "./manifest.json",
-  "./favicon.ico",
-  "./src/config.js",
-  "./src/firebase-init.js",
-  "./src/auth.js",
-  "./src/db.js",
-  "./src/spoonacular.js",
-  "./src/onboarding.js",
-  "./src/add-recipe.js",
-  "./src/seed-recipes.js",
-  "./src/config.template.js"
+  "index.html",
+  "onboarding.html",
+  "dashboard.html",
+  "plan.html",
+  "grocery.html",
+  "feedback.html",
+  "swaps.html",
+  "add-recipe.html",
+  "css/global.css",
+  "assets/styles.css",
+  "manifest.json",
+  "favicon.ico",
+  "src/config.js",
+  "src/firebase-init.js",
+  "src/auth.js",
+  "src/db.js",
+  "src/spoonacular.js",
+  "src/onboarding.js",
+  "src/add-recipe.js",
+  "src/seed-recipes.js",
+  "src/config.template.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -78,7 +76,7 @@ self.addEventListener("fetch", (event) => {
       }).catch(() => {
         // Fallback for index.html if navigation fails (offline)
         if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+          return caches.match('index.html');
         }
       });
     })

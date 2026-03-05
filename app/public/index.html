@@ -125,9 +125,9 @@
   <script type="module" src="src/auth.js?v=12"></script>
   <script>
     // Script de emergência para limpar cache se detectar versão antiga nos logs
-    if (localStorage.getItem('app_version') !== 'v19') {
-      console.log("Detectada versão antiga em cache. Forçando limpeza nuclear (v19)...");
-      localStorage.setItem('app_version', 'v19');
+    if (localStorage.getItem('app_version') !== 'v20') {
+      console.log("Detectada versão antiga em cache. Forçando limpeza nuclear (v20)...");
+      localStorage.setItem('app_version', 'v20');
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();
@@ -136,7 +136,7 @@
       if ('caches' in window) {
         caches.keys().then(names => {
           for (let name of names) caches.delete(name);
-          window.location.reload(true);
+          setTimeout(() => window.location.reload(true), 500);
         });
       }
     }
