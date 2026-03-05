@@ -22,9 +22,15 @@
       class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10">
       <div class="flex items-center justify-between mb-2">
         <h1 class="text-xl font-extrabold tracking-tight">Plano Semanal</h1>
-        <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
-          <span class="material-symbols-outlined">logout</span>
-        </button>
+        <div class="flex gap-2">
+          <button id="btn-refresh-plan" title="Gerar novo plano"
+            class="p-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+          <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
+            <span class="material-symbols-outlined">logout</span>
+          </button>
+        </div>
       </div>
       <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-week-header">2 MAR – 8 MAR
         • EMENTA ATIVA</p>
@@ -172,13 +178,24 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Fallback for demo: if no household, use UID as sample HID
+        // Refresh Button logic
+        document.getElementById("btn-refresh-plan").onclick = async () => {
+          if (confirm("Desejas gerar um novo plano inteligente para esta semana?")) {
+            mealsContainer.innerHTML = "<p class='text-center py-10 animate-pulse font-bold'>A planear nova ementa...</p>";
+            await generateWeeklyPlan(user.uid);
+            location.reload();
+          }
+        };
+
         const plan = await getLastPlan(user.uid);
         renderPlan(plan);
       } else {
         window.location.href = "index.html";
       }
     });
+
+    // Version V15
+    console.log("Plano carregado [V15]");
   </script>
 </body>
 

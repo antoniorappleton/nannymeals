@@ -10,6 +10,8 @@ import {
   addDoc,
   query,
   where,
+  orderBy,
+  limit,
   getDocs,
   runTransaction,
   serverTimestamp
@@ -40,6 +42,8 @@ export {
   addDoc,
   query,
   where,
+  orderBy,
+  limit,
   getDocs,
   runTransaction,
   serverTimestamp

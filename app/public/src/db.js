@@ -8,6 +8,8 @@ import {
   addDoc,
   query,
   where,
+  orderBy,
+  limit,
   getDocs,
   runTransaction,
   serverTimestamp
@@ -45,8 +47,17 @@ export const getLastPlan = async (id) => {
 
   const q = query(collection(db, "weeklyPlans"), where("householdId", "==", hid));
   const snap = await getDocs(q);
-  // Sort by date or just take the first for now
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))[0];
+  if (snap.empty) return null;
+
+  // Sort in memory to avoid "Index still building" errors
+  const plans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  plans.sort((a, b) => {
+    const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+    const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+    return timeB - timeA;
+  });
+
+  return plans[0];
 };
 
 export const submitMealFeedback = async (planId, mealIndex, feedback) => {
@@ -346,11 +357,22 @@ export const getMealRecommendations = async (householdId, count) => {
  * Gerador de lista de compras agregada
  */
 export const generateGroceryListFromPlan = async (planId) => {
+  console.log("generateGroceryListFromPlan: A iniciar para ID:", planId);
   const planRef = doc(db, "weeklyPlans", planId);
   const planSnap = await getDoc(planRef);
-  if (!planSnap.exists()) return [];
+  if (!planSnap.exists()) {
+    console.error("generateGroceryListFromPlan: Plano não encontrado:", planId);
+    return [];
+  }
 
-  const meals = planSnap.data().meals;
+  const data = planSnap.data();
+  const meals = data.meals || [];
+  console.log(`generateGroceryListFromPlan: Processando ${meals.length} refeições para o plano ${planId}`);
+  
+  if (meals.length === 0) {
+    console.warn("generateGroceryListFromPlan: Plano sem refeições!");
+  }
+
   const aggregator = {};
   let totalEstimatedCost = 0;
 
@@ -362,17 +384,20 @@ export const generateGroceryListFromPlan = async (planId) => {
     }
 
     (meal.ingredients || []).forEach(ingredient => {
-      // Regex to extract quantity, unit, and name: "500g Massa de Trigo"
+      // Improved Regex to handle cases without explicit quantities or units
       const match = ingredient.match(/^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i);
       
       let qty = 1;
       let unit = "unid";
       let name = ingredient.toLowerCase().trim();
 
-      if (match) {
+      if (match && (match[1] || match[2])) {
         qty = parseFloat(match[1]?.replace(",", ".")) || 1;
         unit = (match[2] || "unid").toLowerCase();
         name = match[3]?.toLowerCase().trim() || name;
+      } else {
+        // Full string is the name if no clear pattern
+        name = ingredient.toLowerCase().trim();
       }
 
       if (!aggregator[name]) {
@@ -419,8 +444,18 @@ export const generateGroceryListFromPlan = async (planId) => {
     items: categoriesMap[cat]
   }));
 
-  // Update plan with total estimated cost
-  await updateDoc(planRef, { totalEstimatedCost: totalEstimatedCost.toFixed(2) });
+  console.log(`generateGroceryListFromPlan: Geradas ${groceryList.length} categorias de compras.`);
+
+  // Update plan with total estimated cost and the list itself
+  try {
+    await updateDoc(planRef, { 
+      groceryList,
+      totalEstimatedCost: totalEstimatedCost.toFixed(2) 
+    });
+    console.log("generateGroceryListFromPlan: Plano atualizado com sucesso no Firestore.");
+  } catch (err) {
+    console.error("generateGroceryListFromPlan: Erro ao atualizar plano:", err);
+  }
 
   return groceryList;
 };

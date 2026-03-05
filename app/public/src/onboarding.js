@@ -1,5 +1,5 @@
 import { auth } from "./firebase-init.js";
-import { createHousehold } from "./db.js";
+import { createHousehold, getHousehold } from "./db.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { logout } from "./auth.js";
 
@@ -37,13 +37,52 @@ const btnAddChild = document.getElementById("btn-add-child");
 const footerNote = document.getElementById("footer-note");
 
 // Autenticação
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
+    await loadExistingProfile(user.uid);
   } else {
     window.location.href = "index.html";
   }
 });
+
+const loadExistingProfile = async (uid) => {
+  try {
+    const data = await getHousehold(uid);
+    if (data) {
+      console.log("Perfil existente carregado:", data);
+      adults = data.adults || 2;
+      children = data.children || [];
+      dietStyle = data.dietStyle || ["Sem restrições"];
+      budgetLevel = data.budgetLevel || "medium";
+      leftoverTolerance = data.leftoverTolerance || "some";
+      allergies = data.allergies || [];
+      exclusions = data.exclusions || [];
+      cookingTime = data.cookingTimeWeekday || 30;
+      cookingDays = data.cookingDaysPerWeek || 5;
+      skillLevel = data.skillLevel || "intermediate";
+
+      // Re-inicializar seletores com os valores carregados
+      reinitSelectors();
+      renderChildren();
+      updateWizardUI();
+    }
+  } catch (err) {
+    console.warn("Nenhum perfil prévio encontrado ou erro ao carregar:", err);
+  }
+};
+
+const reinitSelectors = () => {
+    setupSelect("adult-selector", adults.toString(), (v) => (adults = parseInt(v)));
+    setupSelect("diet-style-selector", dietStyle, (v) => (dietStyle = v), true);
+    setupSelect("budget-level-selector", budgetLevel, (v) => (budgetLevel = v));
+    setupSelect("leftover-selector", leftoverTolerance, (v) => (leftoverTolerance = v));
+    setupSelect("allergies-selector", allergies, (v) => (allergies = v), true);
+    setupSelect("exclusions-selector", exclusions, (v) => (exclusions = v), true);
+    setupSelect("cooking-time-selector", cookingTime.toString(), (v) => (cookingTime = parseInt(v)));
+    setupSelect("cooking-days-selector", cookingDays.toString(), (v) => (cookingDays = parseInt(v)));
+    setupSelect("skill-level-selector", skillLevel, (v) => (skillLevel = v));
+};
 
 /**
  * Gestão de Crianças

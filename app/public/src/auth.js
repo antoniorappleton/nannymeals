@@ -123,7 +123,9 @@ onAuthStateChanged(auth, async (user) => {
 
       if (hid) {
         // Se tem família e está no login/onboarding, vai para dashboard
-        if (isLoginPage || isOnboardingPage) {
+        // Se tem família e está no login, vai para dashboard.
+        // Removemos isOnboardingPage daqui para permitir edição de perfil.
+        if (isLoginPage) {
           safeReplace("dashboard.html");
         }
       } else {
