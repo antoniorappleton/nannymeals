@@ -186,6 +186,20 @@
         document.getElementById("insight-image").style.backgroundImage = `url('${insight.image}')`;
       }
     }
+
+    // Spoonacular Enrichment Trigger (Admin/Dev)
+    import { enrichAllRecipes } from "./src/db.js";
+    const btnSync = document.createElement("button");
+    btnSync.className = "fixed bottom-24 right-4 size-12 bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center z-50 animate-bounce";
+    btnSync.innerHTML = '<span class="material-symbols-outlined">sync</span>';
+    btnSync.onclick = async () => {
+      btnSync.classList.remove("animate-bounce");
+      btnSync.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>';
+      const count = await enrichAllRecipes();
+      alert(`${count} receitas enriquecidas com sucesso!`);
+      location.reload();
+    };
+    document.body.appendChild(btnSync);
   </script>
 </body>
 

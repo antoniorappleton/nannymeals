@@ -149,8 +149,14 @@
         import { auth } from "./src/firebase-init.js";
         import { submitMealFeedback, getLastPlan } from "./src/db.js";
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const mealIndex = parseInt(urlParams.get('meal')) || 0;
+
         let currentPlan = null;
-        let selectedFeedback = { kids: null, ease: null, waste: null };
+        let selectedFeedback = { kidsLiked: null, easyToCook: null, wasteLevel: null };
+
+        const mealNameDisplay = document.getElementById("meal-name-display");
+        const btnSubmit = document.getElementById("btn-submit");
 
         const buttons = document.querySelectorAll(".feedback-btn");
         buttons.forEach(btn => {
@@ -158,21 +164,22 @@
                 const type = btn.getAttribute("data-type");
                 const val = btn.getAttribute("data-val");
 
-                // Remove active from peers
                 document.querySelectorAll(`[data-type="${type}"]`).forEach(b => {
                     b.classList.remove("border-primary", "bg-primary/10", "border-red-400", "bg-red-50", "border-amber-400", "bg-amber-50", "border-orange-400", "bg-orange-50");
                 });
 
-                // Add active style
-                const activeClass = type === 'kids' && val === 'no' ? 'border-red-400 bg-red-50'
-                    : type === 'ease' && val === 'effort' ? 'border-amber-400 bg-amber-50'
-                        : type === 'waste' && val === 'leftovers' ? 'border-orange-400 bg-orange-50'
+                const activeClass = (type === 'kids' && val === 'no') ? 'border-red-400 bg-red-50'
+                    : (type === 'ease' && val === 'effort') ? 'border-amber-400 bg-amber-50'
+                        : (type === 'waste' && val === 'leftovers') ? 'border-orange-400 bg-orange-50'
                             : 'border-primary bg-primary/10';
 
                 btn.classList.add(...activeClass.split(' '));
-                selectedFeedback[type] = val;
 
-                // Update progress bar
+                // Map UI values to DB structure
+                if (type === 'kids') selectedFeedback.kidsLiked = (val === 'classic');
+                if (type === 'ease') selectedFeedback.easyToCook = (val === 'fast');
+                if (type === 'waste') selectedFeedback.wasteLevel = (val === 'leftovers' ? 3 : 0);
+
                 const count = Object.values(selectedFeedback).filter(v => v !== null).length;
                 document.getElementById("progress-bar").style.width = (count * 33) + "%";
             };
@@ -180,23 +187,28 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Implementation logic to find WHICH meal we are giving feedback on
-                // For demo, we take the last plan and find the first non-completed/non-feedbacked meal
-                // currentPlan = await getLastPlan(user.uid);
+                currentPlan = await getLastPlan(user.uid);
+                if (currentPlan && currentPlan.meals[mealIndex]) {
+                    mealNameDisplay.textContent = `Feedback: ${currentPlan.meals[mealIndex].recipeName}`;
+                }
+            } else {
+                window.location.href = "index.html";
             }
         });
 
-        document.getElementById("btn-submit").onclick = async () => {
-            if (!Object.values(selectedFeedback).every(v => v !== null)) {
+        btnSubmit.onclick = async () => {
+            if (Object.values(selectedFeedback).some(v => v === null)) {
                 alert("Por favor, responda a todas as perguntas.");
                 return;
             }
 
-            // For demo purposes, we'll assume plan info and meal index
-            // await submitMealFeedback(planId, mealIndex, selectedFeedback);
-
-            alert("Feedback enviado! Obrigado por nos ajudar a melhorar.");
-            window.location.href = "dashboard.html";
+            if (currentPlan) {
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = "A guardar...";
+                await submitMealFeedback(currentPlan.id, mealIndex, selectedFeedback);
+                alert("Feedback enviado! Obrigado por nos ajudar a melhorar.");
+                window.location.href = "dashboard.html";
+            }
         };
     </script>
 </body>

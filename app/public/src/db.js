@@ -12,6 +12,7 @@ import {
   runTransaction,
   serverTimestamp
 } from "./firebase-init.js";
+import { getEnrichedRecipeData } from "./spoonacular.js";
 
 /**
  * Módulo de Abstração Firestore (Refatorado)
@@ -80,28 +81,59 @@ export const swapMeal = async (planId, mealIndex, newRecipeId, reason) => {
 };
 
 export const getHouseholdStats = async (hid) => {
-  // In a real app, this might be a complex aggregation.
-  // For this UI demo, we'll return mock data or fetch from a stats doc.
-  const statsRef = doc(db, "households", hid, "stats", "current");
-  const snap = await getDoc(statsRef);
-  
-  if (snap.exists()) return snap.data();
-  
-  // Default mock stats for the UI
-  return {
-    monthlySavings: 124,
-    wasteReduced: 3.2,
-    satisfactionRate: 95,
-    insights: [
-      {
-        title: "Too much Spinach",
-        description: "You've consistently had 200g leftover every week this month.",
-        action: "Adjust Next Order",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDH2CxyKXnAhv9vKQ6xcO6DUCEvLBu9QAn-LbF6NIT9FfFDkbUUE_KHeNsVU8zU7K1Nwvqk-tRie98a_fgSQdSMU3Tmu0Ckph3EHpk7Ctpt1EFvwRm_A75tILyPzX8J3BqP-Yx1i37AFmoO6T9VqYs2hJRWII9552GX6O1d4MfRDLRAMxkYDAslx2fuUz00m3q47biBAeWbax1Tt3uhCU-3tiwReNm70-zY08YLmbVKQKcycXi0bj7gLLHIh0svpWWj9fAoBldNzGj_"
-      }
-    ],
-    trend: [80, 65, 50, 35] // Waste trend over weeks
-  };
+  try {
+    const plansSnap = await getDocs(query(collection(db, "weeklyPlans"), where("householdId", "==", hid)));
+    const allPlans = plansSnap.docs.map(d => d.data());
+    
+    let totalSaved = 0;
+    let totalWaste = 0;
+    
+    allPlans.forEach(plan => {
+      (plan.meals || []).forEach(meal => {
+        // If feedback says "wasteLevel" is low or "kidsLiked", it's a "saving" compared to takeout/waste
+        if (meal.feedback && meal.pricePerServing) {
+          const price = parseFloat(meal.pricePerServing);
+          if (meal.feedback.wasteLevel < 2) totalSaved += price * 1.5; // Arbitrary saving multiplier vs takeout
+          totalWaste += (meal.feedback.wasteLevel || 0) * 0.2; // 0.2kg per waste level
+        }
+      });
+    });
+
+    if (allPlans.length === 0) {
+      return {
+        monthlySavings: 124, 
+        wasteReduced: 3.2,
+        satisfactionRate: 95,
+        insights: [
+          {
+            title: "Sem dados ainda",
+            description: "Cria o teu primeiro plano para veres as tuas poupanças reais!",
+            action: "Gerar Plano",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDH2CxyKXnAhv9vKQ6xcO6DUCEvLBu9QAn-LbF6NIT9FfFDkbUUE_KHeNsVU8zU7K1Nwvqk-tRie98a_fgSQdSMU3Tmu0Ckph3EHpk7Ctpt1EFvwRm_A75tILyPzX8J3BqP-Yx1i37AFmoO6T9VqYs2hJRWII9552GX6O1d4MfRDLRAMxkYDAslx2fuUz00m3q47biBAeWbax1Tt3uhCU-3tiwReNm70-zY08YLmbVKQKcycXi0bj7gLLHIh0svpWWj9fAoBldNzGj_"
+          }
+        ],
+        trend: [80, 65, 50, 35]
+      };
+    }
+
+    return {
+      monthlySavings: Math.round(totalSaved),
+      wasteReduced: totalWaste.toFixed(1),
+      satisfactionRate: 90, // Calculated placeholder
+      insights: [
+        {
+          title: totalSaved > 50 ? "Excelente Poupança!" : "A Começar a Poupar",
+          description: `Já poupaste ${Math.round(totalSaved)}€ este mês ao evitar desperdício e refeições fora.`,
+          action: "Ver Detalhes",
+          image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDH2CxyKXnAhv9vKQ6xcO6DUCEvLBu9QAn-LbF6NIT9FfFDkbUUE_KHeNsVU8zU7K1Nwvqk-tRie98a_fgSQdSMU3Tmu0Ckph3EHpk7Ctpt1EFvwRm_A75tILyPzX8J3BqP-Yx1i37AFmoO6T9VqYs2hJRWII9552GX6O1d4MfRDLRAMxkYDAslx2fuUz00m3q47biBAeWbax1Tt3uhCU-3tiwReNm70-zY08YLmbVKQKcycXi0bj7gLLHIh0svpWWj9fAoBldNzGj_"
+        }
+      ],
+      trend: [80, 60, 40, 20]
+    };
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    return null;
+  }
 };
 
 export const getRecipe = async (rid) => {
@@ -169,7 +201,9 @@ export const generateWeeklyPlan = async (householdId) => {
       recipeName: r.name,
       prepTime: r.prepTime,
       completed: false,
-      ingredients: r.ingredients || [] // Store ingredients in the plan for easy list generation
+      ingredients: r.ingredients || [],
+      calories: r.calories || null,
+      pricePerServing: r.pricePerServing || null
     })),
   };
 
@@ -305,6 +339,33 @@ export const checkHouseholdExists = async (uid) => {
   const q = query(collection(db, "households"), where("ownerUid", "==", uid));
   const snap = await getDocs(q);
   return snap.empty ? null : snap.docs[0].id;
+};
+
+/**
+ * Enriquece todas as receitas na base de dados com informações da Spoonacular.
+ * Pode ser chamado manualmente ou via interface de admin.
+ */
+export const enrichAllRecipes = async () => {
+  console.log("Iniciando enriquecimento de receitas...");
+  const rSnap = await getDocs(collection(db, "recipes"));
+  let count = 0;
+
+  for (const rDoc of rSnap.docs) {
+    const data = rDoc.data();
+    // Só enriquece se ainda não tiver calorias ou preço
+    if (!data.calories || !data.pricePerServing) {
+      console.log(`Enriquecendo: ${data.name}`);
+      const enriched = await getEnrichedRecipeData(data.name);
+      if (enriched) {
+        await updateDoc(rDoc.ref, enriched);
+        count++;
+      }
+      // Pequeno delay para evitar rate limit da API gratuita
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+  console.log(`Enriquecimento concluído! ${count} receitas atualizadas.`);
+  return count;
 };
 
 export const initDB = () => {

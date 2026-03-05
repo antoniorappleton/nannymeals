@@ -178,21 +178,53 @@
     <script type="module">
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
         import { auth } from "./src/firebase-init.js";
-        import { swapMeal, getLastPlan, getRecipe } from "./src/db.js";
+        import { swapMeal, getLastPlan, getRecipe, getMealRecommendations } from "./src/db.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mealIndex = parseInt(urlParams.get('meal')) || 0;
 
         let currentPlan = null;
-        let newRecipeId = "mock-id"; // In real usage, passed via URL query
+        let oldMeal = null;
+        let replacementRecipe = null;
+
+        const oldMealName = document.getElementById("old-meal-name");
+        const oldMealImg = document.getElementById("old-meal-img");
+        const newMealName = document.getElementById("new-meal-name");
+        const newMealImg = document.getElementById("new-meal-img");
+        const btnConfirm = document.getElementById("btn-confirm-swap");
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // currentPlan = await getLastPlan(user.uid);
+                currentPlan = await getLastPlan(user.uid);
+                if (currentPlan && currentPlan.meals[mealIndex]) {
+                    oldMeal = currentPlan.meals[mealIndex];
+                    oldMealName.textContent = oldMeal.recipeName;
+
+                    // Fetch recommendations for a replacement (filtered for variety)
+                    const recommendations = await getMealRecommendations(user.uid, 3);
+                    // Filter out the current recipe
+                    replacementRecipe = recommendations.find(r => r.id !== oldMeal.recipeId) || recommendations[0];
+
+                    if (replacementRecipe) {
+                        newMealName.textContent = replacementRecipe.name;
+                        if (replacementRecipe.image) {
+                            newMealImg.style.backgroundImage = `url('${replacementRecipe.image}')`;
+                        }
+                    }
+                }
+            } else {
+                window.location.href = "index.html";
             }
         });
 
-        document.getElementById("btn-confirm-swap").onclick = async () => {
-            // await swapMeal(currentPlan.id, 0, newRecipeId, "Low feedback replacement");
-            alert("Refeição trocada com sucesso!");
-            window.location.href = "plan.html";
+        btnConfirm.onclick = async () => {
+            if (currentPlan && replacementRecipe) {
+                btnConfirm.disabled = true;
+                btnConfirm.textContent = "A trocar...";
+                await swapMeal(currentPlan.id, mealIndex, replacementRecipe.id, "Troca manual por sugestão inteligente");
+                alert("Refeição trocada com sucesso!");
+                window.location.href = "plan.html";
+            }
         };
     </script>
 </body>

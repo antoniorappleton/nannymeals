@@ -105,7 +105,64 @@
         </div>
       </div>
 
-      <!-- Add logic for other steps in onboarding.js as needed -->
+      <!-- Passo 3: Alergias -->
+      <div id="setup-step-3" class="setup-step hidden space-y-10">
+        <div class="space-y-4">
+          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Alergias e
+            Restrições</label>
+          <div class="grid grid-cols-2 gap-4" id="allergies-selector">
+            <button data-value="Glúten"
+              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Glúten</button>
+            <button data-value="Lactose"
+              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Lactose</button>
+            <button data-value="Frutos Secos"
+              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Frutos
+              Secos</button>
+            <button data-value="Marisco"
+              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Marisco</button>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Não Gostamos
+            de...</label>
+          <div class="grid grid-cols-2 gap-4" id="exclusions-selector">
+            <button data-value="Coentros"
+              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Coentros</button>
+            <button data-value="Pickles"
+              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Pickles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passo 4: Tempo e Agenda -->
+      <div id="setup-step-4" class="setup-step hidden space-y-10">
+        <div class="space-y-4">
+          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Tempo Máximo
+            (Minutos)</label>
+          <div class="flex gap-3 overflow-x-auto pb-4" id="cooking-time-selector">
+            <button data-value="15"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">15</button>
+            <button data-value="30"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary">30</button>
+            <button data-value="45"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">45</button>
+            <button data-value="60"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">60</button>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Dias por
+            Semana</label>
+          <div class="flex gap-3 overflow-x-auto pb-4" id="cooking-days-selector">
+            <button data-value="3"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">3</button>
+            <button data-value="5"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary">5</button>
+            <button data-value="7"
+              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">7</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Footer Actions -->

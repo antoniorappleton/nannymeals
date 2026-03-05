@@ -146,17 +146,23 @@
             <div class="p-6 space-y-4">
               <div class="flex justify-between items-start">
                 <h4 class="text-xl font-extrabold tracking-tight">${meal.recipeName}</h4>
-                <span class="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-full uppercase tracking-widest">${meal.prepTime} MIN</span>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-full uppercase tracking-widest">${meal.prepTime} MIN</span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${meal.calories || '---'} KCAL</span>
+                </div>
               </div>
-              <div class="flex items-center gap-2 py-1 text-slate-500 ${meal.isReplacement ? '' : 'hidden'}">
-                <span class="material-symbols-outlined text-primary text-xl">info</span>
-                <p class="text-sm font-medium italic">${meal.replacedReason || "Sugestão inteligente"}</p>
+              <div class="flex items-center justify-between py-1">
+                <div class="flex items-center gap-2 text-slate-500 ${meal.isReplacement ? '' : 'hidden'}">
+                  <span class="material-symbols-outlined text-primary text-xl">info</span>
+                  <p class="text-sm font-medium italic">${meal.replacedReason || "Sugestão inteligente"}</p>
+                </div>
+                <div class="text-xs font-black text-slate-900 dark:text-slate-200">
+                  ESTO: <span class="text-primary">${meal.pricePerServing ? meal.pricePerServing + ' €' : '---'}</span> / p.p.
+                </div>
               </div>
               <div class="flex gap-3">
-                <button class="flex-1 bg-primary text-slate-900 font-bold h-12 rounded-2xl shadow-premium hover:scale-[0.98] transition-all">Ver Receita</button>
-                <button onclick="window.location.href='swaps.html?meal=${index}'" class="size-12 flex items-center justify-center rounded-2xl border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-primary transition-colors">
-                  <span class="material-symbols-outlined">swap_horiz</span>
-                </button>
+                <a href="feedback.html?meal=${index}" class="flex-1 bg-primary text-slate-900 font-bold h-12 rounded-2xl shadow-premium flex items-center justify-center hover:scale-[0.98] transition-all">Feedback</a>
+                <a href="swaps.html?meal=${index}" class="flex-1 bg-white dark:bg-slate-800 text-slate-500 font-bold h-12 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 transition-all uppercase tracking-widest text-[10px]">Trocar</a>
               </div>
             </div>
           </div>
