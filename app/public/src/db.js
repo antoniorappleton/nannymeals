@@ -1,5 +1,5 @@
-import { db } from "./firebase-init.js";
 import {
+  db,
   doc,
   getDoc,
   setDoc,
@@ -10,19 +10,15 @@ import {
   where,
   getDocs,
   runTransaction,
-} from "firebase/firestore";
+  serverTimestamp
+} from "./firebase-init.js";
 
 /**
- * Módulo de Abstração Firestore
- * Centraliza o acesso aos dados do NannyMeal
+ * Módulo de Abstração Firestore (Refatorado)
  */
 
-/**
- * Households - Dados da Família
- */
 export const getHousehold = async (hid) => {
-  const docRef = doc(db, "households", hid);
-  const snap = await getDoc(docRef);
+  const snap = await getDoc(doc(db, "households", hid));
   return snap.exists() ? snap.data() : null;
 };
 
@@ -30,38 +26,24 @@ export const saveHousehold = async (hid, data) => {
   await setDoc(doc(db, "households", hid), data, { merge: true });
 };
 
-/**
- * Weekly Plans - Planos de Refeição
- */
 export const getLastPlan = async (hid) => {
-  const plansRef = collection(db, "weeklyPlans");
-  const q = query(plansRef, where("householdId", "==", hid)); // Adicionar orderby por data depois
+  const q = query(collection(db, "weeklyPlans"), where("householdId", "==", hid));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))[0];
 };
 
-/**
- * Feedback - Avaliação de Refeições
- */
 export const submitFeedback = async (feedback) => {
   await addDoc(collection(db, "feedback"), {
     ...feedback,
-    timestamp: new Date(),
+    timestamp: serverTimestamp(),
   });
 };
 
-/**
- * Recipes - Catálogo
- */
 export const getRecipe = async (rid) => {
-  const docRef = doc(db, "recipes", rid);
-  const snap = await getDoc(docRef);
+  const snap = await getDoc(doc(db, "recipes", rid));
   return snap.exists() ? snap.data() : null;
 };
 
-/**
- * Users - Perfil de Utilizador
- */
 export const syncUserProfile = async (user) => {
   const userRef = doc(db, "users", user.uid);
   await setDoc(
@@ -71,89 +53,59 @@ export const syncUserProfile = async (user) => {
       email: user.email,
       displayName: user.displayName,
       photoURL: user.photoURL,
-      lastLogin: new Date(),
+      lastLogin: serverTimestamp(),
     },
     { merge: true },
   );
 };
 
 export const getUserProfile = async (uid) => {
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
+  const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? snap.data() : null;
 };
 
-/**
- * Households - Gestão de Famílias
- */
 export const createHousehold = async (ownerUid, data) => {
   const householdRef = doc(collection(db, "households"));
   const householdId = householdRef.id;
 
-  console.log("A criar household:", householdId, "para o dono:", ownerUid);
   await setDoc(householdRef, {
     ...data,
     ownerUid,
-    createdAt: new Date(),
+    createdAt: serverTimestamp(),
   });
 
-  // Associar household ao perfil do utilizador
-  console.log("A associar household ao utilizador...");
   const userRef = doc(db, "users", ownerUid);
   await setDoc(userRef, { householdId }, { merge: true });
 
-  console.log("Household criado e associado com sucesso!");
   return householdId;
 };
 
-/**
- * Geração de Plano Semanal
- */
 export const generateWeeklyPlan = async (householdId) => {
-  const householdRef = doc(db, "households", householdId);
-  const hSnap = await getDoc(householdRef);
+  const hSnap = await getDoc(doc(db, "households", householdId));
   if (!hSnap.exists()) return null;
 
   const hData = hSnap.data();
-  // Suporte a nomes antigos e novos
   const diet = hData.dietStyle || hData.dietaryPreferences || [];
   const maxTime = hData.cookingTimeWeekday || hData.maxPrepTime || 60;
   const count = hData.cookingDaysPerWeek || hData.dinnersPerWeek || 5;
 
-  // 1. Procurar receitas compatíveis
-  const recipesRef = collection(db, "recipes");
-  const q = query(recipesRef);
-  const rSnap = await getDocs(q);
-
+  const rSnap = await getDocs(query(collection(db, "recipes")));
   let allRecipes = rSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  // Filtrar por estilo alimentar (Vegetariano, Vegano, etc)
   if (diet.length > 0 && !diet.includes("Sem restrições")) {
-    const dietMap = {
-      Vegetariano: "vegetarian",
-      Vegano: "vegan",
-      Mediterrâneo: "mediterranean",
-    };
-
+    const dietMap = { Vegetariano: "vegetarian", Vegano: "vegan", Mediterrâneo: "mediterranean" };
     const targets = diet.map((d) => dietMap[d]).filter(Boolean);
     if (targets.length > 0) {
-      allRecipes = allRecipes.filter((r) =>
-        r.tags.some((tag) => targets.includes(tag)),
-      );
+      allRecipes = allRecipes.filter((r) => r.tags.some((tag) => targets.includes(tag)));
     }
   }
 
-  // Filtrar por tempo
   allRecipes = allRecipes.filter((r) => r.prepTime <= maxTime);
-
-  // 2. Selecionar N receitas aleatórias
   const selected = allRecipes.sort(() => 0.5 - Math.random()).slice(0, count);
 
-  // 3. Criar o plano
-  const planRef = collection(db, "weeklyPlans");
   const newPlan = {
     householdId,
-    createdAt: new Date(),
+    createdAt: serverTimestamp(),
     status: "active",
     meals: selected.map((r) => ({
       recipeId: r.id,
@@ -163,21 +115,14 @@ export const generateWeeklyPlan = async (householdId) => {
     })),
   };
 
-  const docRef = await addDoc(planRef, newPlan);
+  const docRef = await addDoc(collection(db, "weeklyPlans"), newPlan);
   return { id: docRef.id, ...newPlan };
 };
 
-/**
- * Fallback: Verificar se existe algum household onde o utilizador é dono
- */
 export const checkHouseholdExists = async (uid) => {
-  const hRef = collection(db, "households");
-  const q = query(hRef, where("ownerUid", "==", uid));
+  const q = query(collection(db, "households"), where("ownerUid", "==", uid));
   const snap = await getDocs(q);
-  if (!snap.empty) {
-    return snap.docs[0].id; // Retorna o ID da primeira casa encontrada
-  }
-  return null;
+  return snap.empty ? null : snap.docs[0].id;
 };
 
 export const initDB = () => {

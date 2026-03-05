@@ -21,12 +21,13 @@
             "background-dark": "#102216",
           },
           fontFamily: {
-            display: ["Plus Jakarta Sans"],
+            display: ["Plus Jakarta Sans", "sans-serif"],
           },
           borderRadius: {
             DEFAULT: "0.5rem",
             lg: "1rem",
             xl: "1.5rem",
+            "2xl": "2rem",
             full: "9999px",
           },
         },
@@ -198,7 +199,8 @@
     <!-- Bottom Navigation -->
     <nav
       class="md:hidden mt-auto sticky bottom-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-4 flex justify-around">
-      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+      <a href="dashboard.html"
+        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
           class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -214,7 +216,8 @@
         </svg>
         <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
       </a>
-      <a href="grocery.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+      <a href="grocery.html"
+        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
           class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -222,7 +225,8 @@
         </svg>
         <span class="text-[10px] font-black uppercase tracking-widest">Lista</span>
       </a>
-      <a href="onboarding.html" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+      <a href="onboarding.html"
+        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
           class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -242,7 +246,7 @@
       }
     }
   </script>
-  <script type="module" src="src/auth.js?v=5.3"></script>
+  <script type="module" src="src/auth.js?v=6"></script>
   <script type="module">
     import { logout } from "./src/auth.js";
     document.getElementById("btn-logout").onclick = () => logout();
