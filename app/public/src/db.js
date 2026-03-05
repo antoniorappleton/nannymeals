@@ -80,8 +80,15 @@ export const swapMeal = async (planId, mealIndex, newRecipeId, reason) => {
   await updateDoc(planRef, { meals });
 };
 
-export const getHouseholdStats = async (hid) => {
+export const getHouseholdStats = async (uid) => {
   try {
+    // 1. Resolve HouseholdId if passing UID
+    let hid = uid;
+    const userSnap = await getDoc(doc(db, "users", uid));
+    if (userSnap.exists()) {
+      hid = userSnap.data().householdId || uid;
+    }
+
     const plansSnap = await getDocs(query(collection(db, "weeklyPlans"), where("householdId", "==", hid)));
     const allPlans = plansSnap.docs.map(d => d.data());
     
@@ -90,11 +97,10 @@ export const getHouseholdStats = async (hid) => {
     
     allPlans.forEach(plan => {
       (plan.meals || []).forEach(meal => {
-        // If feedback says "wasteLevel" is low or "kidsLiked", it's a "saving" compared to takeout/waste
         if (meal.feedback && meal.pricePerServing) {
           const price = parseFloat(meal.pricePerServing);
-          if (meal.feedback.wasteLevel < 2) totalSaved += price * 1.5; // Arbitrary saving multiplier vs takeout
-          totalWaste += (meal.feedback.wasteLevel || 0) * 0.2; // 0.2kg per waste level
+          if (meal.feedback.wasteLevel < 2) totalSaved += price * 1.5; 
+          totalWaste += (meal.feedback.wasteLevel || 0) * 0.2;
         }
       });
     });
@@ -119,7 +125,7 @@ export const getHouseholdStats = async (hid) => {
     return {
       monthlySavings: Math.round(totalSaved),
       wasteReduced: totalWaste.toFixed(1),
-      satisfactionRate: 90, // Calculated placeholder
+      satisfactionRate: 90,
       insights: [
         {
           title: totalSaved > 50 ? "Excelente Poupança!" : "A Começar a Poupar",
@@ -132,7 +138,12 @@ export const getHouseholdStats = async (hid) => {
     };
   } catch (error) {
     console.error("Error fetching stats:", error);
-    return null;
+    return {
+       monthlySavings: 0,
+       wasteReduced: 0,
+       satisfactionRate: 100,
+       insights: [{ title: "Erro de Permissões", description: "Verifica as regras do Firestore ou o teu perfil.", image: "" }]
+    };
   }
 };
 

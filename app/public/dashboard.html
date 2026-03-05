@@ -170,7 +170,7 @@
       if (user) {
         // Fetch real or mock stats
         const stats = await getHouseholdStats(user.uid);
-        renderStats(stats);
+        if (stats) renderStats(stats);
       }
     });
 

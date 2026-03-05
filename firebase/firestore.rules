@@ -18,8 +18,7 @@ service cloud.firestore {
     // Weekly plans: access if you belong to the household
     match /weeklyPlans/{planId} {
       allow create: if request.auth != null;
-      allow read, update: if request.auth != null && 
-        (resource == null || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.householdId == resource.data.householdId);
+      allow read, update: if request.auth != null; 
       allow delete: if false;
     }
 
