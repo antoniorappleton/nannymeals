@@ -1,4 +1,5 @@
-const SPOONACULAR_API_KEY = "a412caf47e8e4a3fae42fe9e41b9bde9";
+import { CONFIG } from "./config.js";
+const SPOONACULAR_API_KEY = CONFIG.SPOONACULAR_API_KEY;
 const BASE_URL = "https://api.spoonacular.com";
 
 /**
@@ -72,5 +73,34 @@ export async function analyzeIngredients(ingredientsList) {
   } catch (error) {
     console.error("Erro ao analisar ingredientes:", error);
     return null;
+  }
+}
+
+/**
+ * Procura novas receitas por dieta/estilo.
+ * Útil quando o banco local não tem opções suficientes.
+ */
+export async function searchRecipesByCuisine(diet, count = 10) {
+  try {
+    const url = `${BASE_URL}/recipes/complexSearch?diet=${encodeURIComponent(diet)}&addRecipeInformation=true&number=${count}&apiKey=${SPOONACULAR_API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!data.results) return [];
+    
+    return data.results.map(details => ({
+      name: details.title,
+      prepTime: details.readyInMinutes,
+      tags: [details.dishTypes?.[0], details.vegetarian ? 'vegetarian' : null, details.vegan ? 'vegan' : null].filter(Boolean),
+      ingredients: details.extendedIngredients?.map(i => i.original) || [],
+      instructions: details.summary?.replace(/<[^>]*>/g, '').slice(0, 500),
+      calories: Math.round(details.nutrition?.nutrients?.find(n => n.name === "Calories")?.amount || 0),
+      pricePerServing: (details.pricePerServing / 100).toFixed(2),
+      image: details.image,
+      spoonacularId: details.id
+    }));
+  } catch (error) {
+    console.error("Erro ao buscar receitas por dieta:", error);
+    return [];
   }
 }

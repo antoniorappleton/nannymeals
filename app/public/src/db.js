@@ -12,7 +12,7 @@ import {
   runTransaction,
   serverTimestamp
 } from "./firebase-init.js";
-import { getEnrichedRecipeData } from "./spoonacular.js";
+import { getEnrichedRecipeData, searchRecipesByCuisine } from "./spoonacular.js";
 
 /**
  * Módulo de Abstração Firestore (Refatorado)
@@ -242,6 +242,20 @@ export const getMealRecommendations = async (householdId, count) => {
     }
   }
 
+  // Phase 2: Automated Discovery if local results are low
+  if (recipes.length < count && diet.length > 0) {
+    console.log(`Poucas receitas locais (${recipes.length}). A descobrir novas na Spoonacular...`);
+    const dietMap = { Vegetariano: "vegetarian", Vegano: "vegan", Mediterrâneo: "mediterranean" };
+    const targetDiet = dietMap[diet[0]] || "healthy";
+    const newRecipes = await searchRecipesByCuisine(targetDiet, 10);
+    
+    for (const nr of newRecipes) {
+      // Save to Firestore to avoid future API calls for the same recipe
+      const docRef = await addDoc(collection(db, "recipes"), nr);
+      recipes.push({ id: docRef.id, ...nr });
+    }
+  }
+
   if (allergies.length > 0) {
     recipes = recipes.filter(r => {
       const ingredientsStr = (r.ingredients || []).join(" ").toLowerCase();
@@ -295,44 +309,77 @@ export const generateGroceryListFromPlan = async (planId) => {
 
   const meals = planSnap.data().meals;
   const aggregator = {};
+  let totalEstimatedCost = 0;
 
-  // Example implementation of ingredient parsing/aggregation
   meals.forEach(meal => {
+    if (meal.pricePerServing) {
+      // Assuming 1 serving per recipe for simplicity in this calculation, 
+      // but in a real app we'd multiply by family size.
+      totalEstimatedCost += parseFloat(meal.pricePerServing);
+    }
+
     (meal.ingredients || []).forEach(ingredient => {
-      // Basic normalization: "200g Massa" -> { name: "Massa", amount: 200, unit: "g" }
-      // For this demo, we'll just group by name if they are simple strings
-      const name = ingredient.toLowerCase().trim();
-      if (!aggregator[name]) {
-        aggregator[name] = { name: ingredient, count: 0, category: "Geral" };
-      }
-      aggregator[name].count += 1;
+      // Regex to extract quantity, unit, and name: "500g Massa de Trigo"
+      const match = ingredient.match(/^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i);
       
-      // Attempt rudimentary categorization based on keywords
-      if (name.includes("frango") || name.includes("carne") || name.includes("salmão") || name.includes("peixe")) {
-        aggregator[name].category = "Talho / Peixaria";
-      } else if (name.includes("tomate") || name.includes("alface") || name.includes("cenoura") || name.includes("fruta") || name.includes("brócolos") || name.includes("limão")) {
-        aggregator[name].category = "Hortifrutis";
-      } else if (name.includes("arroz") || name.includes("massa") || name.includes("azeite") || name.includes("sal") || name.includes("taco")) {
-        aggregator[name].category = "Despensa";
+      let qty = 1;
+      let unit = "unid";
+      let name = ingredient.toLowerCase().trim();
+
+      if (match) {
+        qty = parseFloat(match[1]?.replace(",", ".")) || 1;
+        unit = (match[2] || "unid").toLowerCase();
+        name = match[3]?.toLowerCase().trim() || name;
       }
+
+      if (!aggregator[name]) {
+        aggregator[name] = { name: name.charAt(0).toUpperCase() + name.slice(1), qty: 0, unit, category: "Geral" };
+      }
+      
+      // Simple unit conversion (g to kg) for aggregation if possible
+      if (aggregator[name].unit === unit) {
+        aggregator[name].qty += qty;
+      } else {
+        // Fallback: just append if units mismatch
+        aggregator[name].qty += qty; 
+      }
+      
+      // Categorization
+      const n = name;
+      if (n.includes("frango") || n.includes("carne") || n.includes("bife") || n.includes("peru") || n.includes("panado")) aggregator[name].category = "Talho";
+      else if (n.includes("peixe") || n.includes("salmão") || n.includes("bacalhau") || n.includes("dourada") || n.includes("marisco")) aggregator[name].category = "Peixaria";
+      else if (n.includes("tomate") || n.includes("alface") || n.includes("cenoura") || n.includes("fruta") || n.includes("brócolos") || n.includes("batata") || n.includes("cebola") || n.includes("alho")) aggregator[name].category = "Hortifrutis";
+      else if (n.includes("leite") || n.includes("iogurte") || n.includes("queijo") || n.includes("ovos") || n.includes("natas") || n.includes("manteiga")) aggregator[name].category = "Laticínios / Frescos";
+      else if (n.includes("arroz") || n.includes("massa") || n.includes("azeite") || n.includes("óleo") || n.includes("sal") || n.includes("pau") || n.includes("conserva")) aggregator[name].category = "Despensa";
+      else if (n.includes("pão") || n.includes("tosta") || n.includes("bolacha")) aggregator[name].category = "Padaria";
     });
   });
 
   // Convert map to categorized array
-  const categories = {};
+  const categoriesMap = {};
   Object.values(aggregator).forEach(item => {
-    if (!categories[item.category]) categories[item.category] = [];
-    categories[item.category].push({
+    if (!categoriesMap[item.category]) categoriesMap[item.category] = [];
+    
+    // Format quantity nicely: 1.5 kg, 500 g, etc.
+    let displayQty = `${item.qty} ${item.unit}`;
+    if (item.unit === "unid" && item.qty === 1) displayQty = "1 Unid.";
+    
+    categoriesMap[item.category].push({
       name: item.name,
-      quantity: item.count > 1 ? `${item.count} UNID/PACKS` : "1 UNID/PACK",
+      quantity: displayQty,
       checked: false
     });
   });
 
-  return Object.keys(categories).map(cat => ({
+  const groceryList = Object.keys(categoriesMap).map(cat => ({
     category: cat,
-    items: categories[cat]
+    items: categoriesMap[cat]
   }));
+
+  // Update plan with total estimated cost
+  await updateDoc(planRef, { totalEstimatedCost: totalEstimatedCost.toFixed(2) });
+
+  return groceryList;
 };
 
 export const checkHouseholdExists = async (uid) => {

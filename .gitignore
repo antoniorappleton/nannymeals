@@ -20,3 +20,7 @@ yarn-error.log*
 
 # Public auto-generated (opcional, se quiseres manter o src como fonte da verdade)
 # app/public/src/
+
+# Security
+app/public/src/config.js
+!app/public/src/config.template.js

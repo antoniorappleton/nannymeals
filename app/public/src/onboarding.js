@@ -1,6 +1,6 @@
 import { auth } from "./firebase-init.js";
 import { createHousehold } from "./db.js";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { logout } from "./auth.js";
 
 // Logout
