@@ -1,282 +1,191 @@
-<!doctype html>
+<!DOCTYPE html>
 <html class="light" lang="pt">
 
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>NannyMeal - Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+  <title>NannyMeal - Waste & Savings Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            primary: "#13ec5b",
-            "background-light": "#f6f8f6",
-            "background-dark": "#102216",
-          },
-          fontFamily: {
-            display: ["Plus Jakarta Sans", "sans-serif"],
-          },
-          borderRadius: {
-            DEFAULT: "0.5rem",
-            lg: "1rem",
-            xl: "1.5rem",
-            "2xl": "2rem",
-            full: "9999px",
-          },
-        },
-      },
-    };
-  </script>
-  <script type="importmap">
-      {
-        "imports": {
-          "firebase/app": "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js",
-          "firebase/auth": "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js",
-          "firebase/firestore": "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js",
-          "firebase/functions": "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js"
-        }
-      }
-    </script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
   <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      min-height: 100dvh;
+    }
+  </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
-  <div
-    class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-4xl mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden md:px-6">
-    <!-- Persistent Header -->
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div class="app-container glass-effect">
+    <!-- Header -->
     <header
-      class="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4 md:shadow-lg md:shadow-primary/5">
-      <div class="flex items-center gap-2">
-        <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-            stroke="currentColor" class="w-6 h-6 text-primary">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-          </svg>
-        </div>
-        <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">NannyMeal</span>
+      class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10">
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-xl font-extrabold tracking-tight">Estatísticas</h1>
+        <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
       </div>
-
-      <!-- Desktop Navigation -->
-      <nav class="hidden md:flex items-center gap-8">
-        <a href="dashboard.html"
-          class="text-sm font-black uppercase tracking-widest text-primary border-b-2 border-primary pb-1">Home</a>
-        <a href="plan.html"
-          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Plano</a>
-        <a href="grocery.html"
-          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Lista</a>
-        <a href="onboarding.html"
-          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Perfil</a>
-      </nav>
-
-      <button id="btn-logout"
-        class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-        </svg>
-      </button>
+      <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-month-header">RESUMO
+        MENSAL • MARÇO 2026</p>
     </header>
 
-    <main class="flex-1 p-4 md:pt-8">
-      <!-- Hero Welcome -->
-      <div
-        class="mb-8 p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800">
-        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2" id="welcome-msg">
-          Olá, Chef!
-        </h1>
-        <p class="text-slate-500 dark:text-slate-400 font-medium">
-          O seu plano semanal personalizado está a ser preparado.
-        </p>
-      </div>
-
-      <!-- Dashboard Content -->
-      <div id="dashboard-content" class="grid gap-6 md:grid-cols-2">
-        <!-- Status Card -->
+    <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32">
+      <!-- Stats Cards -->
+      <section class="grid grid-cols-3 gap-3">
         <div
-          class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-extrabold text-lg text-slate-800 dark:text-white">Estado do Plano</h3>
-            <span
-              class="px-3 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-[10px] font-black uppercase tracking-wider">Em
-              Processamento</span>
-          </div>
-          <p class="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
-            Estamos a analisar as suas preferências para criar a ementa
-            perfeita.
-          </p>
-          <div class="flex gap-2">
-            <div class="h-1.5 flex-1 bg-primary rounded-full"></div>
-            <div class="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-            <div class="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-          </div>
-        </div>
-
-        <!-- Quick Action Card -->
-        <div
-          class="bg-primary/10 border border-primary/20 p-6 rounded-2xl flex flex-col justify-between shadow-xl shadow-primary/5">
+          class="bg-primary/10 dark:bg-primary/10 border border-primary/20 flex flex-col gap-2 rounded-3xl p-4 aspect-square items-center justify-center text-center shadow-premium">
+          <span class="material-symbols-outlined text-primary text-3xl">payments</span>
           <div>
-            <h3 class="font-extrabold text-lg text-slate-900 dark:text-white mb-2">
-              Novo Planeamento
-            </h3>
-            <p class="text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-              Quer ajustar a sua rotina ou mudar o número de jantares?
-            </p>
+            <p class="text-primary text-lg font-black leading-none" id="stats-saved">124€</p>
+            <p class="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1">Poupado</p>
           </div>
-          <button id="btn-new-plan"
-            class="mt-6 w-full bg-primary hover:scale-[1.02] active:scale-95 text-slate-900 font-black py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-            Configurar Onboarding
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-              stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.332.183-.582.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            </svg>
-          </button>
         </div>
-      </div>
+        <div
+          class="bg-primary/5 dark:bg-primary/5 border border-slate-100 dark:border-slate-800 flex flex-col gap-2 rounded-3xl p-4 aspect-square items-center justify-center text-center shadow-premium">
+          <span class="material-symbols-outlined text-primary text-3xl">delete_sweep</span>
+          <div>
+            <p class="text-lg font-black leading-none" id="stats-reduced">3.2kg</p>
+            <p class="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1">Lixo</p>
+          </div>
+        </div>
+        <div
+          class="bg-primary/5 dark:bg-primary/5 border border-slate-100 dark:border-slate-800 flex flex-col gap-2 rounded-3xl p-4 aspect-square items-center justify-center text-center shadow-premium">
+          <span class="material-symbols-outlined text-primary text-3xl">sentiment_very_satisfied</span>
+          <div>
+            <p class="text-lg font-black leading-none" id="stats-happy">95%</p>
+            <p class="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1">Feliz</p>
+          </div>
+        </div>
+      </section>
 
-      <!-- Loading Placeholder -->
-      <div class="mt-12 text-center text-slate-400">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-10 h-10 mb-2 animate-bounce mx-auto">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.048 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M12 18a3.75 3.75 0 0 0 .495-7.467 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" />
-        </svg>
-        <p class="text-sm">A carregar os detalhes da família...</p>
-      </div>
+      <!-- Middle Section: Waste Insight -->
+      <section
+        class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-premium border border-slate-100 dark:border-slate-800 space-y-6">
+        <div class="flex items-center gap-3">
+          <div class="bg-primary/10 p-2 rounded-xl">
+            <span class="material-symbols-outlined text-primary">lightbulb</span>
+          </div>
+          <h3 class="text-lg font-extrabold tracking-tight">Insights Inteligentes</h3>
+        </div>
+        <div class="flex items-start gap-4">
+          <div id="insight-image" class="size-16 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
+            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDH2CxyKXnAhv9vKQ6xcO6DUCEvLBu9QAn-LbF6NIT9FfFDkbUUE_KHeNsVU8zU7K1Nwvqk-tRie98a_fgSQdSMU3Tmu0Ckph3EHpk7Ctpt1EFvwRm_A75tILyPzX8J3BqP-Yx1i37AFmoO6T9VqYs2hJRWII9552GX6O1d4MfRDLRAMxkYDAslx2fuUz00m3q47biBAeWbax1Tt3uhCU-3tiwReNm70-zY08YLmbVKQKcycXi0bj7gLLHIh0svpWWj9fAoBldNzGj_');">
+          </div>
+          <div class="flex-1 space-y-1">
+            <p class="font-extrabold text-base" id="insight-title">Demasiados Espinafres</p>
+            <p class="text-slate-500 text-sm leading-relaxed" id="insight-desc">Teve consistentemente 200g de sobras
+              todas as semanas este mês. Considere reduzir a encomenda.</p>
+          </div>
+        </div>
+        <button
+          class="w-full bg-primary text-slate-900 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[0.98] active:scale-[0.95] transition-all shadow-premium">
+          <span class="material-symbols-outlined text-[20px]">shopping_cart_checkout</span>
+          Ajustar Próxima Lista
+        </button>
+      </section>
+
+      <!-- Bottom Section: Waste Trend Graph -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between px-2">
+          <h3 class="text-lg font-extrabold tracking-tight">Tendência de Desperdício</h3>
+          <span
+            class="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-full">Últimas
+            4 Semanas</span>
+        </div>
+        <div
+          class="bg-white dark:bg-slate-900 rounded-3xl p-8 h-48 flex items-end justify-between gap-4 border border-slate-100 dark:border-slate-800 shadow-premium">
+          <div class="flex flex-col items-center flex-1 gap-3 h-full justify-end">
+            <div class="w-full bg-primary/10 rounded-xl relative" style="height: 80%;">
+              <div class="absolute bottom-0 w-full bg-primary/30 rounded-xl" style="height: 60%;"></div>
+            </div>
+            <span class="text-[10px] font-black text-slate-400">S1</span>
+          </div>
+          <div class="flex flex-col items-center flex-1 gap-3 h-full justify-end">
+            <div class="w-full bg-primary/10 rounded-xl relative" style="height: 65%;">
+              <div class="absolute bottom-0 w-full bg-primary/30 rounded-xl" style="height: 45%;"></div>
+            </div>
+            <span class="text-[10px] font-black text-slate-400">S2</span>
+          </div>
+          <div class="flex flex-col items-center flex-1 gap-3 h-full justify-end">
+            <div class="w-full bg-primary/10 rounded-xl relative" style="height: 50%;">
+              <div class="absolute bottom-0 w-full bg-primary/30 rounded-xl" style="height: 30%;"></div>
+            </div>
+            <span class="text-[10px] font-black text-slate-400">S3</span>
+          </div>
+          <div class="flex flex-col items-center flex-1 gap-3 h-full justify-end">
+            <div class="w-full bg-primary/20 rounded-xl relative" style="height: 35%;">
+              <div class="absolute bottom-0 w-full bg-primary rounded-xl shadow-premium" style="height: 15%;"></div>
+            </div>
+            <span class="text-[10px] font-black text-primary">S4</span>
+          </div>
+        </div>
+        <p class="text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-6 italic">
+          "Está no caminho para reduzir o desperdício em 12% este mês!"
+        </p>
+      </section>
     </main>
 
-    <!-- Bottom Navigation (Mobile Only) -->
-    <nav
-      class="md:hidden mt-auto sticky bottom-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-4 flex justify-around">
-      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Home</span>
-      </a>
-      <a href="plan.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
-      </a>
-      <a href="grocery.html"
-        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Lista</span>
-      </a>
-      <a href="onboarding.html"
-        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Perfil</span>
-      </a>
-    </nav>
-    <div class="h-6 md:h-12"></div>
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+      <nav
+        class="flex justify-around items-center bg-white dark:bg-slate-900 px-4 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+        <a class="flex flex-col items-center gap-1 text-primary" href="dashboard.html">
+          <span class="material-symbols-outlined font-bold">monitoring</span>
+          <span class="text-[10px] font-black uppercase tracking-widest">Home</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+          href="plan.html">
+          <span class="material-symbols-outlined">calendar_today</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest">Plano</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+          href="grocery.html">
+          <span class="material-symbols-outlined">shopping_basket</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest">Lista</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+          href="onboarding.html">
+          <span class="material-symbols-outlined">person</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest">Perfil</span>
+        </a>
+      </nav>
+    </div>
   </div>
 
-  <script type="module" src="src/auth.js?v=6"></script>
   <script type="module">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { auth } from "./src/firebase-init.js";
-    import { onAuthStateChanged } from "firebase/auth";
-    import { doc, getDoc, getFirestore } from "firebase/firestore";
-    import { seedRecipes } from "./src/seed-recipes.js";
-    import { getLastPlan, generateWeeklyPlan } from "./src/db.js";
+    import { getHouseholdStats } from "./src/db.js";
+    import { logout } from "./src/auth.js";
 
-    const db = getFirestore();
+    document.getElementById("btn-logout").onclick = () => logout();
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        document.getElementById("welcome-msg").textContent =
-          `Olá, ${user.displayName || "Chef"}!`;
-
-        // 1. Sementear receitas se necessário
-        await seedRecipes();
-
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          if (userData.householdId) {
-            // 2. Carregar Plano Semanal
-            let plan = await getLastPlan(userData.householdId);
-
-            if (!plan) {
-              console.log("A gerar primeiro plano...");
-              plan = await generateWeeklyPlan(userData.householdId);
-            }
-            renderPlan(plan);
-          }
-        }
+        // Fetch real or mock stats
+        const stats = await getHouseholdStats(user.uid);
+        renderStats(stats);
       }
     });
 
-    const renderPlan = (plan) => {
-      const container = document.getElementById("dashboard-content");
-      if (!plan || !plan.meals) return;
+    function renderStats(stats) {
+      document.getElementById("stats-saved").textContent = stats.monthlySavings + "€";
+      document.getElementById("stats-reduced").textContent = stats.wasteReduced + "kg";
+      document.getElementById("stats-happy").textContent = stats.satisfactionRate + "%";
 
-      // Limpar placeholders
-      container.innerHTML = "";
-
-      plan.meals.forEach((meal) => {
-        const card = document.createElement("div");
-        card.className =
-          "bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-all duration-300";
-        card.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="size-14 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7 text-primary">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-slate-900 dark:text-white leading-tight">${meal.recipeName}</h4>
-                            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">${meal.prepTime} MINUTOS</p>
-                        </div>
-                    </div>
-                    <button class="size-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-primary/20 group-hover:scale-110 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-slate-300 hover:text-primary transition-colors">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9.001-13.501" />
-                        </svg>
-                    </button>
-                `;
-        container.appendChild(card);
-      });
-
-      // Remover o placeholder de carregamento
-      const loading = document.querySelector(".mt-12.text-center");
-      if (loading) loading.classList.add("hidden");
-    };
-
-    // Logout via auth.js
-    import { logout } from "./src/auth.js";
-    document.getElementById("btn-logout").onclick = () => logout();
-
-    document.getElementById("btn-new-plan").onclick = () => {
-      window.location.href = "onboarding.html";
-    };
+      const insight = stats.insights[0];
+      if (insight) {
+        document.getElementById("insight-title").textContent = insight.title;
+        document.getElementById("insight-desc").textContent = insight.description;
+        document.getElementById("insight-image").style.backgroundImage = `url('${insight.image}')`;
+      }
+    }
   </script>
 </body>
 

@@ -1,255 +1,178 @@
 <!doctype html>
-<html lang="en">
+<html class="light" lang="pt">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Weekly Plan - NannyMeal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>NannyMeal - Plano Semanal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            primary: "#13ec5b",
-            "background-light": "#f6f8f6",
-            "background-dark": "#102216",
-          },
-          fontFamily: {
-            display: ["Plus Jakarta Sans", "sans-serif"],
-          },
-          borderRadius: {
-            DEFAULT: "0.5rem",
-            lg: "1rem",
-            xl: "1.5rem",
-            "2xl": "2rem",
-            full: "9999px",
-          },
-        },
-      },
-    };
-  </script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
   <link rel="manifest" href="manifest.json" />
 </head>
 
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
-  <div
-    class="relative flex h-auto min-h-screen w-full max-w-[430px] md:max-w-4xl mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden md:px-6">
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div class="app-container glass-effect">
+    <!-- Header -->
     <header
-      class="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 md:rounded-b-2xl md:mt-4 md:shadow-lg md:shadow-primary/5">
-      <a href="dashboard.html" class="flex items-center gap-2">
-        <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-            stroke="currentColor" class="w-6 h-6 text-primary">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-          </svg>
-        </div>
-        <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">NannyMeal</span>
-      </a>
-
-      <!-- Desktop Navigation -->
-      <nav class="hidden md:flex items-center gap-8">
-        <a href="dashboard.html"
-          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Home</a>
-        <a href="plan.html"
-          class="text-sm font-black uppercase tracking-widest text-primary border-b-2 border-primary pb-1">Plano</a>
-        <a href="grocery.html"
-          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Lista</a>
-        <a href="onboarding.html"
-          class="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Perfil</a>
-      </nav>
-
-      <button id="btn-logout"
-        class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-        </svg>
-      </button>
+      class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10">
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-xl font-extrabold tracking-tight">Plano Semanal</h1>
+        <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+      </div>
+      <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-week-header">2 MAR – 8 MAR
+        • EMENTA ATIVA</p>
     </header>
 
-    <main id="weekly-plan-list" class="flex-1 p-4 pb-24">
-      <div
-        class="mb-8 p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800">
-        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">Plano Semanal
-        </h2>
-        <p class="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">2 Mar – 8 Mar</p>
-      </div>
-      <!-- Monday -->
-      <div class="mb-6">
-        <label
-          class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2 mb-2 block">Segunda-feira</label>
+    <main id="weekly-plan-list" class="flex-1 overflow-y-auto pb-32">
+      <!-- Adaptation Notification Banner -->
+      <div class="p-4" id="adaptation-banner" class="hidden">
         <div
-          class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
-          <div class="flex items-center gap-4">
+          class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-primary/20 bg-primary/10 p-6 dark:bg-primary/5 shadow-premium">
+          <div class="flex gap-4">
             <div
-              class="size-14 bg-yellow-400/10 rounded-xl flex items-center justify-center group-hover:bg-yellow-400/20 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                stroke="currentColor" class="w-7 h-7 text-yellow-500">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-              </svg>
+              class="size-12 shrink-0 flex items-center justify-center rounded-2xl bg-primary text-slate-900 shadow-lg">
+              <span class="material-symbols-outlined text-2xl">auto_awesome</span>
             </div>
-            <div>
-              <h3 class="font-extrabold text-slate-900 dark:text-white leading-tight text-lg">Massa de Limão (15 Min)
-              </h3>
-              <div class="flex gap-2 mt-1">
-                <span
-                  class="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-[10px] font-black uppercase tracking-wider">Rápido</span>
-                <span
-                  class="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-wider">Crianças</span>
-              </div>
+            <div class="space-y-1">
+              <p class="text-base font-extrabold tracking-tight">Plano Inteligente</p>
+              <p class="text-xs font-medium text-slate-500 leading-relaxed" id="adaptation-text">
+                A carregar sugestões personalizadas...
+              </p>
             </div>
-          </div>
-          <div class="flex gap-2">
-            <button
-              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-primary/20 group-hover:scale-105 transition-all text-slate-400 hover:text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>
-            </button>
-            <button
-              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-primary/20 group-hover:scale-105 transition-all text-slate-400 hover:text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
 
-      <!-- Tuesday -->
-      <div class="mb-6">
-        <label
-          class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2 mb-2 block">Terça-feira</label>
-        <div
-          class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
-          <div class="flex items-center gap-4">
-            <div
-              class="size-14 bg-orange-400/10 rounded-xl flex items-center justify-center group-hover:bg-orange-400/20 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                stroke="currentColor" class="w-7 h-7 text-orange-500">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="font-extrabold text-slate-900 dark:text-white leading-tight text-lg">Tacos No Forno</h3>
-              <div class="flex gap-2 mt-1">
-                <span
-                  class="px-2 py-0.5 bg-slate-100 text-slate-500 dark:bg-slate-800 rounded-lg text-[10px] font-black uppercase tracking-wider">25
-                  MIN</span>
-                <span
-                  class="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-wider">Crianças</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex gap-2">
-            <button
-              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>
-            </button>
-            <button
-              class="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-              </svg>
-            </button>
-          </div>
+      <!-- Date Selector -->
+      <div class="flex items-center justify-between px-6 py-2 mb-2">
+        <h3 class="text-lg font-extrabold tracking-tight" id="week-dates">---</h3>
+        <div class="flex gap-2">
+          <button
+            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <button
+            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
         </div>
       </div>
 
-      <!-- Wednesday -->
-      <div class="day-slot">
-        <label class="day-label">Wednesday</label>
-        <div class="recipe-card">
-          <div class="recipe-img" style="background: #81ecec"></div>
-          <div class="recipe-info">
-            <h3 class="recipe-title">Green Curry Bowl</h3>
-            <div class="recipe-meta">
-              <span>30 min</span>
-              <span class="badge">Adult+</span>
-            </div>
+      <!-- Weekly Meals List -->
+      <div id="meals-container" class="space-y-6 px-4">
+        <!-- Dynamic meals will be injected here -->
+        <div class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+          <div
+            class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
+            <span class="material-symbols-outlined text-4xl">restaurant_menu</span>
           </div>
-          <div class="actions">
-            <button class="btn-icon">🔄</button>
-            <button class="btn-icon">🔒</button>
-          </div>
+          <p class="font-bold">A carregar o vosso plano...</p>
         </div>
       </div>
     </main>
 
     <!-- Bottom Navigation -->
-    <nav
-      class="md:hidden mt-auto sticky bottom-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-4 flex justify-around">
-      <a href="dashboard.html"
-        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Home</span>
-      </a>
-      <a href="plan.html" class="flex flex-col items-center gap-1 text-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
-      </a>
-      <a href="grocery.html"
-        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Lista</span>
-      </a>
-      <a href="onboarding.html"
-        class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Perfil</span>
-      </a>
-    </nav>
+    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+      <nav
+        class="flex justify-around items-center bg-white dark:bg-slate-900 px-4 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+          href="dashboard.html">
+          <span class="material-symbols-outlined">monitoring</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest">Home</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-primary" href="plan.html">
+          <span class="material-symbols-outlined font-bold">calendar_today</span>
+          <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+          href="grocery.html">
+          <span class="material-symbols-outlined">shopping_basket</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest">Lista</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+          href="onboarding.html">
+          <span class="material-symbols-outlined">person</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest">Perfil</span>
+        </a>
+      </nav>
+    </div>
   </div>
-  <script type="importmap">
-    {
-      "imports": {
-        "firebase/app": "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js",
-        "firebase/auth": "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js",
-        "firebase/firestore": "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js",
-        "firebase/functions": "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js"
-      }
-    }
-  </script>
-  <script type="module" src="src/auth.js?v=6"></script>
+
   <script type="module">
-    import { logout } from "./src/auth.js";
-    document.getElementById("btn-logout").onclick = () => logout();
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { auth } from "./src/firebase-init.js";
+    import { getLastPlan, getHousehold, generateWeeklyPlan } from "./src/db.js";
+
+    const mealsContainer = document.getElementById("meals-container");
+    const weekDates = document.getElementById("week-dates");
+    const adaptationText = document.getElementById("adaptation-text");
+
+    const days = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"];
+
+    const renderPlan = (plan) => {
+      if (!plan || !plan.meals) {
+        mealsContainer.innerHTML = `
+          <div class="py-12 text-center space-y-4">
+            <p class="text-slate-500 font-medium">Ainda não tens um plano para esta semana.</p>
+            <button id="btn-generate" class="bg-primary text-slate-900 px-8 py-4 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs">Gerar Plano Agora</button>
+          </div>
+        `;
+        document.getElementById("btn-generate")?.addEventListener("click", async () => {
+          const user = auth.currentUser;
+          const household = await getHousehold(user.uid); // Simplified for demo
+          if (household) {
+            mealsContainer.innerHTML = "<p class='text-center py-10'>A gerar plano mágico...</p>";
+            await generateWeeklyPlan(user.uid); // Use UID as HID for demo
+            location.reload();
+          }
+        });
+        return;
+      }
+
+      weekDates.textContent = "Plano Ativo";
+      adaptationText.textContent = "Sugestões personalizadas com base no vosso perfil e feedback anterior.";
+
+      mealsContainer.innerHTML = plan.meals.map((meal, index) => `
+        <div class="space-y-3">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">${days[index] || "Dia extra"}</p>
+          <div class="flex flex-col rounded-3xl overflow-hidden shadow-premium bg-white dark:bg-slate-900 border ${meal.isReplacement ? 'border-primary/40 ring-4 ring-primary/5' : 'border-slate-100 dark:border-slate-800'}">
+            <div class="p-6 space-y-4">
+              <div class="flex justify-between items-start">
+                <h4 class="text-xl font-extrabold tracking-tight">${meal.recipeName}</h4>
+                <span class="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-full uppercase tracking-widest">${meal.prepTime} MIN</span>
+              </div>
+              <div class="flex items-center gap-2 py-1 text-slate-500 ${meal.isReplacement ? '' : 'hidden'}">
+                <span class="material-symbols-outlined text-primary text-xl">info</span>
+                <p class="text-sm font-medium italic">${meal.replacedReason || "Sugestão inteligente"}</p>
+              </div>
+              <div class="flex gap-3">
+                <button class="flex-1 bg-primary text-slate-900 font-bold h-12 rounded-2xl shadow-premium hover:scale-[0.98] transition-all">Ver Receita</button>
+                <button onclick="window.location.href='swaps.html?meal=${index}'" class="size-12 flex items-center justify-center rounded-2xl border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-primary transition-colors">
+                  <span class="material-symbols-outlined">swap_horiz</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Fallback for demo: if no household, use UID as sample HID
+        const plan = await getLastPlan(user.uid);
+        renderPlan(plan);
+      } else {
+        window.location.href = "index.html";
+      }
+    });
   </script>
 </body>
 
