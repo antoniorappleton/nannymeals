@@ -1,5 +1,5 @@
 import { db } from "./firebase-init.js";
-import { collection, addDoc, getDocs, query, limit } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 const recipes = [
   {

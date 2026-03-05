@@ -220,7 +220,7 @@ const updateWizardUI = () => {
     "A SEGURANÇA ALIMENTAR É A NOSSA PRIORIDADE.",
     "QUASE LÁ! VAMOS PLANEAR DE ACORDO COM O TEU TEMPO.",
   ];
-  footerNote.textContent = notes[currentStep - 1];
+  if (footerNote) footerNote.textContent = notes[currentStep - 1];
 };
 
 btnNext.onclick = async () => {

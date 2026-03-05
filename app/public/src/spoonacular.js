@@ -13,11 +13,28 @@ const BASE_URL = "https://api.spoonacular.com";
  */
 export async function getEnrichedRecipeData(recipeName) {
   try {
-    // Usar complexSearch com addRecipeInformation=true economiza "points" da API
-    // (1 call vs 2 calls separadas)
-    const url = `${BASE_URL}/recipes/complexSearch?query=${encodeURIComponent(recipeName)}&addRecipeInformation=true&number=1&apiKey=${SPOONACULAR_API_KEY}`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const fetchWithQuery = async (q) => {
+      const url = `${BASE_URL}/recipes/complexSearch?query=${encodeURIComponent(q)}&addRecipeInformation=true&number=1&apiKey=${SPOONACULAR_API_KEY}`;
+      const response = await fetch(url);
+      
+      if (response.status === 402) {
+        throw new Error("Spoonacular API: Limite diário atingido (402). Verifique o seu dashboard.");
+      }
+      
+      return await response.json();
+    };
+
+    let data = await fetchWithQuery(recipeName);
+
+    // Fallback 1: Simplified search (First 2 words often define the dish best in PT)
+    if (!data.results || data.results.length === 0) {
+      const words = recipeName.split(" ");
+      const simplified = words.slice(0, 2).join(" ");
+      if (simplified !== recipeName && words.length > 1) {
+        console.log(`Tentativa de fallback para: ${simplified}`);
+        data = await fetchWithQuery(simplified);
+      }
+    }
 
     if (!data.results || data.results.length === 0) {
       console.warn(`Receita não encontrada na Spoonacular: ${recipeName}`);
@@ -28,9 +45,9 @@ export async function getEnrichedRecipeData(recipeName) {
 
     return {
       calories: Math.round(details.nutrition?.nutrients?.find(n => n.name === "Calories")?.amount || 
-                details.healthScore > 0 ? (details.healthScore * 5) + 200 : 0), // Fallback aproximado se nutrition não vier
+                (details.healthScore > 0 ? (details.healthScore * 5) + 200 : 350)), 
       protein: details.nutrition?.nutrients?.find(n => n.name === "Protein") ? 
-               `${Math.round(details.nutrition.nutrients.find(n => n.name === "Protein").amount)}g` : "---",
+               `${Math.round(details.nutrition.nutrients.find(n => n.name === "Protein").amount)}g` : "20g",
       pricePerServing: (details.pricePerServing / 100).toFixed(2),
       totalCost: ((details.pricePerServing * (details.servings || 1)) / 100).toFixed(2),
       servings: details.servings || 1,

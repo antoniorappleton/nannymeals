@@ -13,23 +13,39 @@ import {
   serverTimestamp
 } from "./firebase-init.js";
 import { getEnrichedRecipeData, searchRecipesByCuisine } from "./spoonacular.js";
+import { seedRecipes } from "./seed-recipes.js";
 
 /**
  * Módulo de Abstração Firestore (Refatorado)
  */
 
-export const getHousehold = async (hid) => {
-  const snap = await getDoc(doc(db, "households", hid));
-  return snap.exists() ? snap.data() : null;
+export const getHousehold = async (id) => {
+  // Try direct HID
+  let snap = await getDoc(doc(db, "households", id));
+  if (snap.exists()) return { id: snap.id, ...snap.data() };
+  
+  // Try User UID lookup
+  const userSnap = await getDoc(doc(db, "users", id));
+  if (userSnap.exists() && userSnap.data().householdId) {
+    const hid = userSnap.data().householdId;
+    snap = await getDoc(doc(db, "households", hid));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  }
+  return null;
 };
 
 export const saveHousehold = async (hid, data) => {
   await setDoc(doc(db, "households", hid), data, { merge: true });
 };
 
-export const getLastPlan = async (hid) => {
+export const getLastPlan = async (id) => {
+  const household = await getHousehold(id);
+  if (!household) return null;
+  const hid = household.id;
+
   const q = query(collection(db, "weeklyPlans"), where("householdId", "==", hid));
   const snap = await getDocs(q);
+  // Sort by date or just take the first for now
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))[0];
 };
 
@@ -188,12 +204,12 @@ export const createHousehold = async (ownerUid, data) => {
   return householdId;
 };
 
-export const generateWeeklyPlan = async (householdId) => {
-  const hSnap = await getDoc(doc(db, "households", householdId));
-  if (!hSnap.exists()) return null;
+export const generateWeeklyPlan = async (id) => {
+  const household = await getHousehold(id);
+  if (!household) return null;
+  const householdId = household.id;
 
-  const hData = hSnap.data();
-  const count = hData.cookingDaysPerWeek || hData.dinnersPerWeek || 5;
+  const count = household.cookingDaysPerWeek || household.dinnersPerWeek || 5;
 
   // 1. Get weighted recommendations
   const selected = await getMealRecommendations(householdId, count);
@@ -241,7 +257,12 @@ export const getMealRecommendations = async (householdId, count) => {
   const maxTime = hData.cookingTimeWeekday || 60;
 
   // 1. Fetch all recipes
-  const rSnap = await getDocs(collection(db, "recipes"));
+  let rSnap = await getDocs(collection(db, "recipes"));
+  if (rSnap.empty) {
+    console.log("Base de dados de receitas vazia. A semear...");
+    await seedRecipes();
+    rSnap = await getDocs(collection(db, "recipes"));
+  }
   let recipes = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   // 1.1 Mandatory Filters (Diet & Allergies)
@@ -255,16 +276,27 @@ export const getMealRecommendations = async (householdId, count) => {
 
   // Phase 2: Automated Discovery if local results are low
   if (recipes.length < count && diet.length > 0) {
-    console.log(`Poucas receitas locais (${recipes.length}). A descobrir novas na Spoonacular...`);
-    const dietMap = { Vegetariano: "vegetarian", Vegano: "vegan", Mediterrâneo: "mediterranean" };
-    const targetDiet = dietMap[diet[0]] || "healthy";
-    const newRecipes = await searchRecipesByCuisine(targetDiet, 10);
-    
-    for (const nr of newRecipes) {
-      // Save to Firestore to avoid future API calls for the same recipe
-      const docRef = await addDoc(collection(db, "recipes"), nr);
-      recipes.push({ id: docRef.id, ...nr });
+    try {
+      console.log(`Poucas receitas locais (${recipes.length}). A descobrir novas na Spoonacular...`);
+      const dietMap = { Vegetariano: "vegetarian", Vegano: "vegan", Mediterrâneo: "mediterranean" };
+      const targetDiet = dietMap[diet[0]] || "healthy";
+      const newRecipes = await searchRecipesByCuisine(targetDiet, 10);
+      
+      for (const nr of newRecipes) {
+        // Save to Firestore to avoid future API calls for the same recipe
+        const docRef = await addDoc(collection(db, "recipes"), nr);
+        recipes.push({ id: docRef.id, ...nr });
+      }
+    } catch (apiError) {
+      console.warn("Falha na descoberta Spoonacular (provável limite de API):", apiError);
+      // We continue with whatever local recipes we have
     }
+  }
+
+  // Fallback final: Se ainda não tivermos receitas suficientes, buscar aleatórias locais
+  if (recipes.length < count) {
+      const allR = await getDocs(collection(db, "recipes"));
+      recipes = allR.docs.map(d => ({ id: d.id, ...d.data() }));
   }
 
   if (allergies.length > 0) {
