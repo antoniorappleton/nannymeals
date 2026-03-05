@@ -1,4 +1,4 @@
-const CACHE_NAME = "nannymeal-v8";
+const CACHE_NAME = "nannymeal-v9";
 const ASSETS = [
   "/",
   "/index.html",
@@ -9,6 +9,9 @@ const ASSETS = [
   "/feedback.html",
   "/swaps.html",
   "/css/global.css",
+  "/assets/styles.css",
+  "/manifest.json",
+  "/favicon.ico",
 ];
 
 self.addEventListener("install", (event) => {
