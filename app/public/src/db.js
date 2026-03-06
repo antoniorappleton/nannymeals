@@ -260,7 +260,6 @@ export const generateWeeklyPlan = async (id) => {
 
   const count = household.cookingDaysPerWeek || household.dinnersPerWeek || 5;
 
-  // 1. Get weighted recommendations
   const selected = await getMealRecommendations(householdId, count);
 
   if (!selected || selected.length === 0) {
@@ -268,26 +267,38 @@ export const generateWeeklyPlan = async (id) => {
     return null;
   }
 
+  const meals = [];
+
+  for (const r of selected) {
+    const recipe = await getRecipe(r.id);
+    if (!recipe) continue;
+
+    meals.push({
+      recipeId: recipe.id,
+      recipeName: recipe.name,
+      prepTime: recipe.prepTime,
+      completed: false,
+      ingredients: recipe.ingredients || [],
+      calories: recipe.calories || null,
+      pricePerServing: recipe.pricePerServing || null,
+    });
+  }
+
+  if (meals.length === 0) {
+    console.error("Nenhuma receita válida encontrada para criar o plano.");
+    return null;
+  }
+
   const newPlan = {
     householdId,
     createdAt: serverTimestamp(),
     status: "active",
-    meals: selected.map((r) => ({
-      recipeId: r.id,
-      recipeName: r.name,
-      prepTime: r.prepTime,
-      completed: false,
-      ingredients: r.ingredients || [],
-      calories: r.calories || null,
-      pricePerServing: r.pricePerServing || null,
-    })),
+    meals,
   };
 
   const docRef = await addDoc(collection(db, "weeklyPlans"), newPlan);
 
-  // 2. Generate and store grocery list for this plan
   const groceryList = await generateGroceryListFromPlan(docRef.id);
-  await updateDoc(docRef, { groceryList });
 
   return { id: docRef.id, ...newPlan, groceryList };
 };

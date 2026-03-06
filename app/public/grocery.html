@@ -110,12 +110,20 @@
           <p class="text-slate-500 font-medium">
             Ainda não tens itens na lista. Gera um plano primeiro!
           </p>
-          <button
-            onclick="window.location.href = 'plan.html'"
-            class="bg-primary text-slate-900 px-8 py-4 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs"
-          >
-            Ir para o Plano
-          </button>
+          <div class="flex items-center justify-center gap-4">
+            <button
+              onclick="window.location.href = 'plan.html'"
+              class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs"
+            >
+              Ir para o Plano
+            </button>
+            <button
+              id="btn-generate-auto"
+              class="bg-white dark:bg-slate-800 text-primary border border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs"
+            >
+              Gerar Plano Automático
+            </button>
+          </div>
         </div>
       </main>
 
@@ -190,7 +198,9 @@
       import {
         getLastPlan,
         getHousehold,
+        getPlanById,
         generateGroceryListFromPlan,
+        generateWeeklyPlan,
       } from "./src/db.js";
 
       // Elements
@@ -213,6 +223,14 @@
             if (list.length === 0) {
               console.log("Grocery list em falta. A gerar na hora...");
               list = await generateGroceryListFromPlan(plan.id);
+
+              // Re-fetch plan to obtain updated totals persisted by generator
+              try {
+                const updated = await getPlanById(plan.id);
+                if (updated) plan = updated;
+              } catch (err) {
+                console.warn("Falha ao reobter plano após geração:", err);
+              }
             }
 
             if (list && list.length > 0) {
@@ -243,6 +261,66 @@
             emptyState.classList.remove("hidden");
             document.getElementById("current-grocery-header").textContent =
               "SEM ITENS ATIVOS";
+          }
+
+          // Hook up the auto-generate button when user is present
+          const btnGenerateAutoEl =
+            document.getElementById("btn-generate-auto");
+          if (btnGenerateAutoEl) {
+            btnGenerateAutoEl.onclick = async () => {
+              try {
+                btnGenerateAutoEl.disabled = true;
+                btnGenerateAutoEl.textContent = "Gerando...";
+                const created = await generateWeeklyPlan(user.uid);
+                if (created) {
+                  // Re-fetch to obtain persisted totals
+                  const refreshed = await getPlanById(created.id);
+                  const grocery =
+                    refreshed &&
+                    refreshed.groceryList &&
+                    refreshed.groceryList.length > 0
+                      ? refreshed.groceryList
+                      : created.groceryList || [];
+
+                  if (grocery.length > 0) {
+                    renderGroceryList(grocery);
+                    document.getElementById(
+                      "current-grocery-header",
+                    ).textContent =
+                      `${grocery.reduce((acc, cat) => acc + cat.items.length, 0)} ITENS • ESTIMATIVA ATIVA`;
+
+                    const cost =
+                      refreshed?.totalEstimatedCost ||
+                      created.totalEstimatedCost;
+                    if (cost) {
+                      document
+                        .getElementById("cost-badge")
+                        .classList.remove("hidden");
+                      document.getElementById(
+                        "total-cost-display",
+                      ).textContent = cost;
+                    }
+
+                    loadingState.classList.add("hidden");
+                    emptyState.classList.add("hidden");
+                  } else {
+                    alert(
+                      "Não foi possível gerar um plano com itens. Tenta novamente mais tarde.",
+                    );
+                  }
+                } else {
+                  alert(
+                    "Não foi possível gerar um plano. Tenta novamente mais tarde.",
+                  );
+                }
+              } catch (err) {
+                console.error("Erro ao gerar plano automático:", err);
+                alert("Erro ao gerar plano automático.");
+              } finally {
+                btnGenerateAutoEl.disabled = false;
+                btnGenerateAutoEl.textContent = "Gerar Plano Automático";
+              }
+            };
           }
 
           // Barcode Scanner Logic (Open Food Facts integration)
