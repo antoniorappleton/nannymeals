@@ -1,0 +1,472 @@
+<!doctype html>
+<html class="light" lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>NannyMeal - Criar Plano</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="src/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="manifest" href="manifest.json" />
+  </head>
+
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
+  >
+    <div class="app-container glass-effect">
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <a
+              href="recipes-catalog.html"
+              class="p-2 -ml-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 shrink-0 min-h-10 min-w-10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h1
+              class="text-lg sm:text-xl font-extrabold tracking-tight truncate"
+            >
+              Criar Plano
+            </h1>
+          </div>
+          <button
+            id="btn-logout"
+            class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 shrink-0 min-h-10 min-w-10 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined">logout</span>
+          </button>
+        </div>
+        <p
+          class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]"
+        >
+          Selecione as suas refeições favoritas
+        </p>
+      </header>
+
+      <main class="flex-1 overflow-y-auto pb-32">
+        <div class="p-3 sm:p-4 space-y-4 sm:space-y-6">
+          <!-- Plan Name Input -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-4 border border-slate-100 dark:border-slate-800"
+          >
+            <label
+              class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 block mb-2"
+              >Nome do Plano</label
+            >
+            <input
+              type="text"
+              id="plan-name-input"
+              placeholder="Ex: Semana Saudavel"
+              class="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+            />
+          </div>
+
+          <!-- Meals Selection -->
+          <div class="space-y-3">
+            <h2
+              class="font-bold text-sm uppercase tracking-widest text-slate-500 px-4"
+            >
+              Refeições Selecionadas
+            </h2>
+
+            <div id="selected-meals" class="space-y-2 px-4">
+              <!-- Dynamic meals will be injected here -->
+              <p class="text-slate-400 text-sm italic">
+                Nenhuma refeição adicionada. Clique abaixo para adicionar.
+              </p>
+            </div>
+
+            <!-- Add More Recipes Button -->
+            <button
+              id="btn-add-more"
+              class="w-full mx-4 bg-slate-100 dark:bg-slate-800 text-primary px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Adicionar Refeição
+            </button>
+          </div>
+
+          <!-- Plan Details -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 space-y-4"
+          >
+            <h2
+              class="font-bold text-sm uppercase tracking-widest text-slate-500"
+            >
+              Informações do Plano
+            </h2>
+
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-slate-600 dark:text-slate-400"
+                  >Refeições:</span
+                >
+                <span class="font-bold" id="meal-count">0</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-slate-600 dark:text-slate-400"
+                  >Tempo médio de preparação:</span
+                >
+                <span class="font-bold" id="avg-prep-time">0 min</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-slate-600 dark:text-slate-400"
+                  >Custo estimado:</span
+                >
+                <span class="font-bold text-primary" id="estimated-cost"
+                  >0 €</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingredients Preview -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 space-y-3"
+          >
+            <div class="flex items-center justify-between">
+              <h2
+                class="font-bold text-sm uppercase tracking-widest text-slate-500"
+              >
+                Ingredientes
+              </h2>
+              <span
+                id="ingredient-count"
+                class="text-xs font-bold bg-primary/10 text-primary px-3 py-1 rounded-full"
+                >0</span
+              >
+            </div>
+
+            <div
+              id="ingredients-summary"
+              class="space-y-2 max-h-48 overflow-y-auto"
+            >
+              <p class="text-slate-400 text-sm italic">
+                Adicione refeições para ver os ingredientes
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Action Buttons -->
+      <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+        <div
+          class="bg-white dark:bg-slate-900 px-4 py-4 border-t border-slate-100 dark:border-slate-800 space-y-2"
+        >
+          <button
+            id="btn-create-plan"
+            class="w-full bg-primary text-slate-900 px-6 py-4 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs hover:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Criar Plano
+          </button>
+          <button
+            id="btn-cancel"
+            class="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Recipe Selection Modal -->
+      <div
+        id="recipe-selection-modal"
+        class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4 flex items-center justify-center"
+      >
+        <div
+          class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl"
+        >
+          <div
+            class="sticky top-0 z-10 bg-white dark:bg-slate-900 p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between"
+          >
+            <h2 class="font-bold text-lg">Selecionar Refeição</h2>
+            <button
+              onclick="closeRecipeModal()"
+              class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div
+            class="flex-1 overflow-y-auto space-y-2 px-4 py-4"
+            id="recipe-options"
+          >
+            <!-- Dynamic recipes will be injected here -->
+          </div>
+
+          <div class="h-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+      import { auth } from "./src/firebase-init.js";
+      import { getAllRecipes, createCustomPlan } from "./src/db.js";
+      import { logout } from "./src/auth.js";
+
+      let allRecipes = [];
+      let selectedMeals = [];
+
+      // Logout
+      document.getElementById("btn-logout").onclick = () => logout();
+      document.getElementById("btn-cancel").onclick = () =>
+        window.history.back();
+
+      // Add more recipes
+      document.getElementById("btn-add-more").onclick = () => {
+        openRecipeModal();
+      };
+
+      const openRecipeModal = () => {
+        const modal = document.getElementById("recipe-selection-modal");
+        const recipeOptions = document.getElementById("recipe-options");
+
+        recipeOptions.innerHTML = allRecipes
+          .map(
+            (recipe) => `
+        <button onclick="addMealToSelection('${recipe.id}')" class="w-full text-left bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-primary hover:bg-primary/5 transition-all">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <h3 class="font-bold text-sm">${recipe.name}</h3>
+              <div class="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                <span class="material-symbols-outlined text-sm">schedule</span>
+                <span>${recipe.prepTime}min</span>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-primary text-lg">add_circle</span>
+          </div>
+        </button>
+      `,
+          )
+          .join("");
+
+        modal.classList.remove("hidden");
+      };
+
+      window.closeRecipeModal = () => {
+        document
+          .getElementById("recipe-selection-modal")
+          .classList.add("hidden");
+      };
+
+      window.addMealToSelection = (recipeId) => {
+        const recipe = allRecipes.find((r) => r.id === recipeId);
+        if (!recipe) return;
+
+        // Verifica se já existe
+        if (selectedMeals.find((m) => m.id === recipeId)) {
+          alert("Esta refeição já foi adicionada");
+          return;
+        }
+
+        selectedMeals.push(recipe);
+        updateUI();
+        closeRecipeModal();
+      };
+
+      window.removeMeal = (recipeId) => {
+        selectedMeals = selectedMeals.filter((m) => m.id !== recipeId);
+        updateUI();
+      };
+
+      const updateUI = () => {
+        // Update meal count
+        document.getElementById("meal-count").textContent =
+          selectedMeals.length;
+
+        // Update average prep time
+        const avgPrepTime =
+          selectedMeals.length > 0
+            ? Math.round(
+                selectedMeals.reduce((acc, m) => acc + m.prepTime, 0) /
+                  selectedMeals.length,
+              )
+            : 0;
+        document.getElementById("avg-prep-time").textContent =
+          `${avgPrepTime} min`;
+
+        // Update estimated cost
+        const estimatedCost = selectedMeals
+          .reduce((acc, m) => acc + (parseFloat(m.pricePerServing) || 0), 0)
+          .toFixed(2);
+        document.getElementById("estimated-cost").textContent =
+          `${estimatedCost} €`;
+
+        // Update ingredients summary
+        const aggregatedIngredients = {};
+        selectedMeals.forEach((meal) => {
+          (meal.ingredients || []).forEach((ingredient) => {
+            const match = ingredient.match(
+              /^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i,
+            );
+            let qty = 1;
+            let unit = "unid";
+            let name = ingredient.toLowerCase().trim();
+
+            if (match && (match[1] || match[2])) {
+              qty = parseFloat(match[1]?.replace(",", ".")) || 1;
+              unit = (match[2] || "unid").toLowerCase();
+              name = match[3]?.toLowerCase().trim() || name;
+            }
+
+            if (!aggregatedIngredients[name]) {
+              aggregatedIngredients[name] = { qty: 0, unit };
+            }
+
+            if (aggregatedIngredients[name].unit === unit) {
+              aggregatedIngredients[name].qty += qty;
+            } else {
+              aggregatedIngredients[name].qty += qty;
+            }
+          });
+        });
+
+        const ingredientCount = Object.keys(aggregatedIngredients).length;
+        document.getElementById("ingredient-count").textContent =
+          ingredientCount;
+
+        const ingredientsSummary = document.getElementById(
+          "ingredients-summary",
+        );
+        if (ingredientCount === 0) {
+          ingredientsSummary.innerHTML =
+            '<p class="text-slate-400 text-sm italic">Adicione refeições para ver os ingredientes</p>';
+        } else {
+          ingredientsSummary.innerHTML = Object.entries(aggregatedIngredients)
+            .slice(0, 8)
+            .map(
+              ([name, data]) => `
+            <div class="flex items-center justify-between text-sm py-1">
+              <span>${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+              <span class="font-bold text-primary">${data.qty} ${data.unit}</span>
+            </div>
+          `,
+            )
+            .join("");
+
+          if (ingredientCount > 8) {
+            ingredientsSummary.innerHTML += `<p class="text-xs text-slate-400 italic pt-2">... e mais ${ingredientCount - 8} ingredientes</p>`;
+          }
+        }
+
+        // Update selected meals display
+        const selectedMealsDiv = document.getElementById("selected-meals");
+        if (selectedMeals.length === 0) {
+          selectedMealsDiv.innerHTML =
+            '<p class="text-slate-400 text-sm italic">Nenhuma refeição adicionada. Clique abaixo para adicionar.</p>';
+        } else {
+          selectedMealsDiv.innerHTML = selectedMeals
+            .map(
+              (meal, idx) => `
+          <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl border border-primary/20 bg-primary/5">
+            <div class="flex-1">
+              <p class="font-bold text-sm">${meal.name}</p>
+              <p class="text-xs text-slate-500">${meal.prepTime}min</p>
+            </div>
+            <button onclick="removeMeal('${meal.id}')" class="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-all">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+        `,
+            )
+            .join("");
+        }
+
+        // Enable/disable create button
+        document.getElementById("btn-create-plan").disabled =
+          selectedMeals.length === 0;
+      };
+
+      // Create plan
+      document.getElementById("btn-create-plan").onclick = async () => {
+        const planName = document
+          .getElementById("plan-name-input")
+          .value.trim();
+        if (!planName) {
+          alert("Por favor, dá um nome ao plano");
+          return;
+        }
+
+        if (selectedMeals.length === 0) {
+          alert("Por favor, adiciona pelo menos uma refeição");
+          return;
+        }
+
+        const btn = document.getElementById("btn-create-plan");
+        btn.disabled = true;
+        btn.innerHTML = "A criar plano...";
+
+        try {
+          const user = auth.currentUser;
+          if (!user) {
+            alert("Erro: Utilizador não autenticado");
+            return;
+          }
+
+          const planData = {
+            name: planName,
+            meals: selectedMeals.map((m) => ({
+              recipeId: m.id,
+              recipeName: m.name,
+              prepTime: m.prepTime,
+              completed: false,
+              ingredients: m.ingredients || [],
+              calories: m.calories || null,
+              pricePerServing: m.pricePerServing || null,
+            })),
+          };
+
+          await createCustomPlan(user.uid, planData);
+          alert("Plano criado com sucesso!");
+          window.location.href = "plan.html";
+        } catch (error) {
+          console.error("Erro ao criar plano:", error);
+          alert("Erro ao criar plano: " + error.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = "Criar Plano";
+        }
+      };
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            allRecipes = await getAllRecipes();
+            updateUI();
+
+            // Check if a recipe was passed in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const addRecipeId = urlParams.get("addRecipe");
+            if (addRecipeId) {
+              const recipe = allRecipes.find((r) => r.id === addRecipeId);
+              if (recipe) {
+                selectedMeals.push(recipe);
+                updateUI();
+              }
+            }
+          } catch (error) {
+            console.error("Erro ao carregar receitas:", error);
+          }
+        } else {
+          window.location.href = "index.html";
+        }
+      });
+
+      console.log("Criar Plano carregado [V1]");
+    </script>
+  </body>
+</html>

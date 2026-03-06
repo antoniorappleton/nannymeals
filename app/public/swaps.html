@@ -1,234 +1,416 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="light" lang="pt">
-
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>NannyMeal - Troca de Refeição</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="src/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/global.css" />
     <link rel="manifest" href="manifest.json" />
     <style>
-        body {
-            min-height: 100dvh;
-        }
+      body {
+        min-height: 100dvh;
+      }
     </style>
-</head>
+  </head>
 
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
+  >
     <div class="app-container glass-effect">
-        <!-- Header -->
-        <header
-            class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 border-b border-primary/10">
-            <div class="flex items-center justify-between">
-                <button onclick="history.back()"
-                    class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                </button>
-                <h1 class="text-lg font-bold">Troca Inteligente</h1>
-                <button
-                    class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-primary">
-                    <span class="material-symbols-outlined">more_horiz</span>
-                </button>
-            </div>
-        </header>
-
-        <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32">
-            <!-- Header Section -->
-            <div class="space-y-1">
-                <h2 class="text-3xl font-extrabold tracking-tight leading-tight">Melhoramos a sua semana!</h2>
-                <p class="text-slate-500 font-medium text-sm">Encontrámos uma opção melhor com base no feedback da sua
-                    família.</p>
-            </div>
-
-            <!-- The Swap Flow -->
-            <div class="space-y-4 relative">
-                <!-- Old Choice Card -->
-                <div
-                    class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 shadow-premium group">
-                    <div class="flex gap-4 items-center">
-                        <div id="old-meal-img"
-                            class="size-20 rounded-2xl bg-cover bg-center shrink-0 grayscale opacity-50"
-                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPCFRIxTNEJgvU83hO7F2_r2NMj9TLmElgwxFKj3u10MxvyyDoOZkS3Diihb1D2vp2ARFC78b2cm2EiX-nx68bI4jUpyZYkVOah9ruEeDtP_gYviQAbOJ1zfBU3E1S6ttyTcRFgA05qYPprCMUzcrCD5F_dJWOeRHuSWk5Kk8BfMBBPMPJtoO0R8r4ajnuhA28rYH3cKJ0PobsjeltdByetQbSCz8lk6bvR-oztza4jXQBNdbfSTtWOLQuUVgIlWX4-cfk2ghmNeWY')">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center gap-1.5 mb-1">
-                                <span class="material-symbols-outlined text-[14px] text-red-500">heart_broken</span>
-                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">A
-                                    Substituir</span>
-                            </div>
-                            <h3 id="old-meal-name" class="font-bold text-slate-500 line-through">Chicken Stir Fry</h3>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Impopular
-                                com as crianças</p>
-                        </div>
-                    </div>
-                    <div class="absolute top-0 right-0 p-4 opacity-5">
-                        <span class="material-symbols-outlined text-5xl">delete</span>
-                    </div>
-                </div>
-
-                <!-- Transition Arrow -->
-                <div class="flex justify-center -my-3 relative z-10">
-                    <div
-                        class="bg-primary text-slate-900 size-12 rounded-full flex items-center justify-center shadow-premium border-4 border-background-light dark:border-background-dark">
-                        <span class="material-symbols-outlined font-bold text-2xl">arrow_downward</span>
-                    </div>
-                </div>
-
-                <!-- New Suggestion Card -->
-                <div
-                    class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-primary p-5 shadow-premium ring-8 ring-primary/5">
-                    <div class="flex gap-4 items-start">
-                        <div id="new-meal-img" class="size-24 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
-                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u')">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex flex-wrap gap-2 mb-3">
-                                <span
-                                    class="px-2 py-0.5 bg-primary text-slate-900 text-[10px] font-black rounded-lg uppercase tracking-wider">Aprovado
-                                    por Crianças</span>
-                                <span
-                                    class="px-2 py-0.5 bg-primary/20 text-primary dark:text-primary/80 text-[10px] font-black rounded-lg uppercase tracking-wider">Rápido</span>
-                            </div>
-                            <h3 id="new-meal-name" class="font-extrabold text-lg leading-tight">Massa com Vegetais
-                                Escondidos</h3>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Pronto em 15
-                                Minutos • 4 Pessoas</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analysis Section -->
-            <section class="bg-primary/10 dark:bg-primary/5 rounded-3xl p-6 border border-primary/20 space-y-4">
-                <div class="flex items-center gap-3">
-                    <div class="size-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-                        <span class="material-symbols-outlined text-slate-900 text-xl">psychology</span>
-                    </div>
-                    <h4 class="font-extrabold text-primary dark:text-primary/90">Lógica Inteligente</h4>
-                </div>
-                <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 italic font-medium">
-                    "Como o <span class="text-slate-900 dark:text-white font-bold">Chicken Stir Fry</span> foi marcado
-                    como <span class="text-slate-900 dark:text-white font-bold">difícil de preparar</span> e <span
-                        class="text-slate-900 dark:text-white font-bold">impopular</span>, sugerimos este clássico."
-                </p>
-                <div class="mt-4 pt-6 border-t border-primary/10 grid grid-cols-2 gap-4">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-primary">timer</span>
-                        <div class="leading-tight">
-                            <p class="text-xs font-black">20m Poupados</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Menos prep</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-primary">eco</span>
-                        <div class="leading-tight">
-                            <p class="text-xs font-black">Lixo Zero</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Usa stock</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Actions -->
-            <div class="flex flex-col gap-4 pt-4">
-                <button id="btn-confirm-swap"
-                    class="w-full bg-primary text-slate-900 font-bold py-5 rounded-2xl shadow-premium hover:scale-[0.98] active:scale-[0.95] transition-all">
-                    Confirmar Troca
-                </button>
-                <button onclick="history.back()"
-                    class="w-full bg-white dark:bg-slate-900 text-slate-400 font-bold py-4 rounded-2xl border border-slate-100 dark:border-slate-800 uppercase tracking-widest text-[10px] hover:text-slate-600 transition-all">
-                    Manter Plano Original
-                </button>
-            </div>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
-            <nav
-                class="flex justify-around items-center bg-white dark:bg-slate-900 px-4 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                <a class="flex flex-1 flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-                    href="dashboard.html">
-                    <span class="material-symbols-outlined">home</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Home</span>
-                </a>
-                <a class="flex flex-1 flex-col items-center gap-1 text-primary" href="plan.html">
-                    <span class="material-symbols-outlined font-bold">calendar_today</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
-                </a>
-                <a class="flex flex-1 flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-                    href="grocery.html">
-                    <span class="material-symbols-outlined">shopping_basket</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Lista</span>
-                </a>
-                <a class="flex flex-1 flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-                    href="onboarding.html">
-                    <span class="material-symbols-outlined">person</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Perfil</span>
-                </a>
-            </nav>
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 border-b border-primary/10"
+      >
+        <div class="flex items-center justify-between">
+          <button
+            onclick="history.back()"
+            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400"
+          >
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h1 class="text-lg font-bold">Troca Inteligente</h1>
+          <button
+            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-primary"
+          >
+            <span class="material-symbols-outlined">more_horiz</span>
+          </button>
         </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32">
+        <!-- Header Section -->
+        <div class="space-y-1">
+          <h2 class="text-3xl font-extrabold tracking-tight leading-tight">
+            Melhoramos a sua semana!
+          </h2>
+          <p class="text-slate-500 font-medium text-sm">
+            Encontrámos uma opção melhor com base no feedback da sua família.
+          </p>
+        </div>
+
+        <!-- The Swap Flow -->
+        <div class="space-y-4 relative">
+          <!-- Old Choice Card -->
+          <div
+            class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 shadow-premium group"
+          >
+            <div class="flex gap-4 items-center">
+              <div
+                id="old-meal-img"
+                class="size-20 rounded-2xl bg-cover bg-center shrink-0 grayscale opacity-50"
+                style="
+                  background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBPCFRIxTNEJgvU83hO7F2_r2NMj9TLmElgwxFKj3u10MxvyyDoOZkS3Diihb1D2vp2ARFC78b2cm2EiX-nx68bI4jUpyZYkVOah9ruEeDtP_gYviQAbOJ1zfBU3E1S6ttyTcRFgA05qYPprCMUzcrCD5F_dJWOeRHuSWk5Kk8BfMBBPMPJtoO0R8r4ajnuhA28rYH3cKJ0PobsjeltdByetQbSCz8lk6bvR-oztza4jXQBNdbfSTtWOLQuUVgIlWX4-cfk2ghmNeWY&quot;);
+                "
+              ></div>
+              <div class="flex-1">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span
+                    class="material-symbols-outlined text-[14px] text-red-500"
+                    >heart_broken</span
+                  >
+                  <span
+                    class="text-[10px] font-black uppercase tracking-widest text-slate-400"
+                    >A Substituir</span
+                  >
+                </div>
+                <h3
+                  id="old-meal-name"
+                  class="font-bold text-slate-500 line-through"
+                >
+                  Chicken Stir Fry
+                </h3>
+                <p
+                  class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1"
+                >
+                  Impopular com as crianças
+                </p>
+              </div>
+            </div>
+            <div class="absolute top-0 right-0 p-4 opacity-5">
+              <span class="material-symbols-outlined text-5xl">delete</span>
+            </div>
+          </div>
+
+          <!-- Transition Arrow -->
+          <div class="flex justify-center -my-3 relative z-10">
+            <div
+              class="bg-primary text-slate-900 size-12 rounded-full flex items-center justify-center shadow-premium border-4 border-background-light dark:border-background-dark"
+            >
+              <span class="material-symbols-outlined font-bold text-2xl"
+                >arrow_downward</span
+              >
+            </div>
+          </div>
+
+          <!-- New Suggestion Card -->
+          <div
+            class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-primary p-5 shadow-premium ring-8 ring-primary/5"
+          >
+            <div class="flex gap-4 items-start">
+              <div
+                id="new-meal-img"
+                class="size-24 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
+                style="
+                  background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u&quot;);
+                "
+              ></div>
+              <div class="flex-1">
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <span
+                    class="px-2 py-0.5 bg-primary text-slate-900 text-[10px] font-black rounded-lg uppercase tracking-wider"
+                    >Aprovado por Crianças</span
+                  >
+                  <span
+                    class="px-2 py-0.5 bg-primary/20 text-primary dark:text-primary/80 text-[10px] font-black rounded-lg uppercase tracking-wider"
+                    >Rápido</span
+                  >
+                </div>
+                <h3
+                  id="new-meal-name"
+                  class="font-extrabold text-lg leading-tight"
+                >
+                  Massa com Vegetais Escondidos
+                </h3>
+                <p
+                  class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1"
+                >
+                  Pronto em 15 Minutos • 4 Pessoas
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <section
+          class="bg-primary/10 dark:bg-primary/5 rounded-3xl p-6 border border-primary/20 space-y-4"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="size-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg"
+            >
+              <span class="material-symbols-outlined text-slate-900 text-xl"
+                >psychology</span
+              >
+            </div>
+            <h4 class="font-extrabold text-primary dark:text-primary/90">
+              Lógica Inteligente
+            </h4>
+          </div>
+          <p
+            class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 italic font-medium"
+          >
+            "Como o
+            <span class="text-slate-900 dark:text-white font-bold"
+              >Chicken Stir Fry</span
+            >
+            foi marcado como
+            <span class="text-slate-900 dark:text-white font-bold"
+              >difícil de preparar</span
+            >
+            e
+            <span class="text-slate-900 dark:text-white font-bold"
+              >impopular</span
+            >, sugerimos este clássico."
+          </p>
+          <div
+            class="mt-4 pt-6 border-t border-primary/10 grid grid-cols-2 gap-4"
+          >
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary">timer</span>
+              <div class="leading-tight">
+                <p class="text-xs font-black">20m Poupados</p>
+                <p
+                  class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+                >
+                  Menos prep
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary">eco</span>
+              <div class="leading-tight">
+                <p class="text-xs font-black">Lixo Zero</p>
+                <p
+                  class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+                >
+                  Usa stock
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Actions -->
+        <div class="flex flex-col gap-4 pt-4">
+          <button
+            id="btn-confirm-swap"
+            class="w-full bg-primary text-slate-900 font-bold py-5 rounded-2xl shadow-premium hover:scale-[0.98] active:scale-[0.95] transition-all"
+          >
+            Confirmar Troca
+          </button>
+          <button
+            onclick="history.back()"
+            class="w-full bg-white dark:bg-slate-900 text-slate-400 font-bold py-4 rounded-2xl border border-slate-100 dark:border-slate-800 uppercase tracking-widest text-[10px] hover:text-slate-600 transition-all"
+          >
+            Manter Plano Original
+          </button>
+        </div>
+      </main>
+
+      <!-- Bottom Navigation -->
+      <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+        <nav
+          class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]"
+        >
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="dashboard.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >home</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Home</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-primary min-h-16 flex-1 touch-target"
+            href="plan.html"
+          >
+            <span class="material-symbols-outlined font-bold text-lg sm:text-xl"
+              >calendar_today</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest"
+              >Plano</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="grocery.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >shopping_basket</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Lista</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="onboarding.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >person</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Perfil</span
+            >
+          </a>
+        </nav>
+      </div>
     </div>
 
     <script type="module">
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-        import { auth } from "./src/firebase-init.js";
-        import { swapMeal, getLastPlan, getRecipe, getMealRecommendations } from "./src/db.js";
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+      import { auth } from "./src/firebase-init.js";
+      import {
+        swapMealImproved,
+        getPlanById,
+        getMealRecommendations,
+      } from "./src/db.js";
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const mealIndex = parseInt(urlParams.get('meal')) || 0;
+      const urlParams = new URLSearchParams(window.location.search);
+      const planId = urlParams.get("plan");
+      const mealIndex = parseInt(urlParams.get("meal")) || 0;
 
-        let currentPlan = null;
-        let oldMeal = null;
-        let replacementRecipe = null;
+      let currentPlan = null;
+      let oldMeal = null;
+      let replacementRecipe = null;
 
-        const oldMealName = document.getElementById("old-meal-name");
-        const oldMealImg = document.getElementById("old-meal-img");
-        const newMealName = document.getElementById("new-meal-name");
-        const newMealImg = document.getElementById("new-meal-img");
-        const btnConfirm = document.getElementById("btn-confirm-swap");
+      const oldMealName = document.getElementById("old-meal-name");
+      const oldMealImg = document.getElementById("old-meal-img");
+      const newMealName = document.getElementById("new-meal-name");
+      const newMealImg = document.getElementById("new-meal-img");
+      const btnConfirm = document.getElementById("btn-confirm-swap");
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentPlan = await getLastPlan(user.uid);
-                if (currentPlan && currentPlan.meals[mealIndex]) {
-                    oldMeal = currentPlan.meals[mealIndex];
-                    oldMealName.textContent = oldMeal.recipeName;
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            console.log(
+              "[SWAPS] Carregando plano:",
+              planId,
+              "Índice:",
+              mealIndex,
+            );
 
-                    // Fetch recommendations for a replacement (filtered for variety)
-                    const recommendations = await getMealRecommendations(user.uid, 3);
-                    // Filter out the current recipe
-                    replacementRecipe = recommendations.find(r => r.id !== oldMeal.recipeId) || recommendations[0];
-
-                    if (replacementRecipe) {
-                        newMealName.textContent = replacementRecipe.name;
-                        if (replacementRecipe.image) {
-                            newMealImg.style.backgroundImage = `url('${replacementRecipe.image}')`;
-                        }
-                    }
-                }
-            } else {
-                window.location.href = "index.html";
+            if (!planId) {
+              throw new Error("ID do plano não encontrado na URL");
             }
-        });
 
-        btnConfirm.onclick = async () => {
-            if (currentPlan && replacementRecipe) {
-                btnConfirm.disabled = true;
-                btnConfirm.textContent = "A trocar...";
-                await swapMeal(currentPlan.id, mealIndex, replacementRecipe.id, "Troca manual por sugestão inteligente");
-                alert("Refeição trocada com sucesso!");
-                window.location.href = "plan.html";
+            currentPlan = await getPlanById(planId);
+            console.log("[SWAPS] Plano obtido:", currentPlan);
+
+            if (!currentPlan) {
+              throw new Error("Plano não encontrado no banco de dados");
             }
-        };
-        // Version V20
-        console.log("Swaps carregado [V20]");
+
+            if (!currentPlan.meals || !currentPlan.meals[mealIndex]) {
+              throw new Error("Refeição não encontrada no plano");
+            }
+
+            oldMeal = currentPlan.meals[mealIndex];
+            oldMealName.textContent = oldMeal.recipeName;
+            console.log("[SWAPS] Refeição atual:", oldMeal);
+
+            // Fetch recommendations for a replacement (filtered for variety)
+            console.log(
+              "[SWAPS] A buscar recomendações para household:",
+              currentPlan.householdId,
+            );
+            const recommendations = await getMealRecommendations(
+              currentPlan.householdId,
+              3,
+            );
+            console.log("[SWAPS] Recomendações obtidas:", recommendations);
+
+            if (!recommendations || recommendations.length === 0) {
+              throw new Error(
+                "Não foi possível obter recomendações de substituição",
+              );
+            }
+
+            // Filter out the current recipe
+            replacementRecipe =
+              recommendations.find((r) => r.id !== oldMeal.recipeId) ||
+              recommendations[0];
+
+            console.log("[SWAPS] Refeição de substituição:", replacementRecipe);
+
+            if (!replacementRecipe) {
+              throw new Error(
+                "Não foi encontrada uma refeição de substituição",
+              );
+            }
+
+            if (replacementRecipe) {
+              newMealName.textContent = replacementRecipe.name;
+              if (replacementRecipe.image) {
+                newMealImg.style.backgroundImage = `url('${replacementRecipe.image}')`;
+              }
+            }
+
+            // Habilitar botão
+            btnConfirm.disabled = false;
+            console.log("[SWAPS] Página carregada com sucesso");
+          } catch (error) {
+            console.error("[SWAPS] Erro ao carregar página:", error);
+            alert("Erro ao carregar sugestão de troca: " + error.message);
+            // Redirecionar de volta
+            setTimeout(() => history.back(), 1500);
+          }
+        } else {
+          window.location.href = "index.html";
+        }
+      });
+
+      btnConfirm.onclick = async () => {
+        if (currentPlan && replacementRecipe) {
+          btnConfirm.disabled = true;
+          btnConfirm.textContent = "A trocar...";
+          try {
+            await swapMealImproved(
+              currentPlan.id,
+              mealIndex,
+              replacementRecipe.id,
+              "Troca manual por sugestão inteligente",
+            );
+            alert("Refeição trocada com sucesso!");
+            window.location.href = "plan.html";
+          } catch (error) {
+            console.error("Erro ao trocar refeição:", error);
+            alert("Erro ao trocar refeição: " + error.message);
+            btnConfirm.disabled = false;
+            btnConfirm.textContent = "Confirmar Troca";
+          }
+        }
+      };
+      // Version V21
+      console.log("Swaps carregado [V21]");
     </script>
-</body>
-
+  </body>
 </html>

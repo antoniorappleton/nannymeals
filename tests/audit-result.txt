@@ -1,0 +1,16 @@
+﻿TOTAL_RECIPES=11
+REC|Salmão no Forno com Ervas|25|standard,pescatarian,healthy|4|Lombo de salmão||Batata doce||Brócolos||Ervas aromáticas
+REC|Hambúrguer de Grão e Cenoura|30|standard,vegetarian,kid-friendly|4|Grão-de-bico||Cenoura ralada||Pão de hambúrguer||Alface
+REC|Massa com Pesto e Tomate Cereja|15|fast,vegetarian,vegetarian|4|Esparguete||Molho Pesto||Tomate cereja||Queijo Parmesão
+REC|Omolete de Espinafres e Feta|10|fast,vegetarian,healthy|3|Ovos||Espinafres frescos||Queijo Feta
+REC|Strogonoff de Cogumelos|25|fast,vegetarian|3|Cogumelos Paris||Natas vegetais||Arroz branco
+REC|Teste|30|user-submitted|2|3 ovo||200g Frango
+REC|Frango com Caril Expresso|20|fast,classic,kid-friendly|4|Peito de frango||Leite de coco||Caril em pó||Arroz basmati
+REC|Risotto de Cogumelos|40|chef,vegetarian|5|Arroz Arbóreo||Cogumelos variados||Vinho branco||Cebola||Caldo de legumes
+REC|Tacos de Feijão Preto|20|fast,vegetarian,kid-friendly|5|Tortillas||Feijão preto||Abacate||Lima||Coentros
+REC|Dourada Grelhada com Legumes|30|standard,pescatarian,healthy|4|Dourada fresca||Curgete||Beringela||Pimento
+REC|Bacalhau à Brás|35|standard,pescatarian,classic|5|Bacalhau desfiado||Batata palha||Ovos||Cebola||Azeitonas
+ING_ENTRIES=43
+ING_UNIQUE=41
+ING_LIST=200g frango||3 ovo||abacate||alface||arroz arbóreo||arroz basmati||arroz branco||azeitonas||bacalhau desfiado||batata doce||batata palha||beringela||brócolos||caldo de legumes||caril em pó||cebola||cenoura ralada||coentros||cogumelos paris||cogumelos variados||curgete||dourada fresca||ervas aromáticas||esparguete||espinafres frescos||feijão preto||grão-de-bico||leite de coco||lima||lombo de salmão||molho pesto||natas vegetais||ovos||pão de hambúrguer||peito de frango||pimento||queijo feta||queijo parmesão||tomate cereja||tortillas||vinho branco
+

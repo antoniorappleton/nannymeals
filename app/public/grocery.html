@@ -1,217 +1,323 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="light" lang="pt">
-
-<head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>NannyMeal - Lista de Compras</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script type="module" src="src/auth.js?v=14"></script>
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="manifest" href="manifest.json" />
-  <script>
-    // EMERGÊNCIA V23
-    if (localStorage.getItem('app_version') !== 'v23') {
-      localStorage.setItem('app_version', 'v23');
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-          for (let reg of regs) reg.unregister();
-        });
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>NannyMeal - Lista de Compras</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script type="module" src="src/auth.js?v=14"></script>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="manifest" href="manifest.json" />
+    <script>
+      // EMERGÊNCIA V23
+      if (localStorage.getItem("app_version") !== "v23") {
+        localStorage.setItem("app_version", "v23");
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            for (let reg of regs) reg.unregister();
+          });
+        }
+        if ("caches" in window) {
+          caches.keys().then((names) => {
+            for (let name of names) caches.delete(name);
+            setTimeout(() => window.location.reload(true), 500);
+          });
+        }
       }
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          for (let name of names) caches.delete(name);
-          setTimeout(() => window.location.reload(true), 500);
-        });
+    </script>
+    <style>
+      body {
+        min-height: 100dvh;
       }
-    }
-  </script>
-  <style>
-    body {
-      min-height: 100dvh;
-    }
-  </style>
-</head>
+    </style>
+  </head>
 
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-  <div class="app-container glass-effect">
-    <!-- Header -->
-    <header
-      class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10">
-      <div class="flex items-center justify-between mb-2">
-        <div>
-          <h1 class="text-xl font-extrabold tracking-tight">Lista de Compras</h1>
-          <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-grocery-header">A
-            carregar...</p>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
+  >
+    <div class="app-container glass-effect">
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight">
+              Lista de Compras
+            </h1>
+            <p
+              class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]"
+              id="current-grocery-header"
+            >
+              A carregar...
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              id="btn-scan"
+              class="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <span class="material-symbols-outlined">barcode_scanner</span>
+            </button>
+            <button
+              id="btn-clear"
+              class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400"
+            >
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <button id="btn-scan"
-            class="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-            <span class="material-symbols-outlined">barcode_scanner</span>
-          </button>
-          <button id="btn-clear" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </div>
-      </div>
-      <div id="cost-badge" class="hidden animate-in fade-in slide-in-from-top-2">
         <div
-          class="inline-flex items-center px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-[10px] font-black uppercase tracking-widest gap-2">
-          <span class="material-symbols-outlined text-sm">payments</span>
-          Estimativa: <span id="total-cost-display">0.00</span>€
+          id="cost-badge"
+          class="hidden animate-in fade-in slide-in-from-top-2"
+        >
+          <div
+            class="inline-flex items-center px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-[10px] font-black uppercase tracking-widest gap-2"
+          >
+            <span class="material-symbols-outlined text-sm">payments</span>
+            Estimativa: <span id="total-cost-display">0.00</span>€
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <main id="grocery-list-container" class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32">
-      <!-- Dynamic grocery categories will be injected here -->
-      <div id="loading-state" class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-        <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-          <span class="material-symbols-outlined text-4xl">shopping_cart</span>
+      <main
+        id="grocery-list-container"
+        class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32"
+      >
+        <!-- Dynamic grocery categories will be injected here -->
+        <div
+          id="loading-state"
+          class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4"
+        >
+          <div
+            class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse"
+          >
+            <span class="material-symbols-outlined text-4xl"
+              >shopping_cart</span
+            >
+          </div>
+          <p class="font-bold">A carregar a vossa lista...</p>
         </div>
-        <p class="font-bold">A carregar a vossa lista...</p>
-      </div>
-      <div id="empty-state" class="hidden py-12 text-center space-y-4">
-        <p class="text-slate-500 font-medium">Ainda não tens itens na lista. Gera um plano primeiro!</p>
-        <button onclick="window.location.href='plan.html'"
-          class="bg-primary text-slate-900 px-8 py-4 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs">Ir
-          para o Plano</button>
-      </div>
-    </main>
+        <div id="empty-state" class="hidden py-12 text-center space-y-4">
+          <p class="text-slate-500 font-medium">
+            Ainda não tens itens na lista. Gera um plano primeiro!
+          </p>
+          <button
+            onclick="window.location.href = 'plan.html'"
+            class="bg-primary text-slate-900 px-8 py-4 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs"
+          >
+            Ir para o Plano
+          </button>
+        </div>
+      </main>
 
-    <!-- Bottom Navigation -->
-    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
-      <nav
-        class="flex justify-around items-center bg-white dark:bg-slate-900 px-4 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-          href="dashboard.html">
-          <span class="material-symbols-outlined">monitoring</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest">Home</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-          href="plan.html">
-          <span class="material-symbols-outlined">calendar_today</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest">Plano</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 text-primary" href="grocery.html">
-          <span class="material-symbols-outlined font-bold">shopping_basket</span>
-          <span class="text-[10px] font-black uppercase tracking-widest">Lista</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-          href="onboarding.html">
-          <span class="material-symbols-outlined">person</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest">Perfil</span>
-        </a>
-      </nav>
+      <!-- Bottom Navigation -->
+      <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+        <nav
+          class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]"
+        >
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="dashboard.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >monitoring</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Home</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="plan.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >calendar_today</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Plano</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-primary min-h-16 flex-1 touch-target"
+            href="grocery.html"
+          >
+            <span class="material-symbols-outlined font-bold text-lg sm:text-xl"
+              >shopping_basket</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest"
+              >Lista</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="recipes-catalog.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >restaurant</span
+            >
+            <span class="text-[10px] font-bold uppercase tracking-widest"
+              >Receitas</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+            href="onboarding.html"
+          >
+            <span class="material-symbols-outlined">person</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest"
+              >Perfil</span
+            >
+          </a>
+        </nav>
+      </div>
     </div>
-  </div>
 
-  <script type="module">
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { auth } from "./src/firebase-init.js";
-    import { getLastPlan, getHousehold, generateGroceryListFromPlan } from "./src/db.js";
+    <script type="module">
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+      import { auth } from "./src/firebase-init.js";
+      import {
+        getLastPlan,
+        getHousehold,
+        generateGroceryListFromPlan,
+      } from "./src/db.js";
 
-    // Elements
-    const groceryContainer = document.getElementById("grocery-list-container");
-    const loadingState = document.getElementById("loading-state");
-    const emptyState = document.getElementById("empty-state");
-    const btnScan = document.getElementById("btn-scan");
+      // Elements
+      const groceryContainer = document.getElementById(
+        "grocery-list-container",
+      );
+      const loadingState = document.getElementById("loading-state");
+      const emptyState = document.getElementById("empty-state");
+      const btnScan = document.getElementById("btn-scan");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const plan = await getLastPlan(user.uid);
-        const household = await getHousehold(user.uid);
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const plan = await getLastPlan(user.uid);
+          const household = await getHousehold(user.uid);
 
-        if (plan) {
-          let list = plan.groceryList || [];
+          if (plan) {
+            let list = plan.groceryList || [];
 
-          // Fallback: If plan exists but list is empty, try generating it
-          if (list.length === 0) {
-            console.log("Grocery list em falta. A gerar na hora...");
-            list = await generateGroceryListFromPlan(plan.id);
-          }
-
-          if (list && list.length > 0) {
-            const itemCount = list.reduce((acc, cat) => acc + cat.items.length, 0);
-            document.getElementById("current-grocery-header").textContent = `${itemCount} ITENS • ESTIMATIVA ATIVA`;
-
-            if (plan.totalEstimatedCost) {
-              document.getElementById("cost-badge").classList.remove("hidden");
-              document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost;
+            // Fallback: If plan exists but list is empty, try generating it
+            if (list.length === 0) {
+              console.log("Grocery list em falta. A gerar na hora...");
+              list = await generateGroceryListFromPlan(plan.id);
             }
 
-            renderGroceryList(list);
+            if (list && list.length > 0) {
+              const itemCount = list.reduce(
+                (acc, cat) => acc + cat.items.length,
+                0,
+              );
+              document.getElementById("current-grocery-header").textContent =
+                `${itemCount} ITENS • ESTIMATIVA ATIVA`;
+
+              if (plan.totalEstimatedCost) {
+                document
+                  .getElementById("cost-badge")
+                  .classList.remove("hidden");
+                document.getElementById("total-cost-display").textContent =
+                  plan.totalEstimatedCost;
+              }
+
+              renderGroceryList(list);
+            } else {
+              loadingState.classList.add("hidden");
+              emptyState.classList.remove("hidden");
+              document.getElementById("current-grocery-header").textContent =
+                "SEM ITENS ATIVOS";
+            }
           } else {
             loadingState.classList.add("hidden");
             emptyState.classList.remove("hidden");
-            document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS";
+            document.getElementById("current-grocery-header").textContent =
+              "SEM ITENS ATIVOS";
           }
-        } else {
-          loadingState.classList.add("hidden");
-          emptyState.classList.remove("hidden");
-          document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS";
-        }
 
-        // Barcode Scanner Logic (Open Food Facts integration)
-        btnScan.onclick = async () => {
-          const barcode = prompt("Simulação de Scanner: Insira o código de barras (Ex: 3274080005003 Para Água Volvic)");
-          if (!barcode) return;
+          // Barcode Scanner Logic (Open Food Facts integration)
+          btnScan.onclick = async () => {
+            const barcode = prompt(
+              "Simulação de Scanner: Insira o código de barras (Ex: 3274080005003 Para Água Volvic)",
+            );
+            if (!barcode) return;
 
-          btnScan.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>';
+            btnScan.innerHTML =
+              '<span class="material-symbols-outlined animate-spin">sync</span>';
 
-          try {
-            const res = await fetch(`https://world.openfoodfacts.net/api/v2/product/${barcode}.json`, {
-              method: "GET",
-              headers: { Authorization: "Basic " + btoa("off:off") },
-            });
-            const data = await res.json();
+            try {
+              const res = await fetch(
+                `https://world.openfoodfacts.net/api/v2/product/${barcode}.json`,
+                {
+                  method: "GET",
+                  headers: { Authorization: "Basic " + btoa("off:off") },
+                },
+              );
+              const data = await res.json();
 
-            if (data.status === 1) {
-              const product = data.product;
-              const productName = product.product_name || "Produto Desconhecido";
-              const allergensStr = product.allergens || "";
+              if (data.status === 1) {
+                const product = data.product;
+                const productName =
+                  product.product_name || "Produto Desconhecido";
+                const allergensStr = product.allergens || "";
 
-              // Check against household allergies
-              const userAllergies = (household.allergies || []).map(a => a.toLowerCase());
-              const conflicts = userAllergies.filter(a => allergensStr.toLowerCase().includes(a));
+                // Check against household allergies
+                const userAllergies = (household.allergies || []).map((a) =>
+                  a.toLowerCase(),
+                );
+                const conflicts = userAllergies.filter((a) =>
+                  allergensStr.toLowerCase().includes(a),
+                );
 
-              if (conflicts.length > 0) {
-                alert(`⚠️ ALERTA DE ALERGIA: O produto "${productName}" contém: ${conflicts.join(", ")}.\n\n⚠️ NÃO COMPRAR!`);
+                if (conflicts.length > 0) {
+                  alert(
+                    `⚠️ ALERTA DE ALERGIA: O produto "${productName}" contém: ${conflicts.join(", ")}.\n\n⚠️ NÃO COMPRAR!`,
+                  );
+                } else {
+                  alert(
+                    `✅ PRODUTO SEGURO: "${productName}" não parece conter os seus alergénios (${userAllergies.join(", ")}).`,
+                  );
+                }
               } else {
-                alert(`✅ PRODUTO SEGURO: "${productName}" não parece conter os seus alergénios (${userAllergies.join(", ")}).`);
+                alert(
+                  "Produto não encontrado na base de dados Open Food Facts.",
+                );
               }
-            } else {
-              alert("Produto não encontrado na base de dados Open Food Facts.");
+            } catch (err) {
+              console.error(err);
+              alert("Erro ao verificar produto.");
+            } finally {
+              btnScan.innerHTML =
+                '<span class="material-symbols-outlined">barcode_scanner</span>';
             }
-          } catch (err) {
-            console.error(err);
-            alert("Erro ao verificar produto.");
-          } finally {
-            btnScan.innerHTML = '<span class="material-symbols-outlined">barcode_scanner</span>';
-          }
-        };
+          };
+        } else {
+          window.location.href = "index.html";
+        }
+      });
 
-      } else {
-        window.location.href = "index.html";
-      }
-    });
+      function renderGroceryList(categories) {
+        loadingState.classList.add("hidden");
+        emptyState.classList.add("hidden");
 
-    function renderGroceryList(categories) {
-      loadingState.classList.add("hidden");
-      emptyState.classList.add("hidden");
+        // Preserve the loading/empty states but clear previous items
+        const previousItems = groceryContainer.querySelectorAll("section");
+        previousItems.forEach((el) => el.remove());
 
-      // Preserve the loading/empty states but clear previous items
-      const previousItems = groceryContainer.querySelectorAll("section");
-      previousItems.forEach(el => el.remove());
-
-      categories.forEach((cat) => {
-        const section = document.createElement("section");
-        section.className = "space-y-4 px-4 pb-4";
-        section.innerHTML = `
+        categories.forEach((cat) => {
+          const section = document.createElement("section");
+          section.className = "space-y-4 px-4 pb-4";
+          section.innerHTML = `
             <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-2">${cat.category}</h3>
             <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-premium overflow-hidden">
                <div class="divide-y divide-slate-50 dark:divide-slate-800" id="cat-${cat.category.replace(/\s/g, "")}">
@@ -219,12 +325,15 @@
             </div>
           `;
 
-        const itemsList = section.querySelector(`#cat-${cat.category.replace(/\s/g, "")}`);
-        cat.items.forEach((item) => {
-          const itemDiv = document.createElement("div");
-          itemDiv.className = "flex items-center gap-4 p-5 group transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer";
-          itemDiv.setAttribute("data-checked", item.checked || "false");
-          itemDiv.innerHTML = `
+          const itemsList = section.querySelector(
+            `#cat-${cat.category.replace(/\s/g, "")}`,
+          );
+          cat.items.forEach((item) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className =
+              "flex items-center gap-4 p-5 group transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer";
+            itemDiv.setAttribute("data-checked", item.checked || "false");
+            itemDiv.innerHTML = `
                 <div class="size-6 rounded-lg border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-data-[checked=true]:border-primary transition-colors group-data-[checked=true]:bg-primary/10">
                   <span class="material-symbols-outlined text-primary text-lg scale-0 group-data-[checked=true]:scale-100 transition-transform">check</span>
                 </div>
@@ -233,17 +342,16 @@
                   <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">${item.quantity}</p>
                 </div>
             `;
-          itemDiv.onclick = () => {
-            const isChecked = itemDiv.getAttribute("data-checked") === "true";
-            itemDiv.setAttribute("data-checked", !isChecked);
-          };
-          itemsList.appendChild(itemDiv);
+            itemDiv.onclick = () => {
+              const isChecked = itemDiv.getAttribute("data-checked") === "true";
+              itemDiv.setAttribute("data-checked", !isChecked);
+            };
+            itemsList.appendChild(itemDiv);
+          });
+
+          groceryContainer.appendChild(section);
         });
-
-        groceryContainer.appendChild(section);
-      });
-    }
-  </script>
-</body>
-
+      }
+    </script>
+  </body>
 </html>

@@ -1,219 +1,381 @@
 <!doctype html>
 <html class="light" lang="pt">
-
-<head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>NannyMeal - Plano Semanal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script src="src/tailwind-config.js"></script>
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="manifest" href="manifest.json" />
-  <script>
-    // EMERGÊNCIA V23
-    if (localStorage.getItem('app_version') !== 'v23') {
-      localStorage.setItem('app_version', 'v23');
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-          for (let reg of regs) reg.unregister();
-        });
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>NannyMeal - Plano Semanal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="src/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="manifest" href="manifest.json" />
+    <script>
+      // EMERGÊNCIA V23
+      if (localStorage.getItem("app_version") !== "v23") {
+        localStorage.setItem("app_version", "v23");
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            for (let reg of regs) reg.unregister();
+          });
+        }
+        if ("caches" in window) {
+          caches.keys().then((names) => {
+            for (let name of names) caches.delete(name);
+            setTimeout(() => window.location.reload(true), 500);
+          });
+        }
       }
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          for (let name of names) caches.delete(name);
-          setTimeout(() => window.location.reload(true), 500);
-        });
-      }
-    }
-  </script>
-</head>
+    </script>
+  </head>
 
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-  <div class="app-container glass-effect">
-    <!-- Header -->
-    <header
-      class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10">
-      <div class="flex items-center justify-between mb-2">
-        <h1 class="text-xl font-extrabold tracking-tight">Plano Semanal</h1>
-        <div class="flex gap-2">
-          <button id="btn-refresh-plan" title="Gerar novo plano"
-            class="p-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
-            <span class="material-symbols-outlined">refresh</span>
-          </button>
-          <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
-            <span class="material-symbols-outlined">logout</span>
-          </button>
-        </div>
-      </div>
-      <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-week-header">2 MAR – 8 MAR
-        • EMENTA ATIVA</p>
-    </header>
-
-    <main id="weekly-plan-list" class="flex-1 overflow-y-auto pb-32">
-      <!-- Adaptation Notification Banner -->
-      <div class="p-4" id="adaptation-banner" class="hidden">
-        <div
-          class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-primary/20 bg-primary/10 p-6 dark:bg-primary/5 shadow-premium">
-          <div class="flex gap-4">
-            <div
-              class="size-12 shrink-0 flex items-center justify-center rounded-2xl bg-primary text-slate-900 shadow-lg">
-              <span class="material-symbols-outlined text-2xl">auto_awesome</span>
-            </div>
-            <div class="space-y-1">
-              <p class="text-base font-extrabold tracking-tight">Plano Inteligente</p>
-              <p class="text-xs font-medium text-slate-500 leading-relaxed" id="adaptation-text">
-                A carregar sugestões personalizadas...
-              </p>
-            </div>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
+  >
+    <div class="app-container glass-effect">
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">
+            Plano Semanal
+          </h1>
+          <div class="flex gap-1">
+            <button
+              id="btn-refresh-plan"
+              title="Gerar novo plano"
+              class="p-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined">refresh</span>
+            </button>
+            <button
+              id="btn-logout"
+              class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined">logout</span>
+            </button>
           </div>
         </div>
-      </div>
+        <p
+          class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]"
+          id="current-week-header"
+        >
+          2 MAR – 8 MAR • EMENTA ATIVA
+        </p>
+      </header>
 
-      <!-- Date Selector -->
-      <div class="flex items-center justify-between px-6 py-2 mb-2">
-        <h3 class="text-lg font-extrabold tracking-tight" id="week-dates">---</h3>
-        <div class="flex gap-2">
-          <button
-            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400">
-            <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          <button
-            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Weekly Meals List -->
-      <div id="meals-container" class="space-y-6 px-4">
-        <!-- Dynamic meals will be injected here -->
-        <div class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+      <main id="weekly-plan-list" class="flex-1 overflow-y-auto pb-32">
+        <!-- Adaptation Notification Banner -->
+        <div class="p-4" id="adaptation-banner" class="hidden">
           <div
-            class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-            <span class="material-symbols-outlined text-4xl">restaurant_menu</span>
+            class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-primary/20 bg-primary/10 p-6 dark:bg-primary/5 shadow-premium"
+          >
+            <div class="flex gap-4">
+              <div
+                class="size-12 shrink-0 flex items-center justify-center rounded-2xl bg-primary text-slate-900 shadow-lg"
+              >
+                <span class="material-symbols-outlined text-2xl"
+                  >auto_awesome</span
+                >
+              </div>
+              <div class="space-y-1">
+                <p class="text-base font-extrabold tracking-tight">
+                  Plano Inteligente
+                </p>
+                <p
+                  class="text-xs font-medium text-slate-500 leading-relaxed"
+                  id="adaptation-text"
+                >
+                  A carregar sugestões personalizadas...
+                </p>
+              </div>
+            </div>
           </div>
-          <p class="font-bold">A carregar o vosso plano...</p>
         </div>
+
+        <!-- Date Selector -->
+        <div class="flex items-center justify-between px-3 sm:px-6 py-2 mb-2">
+          <h3
+            class="text-base sm:text-lg font-extrabold tracking-tight"
+            id="week-dates"
+          >
+            ---
+          </h3>
+          <div class="flex gap-1">
+            <button
+              class="size-9 sm:size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400 min-h-10 min-w-10"
+            >
+              <span class="material-symbols-outlined text-lg"
+                >chevron_left</span
+              >
+            </button>
+            <button
+              class="size-9 sm:size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-400 min-h-10 min-w-10"
+            >
+              <span class="material-symbols-outlined text-lg"
+                >chevron_right</span
+              >
+            </button>
+          </div>
+        </div>
+
+        <!-- Weekly Meals List -->
+        <div id="meals-container" class="space-y-6 px-4">
+          <!-- Dynamic meals will be injected here -->
+          <div
+            class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4"
+          >
+            <div
+              class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse"
+            >
+              <span class="material-symbols-outlined text-4xl"
+                >restaurant_menu</span
+              >
+            </div>
+            <p class="font-bold">A carregar o vosso plano...</p>
+          </div>
+        </div>
+      </main>
+
+      <!-- Bottom Navigation -->
+      <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+        <nav
+          class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]"
+        >
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="dashboard.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >monitoring</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Home</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-primary min-h-16 flex-1 touch-target"
+            href="plan.html"
+          >
+            <span class="material-symbols-outlined font-bold text-lg sm:text-xl"
+              >calendar_today</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest"
+              >Plano</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="grocery.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >shopping_basket</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Lista</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="recipes-catalog.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >restaurant</span
+            >
+            <span class="text-[10px] font-bold uppercase tracking-widest"
+              >Receitas</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
+            href="onboarding.html"
+          >
+            <span class="material-symbols-outlined">person</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest"
+              >Perfil</span
+            >
+          </a>
+        </nav>
       </div>
-    </main>
-
-    <!-- Bottom Navigation -->
-    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
-      <nav
-        class="flex justify-around items-center bg-white dark:bg-slate-900 px-4 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-          href="dashboard.html">
-          <span class="material-symbols-outlined">monitoring</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest">Home</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 text-primary" href="plan.html">
-          <span class="material-symbols-outlined font-bold">calendar_today</span>
-          <span class="text-[10px] font-black uppercase tracking-widest">Plano</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-          href="grocery.html">
-          <span class="material-symbols-outlined">shopping_basket</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest">Lista</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-          href="onboarding.html">
-          <span class="material-symbols-outlined">person</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest">Perfil</span>
-        </a>
-      </nav>
     </div>
-  </div>
 
-  <script type="module">
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { auth } from "./src/firebase-init.js";
-    import { getLastPlan, getHousehold, generateWeeklyPlan } from "./src/db.js";
+    <script type="module">
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+      import { auth } from "./src/firebase-init.js";
+      import {
+        getLastPlan,
+        getHousehold,
+        generateWeeklyPlan,
+        getAllPlans,
+        getPlanById,
+      } from "./src/db.js";
 
-    const mealsContainer = document.getElementById("meals-container");
-    const weekDates = document.getElementById("week-dates");
-    const adaptationText = document.getElementById("adaptation-text");
+      const mealsContainer = document.getElementById("meals-container");
+      const weekDates = document.getElementById("week-dates");
+      const adaptationText = document.getElementById("adaptation-text");
 
-    const days = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"];
+      const days = [
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado",
+        "Domingo",
+      ];
 
-    const renderPlan = (plan) => {
-      if (!plan || !plan.meals) {
-        mealsContainer.innerHTML = `
+      let allPlans = [];
+      let currentPlanIndex = 0;
+
+      const renderPlan = (plan) => {
+        if (!plan || !plan.meals) {
+          mealsContainer.innerHTML = `
           <div class="py-12 text-center space-y-4">
             <p class="text-slate-500 font-medium">Ainda não tens um plano para esta semana.</p>
-            <button id="btn-generate" class="bg-primary text-slate-900 px-8 py-4 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs">Gerar Plano Agora</button>
+            <div class="flex gap-2 justify-center">
+              <a href="create-custom-plan.html" class="bg-primary text-slate-900 px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs">Criar Plano</a>
+              <button id="btn-generate" class="bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs">Gerar Automático</button>
+            </div>
           </div>
         `;
-        document.getElementById("btn-generate")?.addEventListener("click", async () => {
-          const user = auth.currentUser;
-          const household = await getHousehold(user.uid); // Simplified for demo
-          if (household) {
-            mealsContainer.innerHTML = "<p class='text-center py-10'>A gerar plano mágico...</p>";
-            await generateWeeklyPlan(user.uid); // Use UID as HID for demo
-            location.reload();
-          }
-        });
-        return;
-      }
+          document
+            .getElementById("btn-generate")
+            ?.addEventListener("click", async () => {
+              const user = auth.currentUser;
+              const household = await getHousehold(user.uid);
+              if (household) {
+                mealsContainer.innerHTML =
+                  "<p class='text-center py-10'>A gerar plano mágico...</p>";
+                await generateWeeklyPlan(user.uid);
+                location.reload();
+              }
+            });
+          return;
+        }
 
-      weekDates.textContent = "Plano Ativo";
-      adaptationText.textContent = "Sugestões personalizadas com base no vosso perfil e feedback anterior.";
+        weekDates.textContent = plan.name || "Plano Ativo";
+        adaptationText.textContent =
+          plan.type === "custom"
+            ? "Plano personalizado criado por ti"
+            : "Sugestões personalizadas com base no vosso perfil e feedback anterior.";
 
-      mealsContainer.innerHTML = plan.meals.map((meal, index) => `
+        mealsContainer.innerHTML = plan.meals
+          .map(
+            (meal, index) => `
         <div class="space-y-3">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">${days[index] || "Dia extra"}</p>
-          <div class="flex flex-col rounded-3xl overflow-hidden shadow-premium bg-white dark:bg-slate-900 border ${meal.isReplacement ? 'border-primary/40 ring-4 ring-primary/5' : 'border-slate-100 dark:border-slate-800'}">
+          <div class="flex flex-col rounded-3xl overflow-hidden shadow-premium bg-white dark:bg-slate-900 border ${meal.isReplacement ? "border-primary/40 ring-4 ring-primary/5" : "border-slate-100 dark:border-slate-800"}">
             <div class="p-6 space-y-4">
               <div class="flex justify-between items-start">
                 <h4 class="text-xl font-extrabold tracking-tight">${meal.recipeName}</h4>
                 <div class="flex flex-col items-end gap-1">
                   <span class="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-full uppercase tracking-widest">${meal.prepTime} MIN</span>
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${meal.calories || '---'} KCAL</span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${meal.calories || "---"} KCAL</span>
                 </div>
               </div>
               <div class="flex items-center justify-between py-1">
-                <div class="flex items-center gap-2 text-slate-500 ${meal.isReplacement ? '' : 'hidden'}">
+                <div class="flex items-center gap-2 text-slate-500 ${meal.isReplacement ? "" : "hidden"}">
                   <span class="material-symbols-outlined text-primary text-xl">info</span>
                   <p class="text-sm font-medium italic">${meal.replacedReason || "Sugestão inteligente"}</p>
                 </div>
                 <div class="text-xs font-black text-slate-900 dark:text-slate-200">
-                  CUSTO: <span class="text-primary">${meal.pricePerServing ? meal.pricePerServing + ' €' : '---'}</span> / p.p.
+                  CUSTO: <span class="text-primary">${meal.pricePerServing ? meal.pricePerServing + " €" : "---"}</span> / p.p.
                 </div>
               </div>
               <div class="flex gap-3">
-                <a href="feedback.html?meal=${index}" class="flex-1 bg-primary text-slate-900 font-bold h-12 rounded-2xl shadow-premium flex items-center justify-center hover:scale-[0.98] transition-all">Feedback</a>
-                <a href="swaps.html?meal=${index}" class="flex-1 bg-white dark:bg-slate-800 text-slate-500 font-bold h-12 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 transition-all uppercase tracking-widest text-[10px]">Trocar</a>
+                <a href="feedback.html?meal=${index}&plan=${plan.id}" class="flex-1 bg-primary text-slate-900 font-bold h-12 rounded-2xl shadow-premium flex items-center justify-center hover:scale-[0.98] transition-all">Feedback</a>
+                <a href="swaps.html?meal=${index}&plan=${plan.id}" class="flex-1 bg-white dark:bg-slate-800 text-slate-500 font-bold h-12 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 transition-all uppercase tracking-widest text-[10px]">Trocar</a>
               </div>
             </div>
           </div>
         </div>
-      `).join("");
-    };
+      `,
+          )
+          .join("");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Refresh Button logic
-        document.getElementById("btn-refresh-plan").onclick = async () => {
-          if (confirm("Desejas gerar um novo plano inteligente para esta semana?")) {
-            mealsContainer.innerHTML = "<p class='text-center py-10 animate-pulse font-bold'>A planear nova ementa...</p>";
-            await generateWeeklyPlan(user.uid);
-            location.reload();
+        // Adicionar informações de múltiplos planos se existem
+        if (allPlans.length > 1) {
+          const plansNav = document.createElement("div");
+          plansNav.className =
+            "sticky bottom-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 py-3 flex items-center justify-between gap-2 mb-32";
+          plansNav.innerHTML = `
+          <button id="prev-plan" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <span class="text-xs font-bold text-slate-500">${currentPlanIndex + 1} de ${allPlans.length}</span>
+          <button id="next-plan" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50">
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        `;
+          mealsContainer.appendChild(plansNav);
+
+          document.getElementById("prev-plan").onclick = () => {
+            if (currentPlanIndex > 0) {
+              currentPlanIndex--;
+              renderPlan(allPlans[currentPlanIndex]);
+            }
+          };
+
+          document.getElementById("next-plan").onclick = () => {
+            if (currentPlanIndex < allPlans.length - 1) {
+              currentPlanIndex++;
+              renderPlan(allPlans[currentPlanIndex]);
+            }
+          };
+
+          document.getElementById("prev-plan").disabled =
+            currentPlanIndex === 0;
+          document.getElementById("next-plan").disabled =
+            currentPlanIndex === allPlans.length - 1;
+        }
+      };
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // Refresh Button logic
+          document.getElementById("btn-refresh-plan").onclick = async () => {
+            if (
+              confirm(
+                "Desejas gerar um novo plano inteligente para esta semana?",
+              )
+            ) {
+              mealsContainer.innerHTML =
+                "<p class='text-center py-10 animate-pulse font-bold'>A planear nova ementa...</p>";
+              await generateWeeklyPlan(user.uid);
+              location.reload();
+            }
+          };
+
+          try {
+            allPlans = await getAllPlans(user.uid);
+            if (allPlans.length > 0) {
+              currentPlanIndex = 0;
+              renderPlan(allPlans[0]);
+            } else {
+              // Se não houver planos, mostrar opção de criar
+              renderPlan(null);
+            }
+          } catch (error) {
+            console.error("Erro ao carregar planos:", error);
+            renderPlan(null);
           }
-        };
+        } else {
+          window.location.href = "index.html";
+        }
+      });
 
-        const plan = await getLastPlan(user.uid);
-        renderPlan(plan);
-      } else {
-        window.location.href = "index.html";
-      }
-    });
-
-    // Version V20
-    console.log("Plano carregado [V20]");
-  </script>
-</body>
-
+      // Version V21
+      console.log("Plano carregado [V21]");
+    </script>
+  </body>
 </html>
