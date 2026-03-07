@@ -41,7 +41,7 @@
   <div class="app-container glass-effect">
     <!-- Header -->
     <header
-      class="bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10 flex items-center justify-between">
+      class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <button id="btn-back"
           class="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-slate-400">
@@ -53,36 +53,6 @@
         <span class="material-symbols-outlined">logout</span>
       </button>
     </header>
-
-    <!-- Top Navigation -->
-    <div class="fixed top-0 left-0 right-0 max-w-md mx-auto z-30">
-      <nav class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-b border-slate-100 dark:border-slate-800 shadow-[0_10px_20px_rgba(0,0,0,0.02)]">
-        <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="dashboard.html">
-          <span class="material-symbols-outlined text-lg sm:text-xl">monitoring</span>
-          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Home</span>
-        </a>
-        <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="plan.html">
-          <span class="material-symbols-outlined text-lg sm:text-xl">calendar_today</span>
-          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Plano</span>
-        </a>
-        <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="grocery.html">
-          <span class="material-symbols-outlined text-lg sm:text-xl">shopping_basket</span>
-          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Lista</span>
-        </a>
-        <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="recipes-catalog.html">
-          <span class="material-symbols-outlined text-lg sm:text-xl">restaurant</span>
-          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Receitas</span>
-        </a>
-        <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="my-recipes.html">
-          <span class="material-symbols-outlined text-lg sm:text-xl">book</span>
-          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Minhas</span>
-        </a>
-        <a class="flex flex-col items-center justify-center gap-1 text-primary min-h-16 flex-1 touch-target" href="onboarding.html">
-          <span class="material-symbols-outlined font-bold text-lg sm:text-xl">person</span>
-          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Perfil</span>
-        </a>
-      </nav>
-    </div>
 
     <!-- Progress Indicator -->
     <div class="px-6 py-8 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 space-y-4">
@@ -102,7 +72,7 @@
     </div>
 
     <!-- Content Area -->
-    <main class="flex-1 overflow-y-auto px-6 py-8 space-y-12 pt-16">
+    <main class="flex-1 overflow-y-auto px-6 py-8 space-y-12 pb-32">
       <!-- Passo 1: Família -->
       <div id="setup-step-1" class="setup-step space-y-10">
         <div class="space-y-4">
