@@ -2,10 +2,20 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Recipes are public
+
+    // recipes: global collection maintained by the administrator only
     match /recipes/{recipeId} {
-      allow read: if true;
-      allow write: if request.auth != null; // Temporariamente para seeding
+      allow read: if request.auth != null;                        // anybody logged in can read
+      allow write: if request.auth.token.email == "antonioappleton@gmail.com"; // only admin can modify
+    }
+
+    // userRecipes: each document belongs to a user and stores a reference
+    // to a global recipe plus any custom fields the user applied.
+    match /userRecipes/{docId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
     // Households: access by owner
@@ -15,10 +25,15 @@ service cloud.firestore {
         (resource == null || resource.data.ownerUid == request.auth.uid);
     }
 
-    // Weekly plans: access if you belong to the household
+    // Weekly plans: each document belongs to a household
     match /weeklyPlans/{planId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth != null; 
+      allow create: if request.auth != null; // creation performed by client or functions
+      allow read, update: if request.auth != null &&
+                          (resource.data.householdId == request.auth.uid ||
+                           // allow if the user is owner of household document
+                           exists(/databases/$(database)/documents/households/$(request.auth.uid)) &&
+                           get(/databases/$(database)/documents/households/$(request.auth.uid)).data.ownerUid == request.auth.uid);
+      // deletion from client is disallowed; cleanup function will remove expired
       allow delete: if false;
     }
 

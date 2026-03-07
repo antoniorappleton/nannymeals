@@ -4,6 +4,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   addDoc,
   query,
@@ -289,9 +290,13 @@ export const generateWeeklyPlan = async (id) => {
     return null;
   }
 
+  // compute expiration date client-side (30 days)
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const newPlan = {
     householdId,
     createdAt: serverTimestamp(),
+    expiresAt,
+    locked: false,
     status: "active",
     meals,
   };
@@ -341,31 +346,16 @@ export const getMealRecommendations = async (householdId, count) => {
   }
 
   // Phase 2: Automated Discovery if local results are low
+  // The proxy enforces that only the administrator account can hit
+  // the Spoonacular API. regular users should not attempt to make
+  // these calls as they will simply receive a permission error.
   if (recipes.length < count && diet.length > 0) {
-    try {
-      console.log(
-        `Poucas receitas locais (${recipes.length}). A descobrir novas na Spoonacular...`,
-      );
-      const dietMap = {
-        Vegetariano: "vegetarian",
-        Vegano: "vegan",
-        Mediterrâneo: "mediterranean",
-      };
-      const targetDiet = dietMap[diet[0]] || "healthy";
-      const newRecipes = await searchRecipesByCuisine(targetDiet, 10);
-
-      for (const nr of newRecipes) {
-        // Save to Firestore to avoid future API calls for the same recipe
-        const docRef = await addDoc(collection(db, "recipes"), nr);
-        recipes.push({ id: docRef.id, ...nr });
-      }
-    } catch (apiError) {
-      console.warn(
-        "Falha na descoberta Spoonacular (provável limite de API):",
-        apiError,
-      );
-      // We continue with whatever local recipes we have
-    }
+    console.log(
+      `Poucas receitas locais (${recipes.length}). Apenas o administrador pode importar mais receitas.`,
+    );
+    // could trigger UI notification or send request to an admin to run
+    // enrichAllRecipes; for now simply fall through so we still return
+    // whatever is available.
   }
 
   // Fallback final: Se ainda não tivermos receitas suficientes, buscar aleatórias locais
@@ -602,27 +592,21 @@ export const checkHouseholdExists = async (uid) => {
  * Enriquece todas as receitas na base de dados com informações da Spoonacular.
  * Pode ser chamado manualmente ou via interface de admin.
  */
+// the client version simply invokes the callable, which performs the
+// operation server-side under the administrator's credentials.
 export const enrichAllRecipes = async () => {
-  console.log("Iniciando enriquecimento de receitas...");
-  const rSnap = await getDocs(collection(db, "recipes"));
-  let count = 0;
-
-  for (const rDoc of rSnap.docs) {
-    const data = rDoc.data();
-    // Só enriquece se ainda não tiver calorias ou preço
-    if (!data.calories || !data.pricePerServing) {
-      console.log(`Enriquecendo: ${data.name}`);
-      const enriched = await getEnrichedRecipeData(data.name);
-      if (enriched) {
-        await updateDoc(rDoc.ref, enriched);
-        count++;
-      }
-      // Pequeno delay para evitar rate limit da API gratuita
-      await new Promise((r) => setTimeout(r, 500));
-    }
+  try {
+    const { getFunctions, httpsCallable } = await import(
+      "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js",
+    );
+    const functions = getFunctions();
+    const proxy = httpsCallable(functions, "enrichAllRecipes");
+    const resp = await proxy({});
+    return resp.data && resp.data.updated ? resp.data.updated : 0;
+  } catch (err) {
+    console.error("Falha ao chamar enrichAllRecipes:", err);
+    throw err;
   }
-  console.log(`Enriquecimento concluído! ${count} receitas atualizadas.`);
-  return count;
 };
 
 export const initDB = () => {
@@ -632,7 +616,7 @@ export const initDB = () => {
 /**
  * Obtém todas as receitas da base de dados
  */
-export const getAllRecipes = async () => {
+export const getAllRecipes = async (userId = null) => {
   try {
     let rSnap = await getDocs(collection(db, "recipes"));
 
@@ -643,11 +627,74 @@ export const getAllRecipes = async () => {
       rSnap = await getDocs(collection(db, "recipes"));
     }
 
-    return rSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const recipes = rSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    // Se foi pedido o userId, juntamos qualquer versão personalizada desse
+    // utilizador. Não substituímos a receita global, apenas adicionamos um
+    // clone com campos customizados (para evitar confusão durante a renderização).
+    if (userId) {
+      const uSnap = await getDocs(
+        query(collection(db, "userRecipes"), where("userId", "==", userId)),
+      );
+      uSnap.docs.forEach((d) => {
+        const ur = { id: d.id, ...d.data() };
+        const base = recipes.find((r) => r.id === ur.recipeId);
+        if (base) {
+          recipes.push({
+            ...base,
+            customIngredients: ur.customIngredients,
+            customInstructions: ur.customInstructions,
+            notes: ur.notes,
+            userRecipeId: ur.id,
+          });
+        }
+      });
+    }
+
+    return recipes;
   } catch (error) {
     console.error("Erro ao obter todas as receitas:", error);
     return [];
   }
+};
+
+/**
+ * === Personal recipes helpers ===
+ * Each user can save a global recipe and optionally customize it.
+ */
+export const saveUserRecipe = async (
+  userId,
+  recipeId,
+  { customName = "", customIngredients = [], customInstructions = "", notes = "" } = {},
+) => {
+  const docData = {
+    userId,
+    recipeId,
+    customName,
+    customIngredients,
+    customInstructions,
+    notes,
+    createdAt: serverTimestamp(),
+  };
+
+  const ref = await addDoc(collection(db, "userRecipes"), docData);
+  return { id: ref.id, ...docData };
+};
+
+export const getUserRecipes = async (userId) => {
+  const snap = await getDocs(
+    query(collection(db, "userRecipes"), where("userId", "==", userId)),
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+};
+
+export const updateUserRecipe = async (docId, updates) => {
+  const ref = doc(db, "userRecipes", docId);
+  await updateDoc(ref, updates);
+};
+
+export const deleteUserRecipe = async (docId) => {
+  await deleteDoc(doc(db, "userRecipes", docId));
 };
 
 /**
@@ -659,10 +706,13 @@ export const createCustomPlan = async (userId, planData) => {
     throw new Error("Família não encontrada");
   }
 
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const newPlan = {
     ...planData,
     householdId: household.id,
     createdAt: serverTimestamp(),
+    expiresAt,
+    locked: false,
     status: "active",
     type: "custom", // Distinguir planos customizados dos automáticos
   };

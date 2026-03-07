@@ -1,0 +1,168 @@
+<!doctype html>
+<html class="light" lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>NannyMeal - Minhas Receitas</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="src/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="manifest" href="manifest.json" />
+  </head>
+
+  <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+    <div class="app-container glass-effect">
+      <!-- Header -->
+      <header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10">
+        <div class="flex items-center justify-between mb-3">
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">
+            Minhas Receitas
+          </h1>
+          <button
+            id="btn-logout"
+            class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined">logout</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto pb-32">
+        <div id="recipes-container" class="p-4 space-y-4">
+          <p class="text-slate-400">A carregar as suas receitas...</p>
+        </div>
+      </main>
+
+      <!-- Bottom Navigation (same as other pages) -->
+      <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
+        <nav class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+          <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="dashboard.html">
+            <span class="material-symbols-outlined text-lg sm:text-xl">monitoring</span>
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Home</span>
+          </a>
+          <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="plan.html">
+            <span class="material-symbols-outlined text-lg sm:text-xl">calendar_today</span>
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Plano</span>
+          </a>
+          <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="grocery.html">
+            <span class="material-symbols-outlined text-lg sm:text-xl">shopping_basket</span>
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Lista</span>
+          </a>
+          <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="recipes-catalog.html">
+            <span class="material-symbols-outlined text-lg sm:text-xl">restaurant</span>
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Receitas</span>
+          </a>
+          <a class="flex flex-col items-center justify-center gap-1 text-primary min-h-16 flex-1 touch-target" href="my-recipes.html">
+            <span class="material-symbols-outlined font-bold text-lg sm:text-xl">book</span>
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Minhas</span>
+          </a>
+          <a class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="onboarding.html">
+            <span class="material-symbols-outlined text-lg sm:text-xl">person</span>
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Perfil</span>
+          </a>
+        </nav>
+      </div>
+
+      <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        import { auth } from "./src/firebase-init.js";
+        import { getUserRecipes } from "./src/db.js";
+        import { logout } from "./src/auth.js";
+
+        const container = document.getElementById("recipes-container");
+
+        function renderList(recipes) {
+          if (recipes.length === 0) {
+            container.innerHTML = '<p class="text-slate-400">Não existem receitas guardadas ainda.</p>';
+            return;
+          }
+          container.innerHTML = recipes
+            .map(
+              (r) => `
+              <div onclick="editRecipe('${r.id}')" class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800 p-4 flex justify-between items-center cursor-pointer">
+                <div>
+                  <h3 class="font-bold text-sm leading-tight line-clamp-2">${r.customName || r.name || 'Sem título'}</h3>
+                  <p class="text-[10px] text-slate-500 mt-1">Original: ${r.recipeId}</p>
+                </div>
+                <button data-id="${r.id}" class="delete-btn text-red-500 hover:text-red-700">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            `,
+            )
+            .join("");
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            window.location.href = "index.html";
+            return;
+          }
+
+          try {
+            const list = await getUserRecipes(user.uid);
+            renderList(list);
+            attachDeleteHandlers();
+          } catch (err) {
+            console.error("Erro ao carregar receitas pessoais:", err);
+            container.innerHTML = '<p class="text-red-500">Erro ao carregar as receitas.</p>';
+          }
+        });
+
+        function attachDeleteHandlers() {
+          document.querySelectorAll(".delete-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              const id = btn.getAttribute("data-id");
+              if (!id) return;
+              if (confirm("Deseja remover esta receita da sua coleção?")) {
+                try {
+                  const { deleteUserRecipe } = await import("./src/db.js");
+                  await deleteUserRecipe(id);
+                  btn.closest(".rounded-2xl").remove();
+                } catch (err) {
+                  console.error("Erro ao eliminar:", err);
+                  alert("Falha ao remover.");
+                }
+              }
+            });
+          });
+        }
+
+        async function editRecipe(id) {
+          // fetch current data from Firestore to get custom fields
+          try {
+            const { getDoc, doc } = await import("./src/firebase-init.js");
+            const { updateUserRecipe } = await import("./src/db.js");
+            const snap = await getDoc(doc(db, "userRecipes", id));
+            if (!snap.exists()) return;
+            const data = snap.data();
+            const newIngs = prompt("Ingredientes (separados por ponto e vírgula)",
+              (data.customIngredients || []).join(";"));
+            const newInst = prompt("Instruções personalizadas", data.customInstructions || "");
+            const newNotes = prompt("Notas", data.notes || "");
+            const updates = {};
+            if (newIngs !== null) updates.customIngredients = newIngs.split(";").map(s=>s.trim()).filter(Boolean);
+            if (newInst !== null) updates.customInstructions = newInst;
+            if (newNotes !== null) updates.notes = newNotes;
+            await updateUserRecipe(id, updates);
+            alert("Receita atualizada.");
+          } catch (err) {
+            console.error("Erro ao editar receita:", err);
+            alert("Não foi possível actualizar a receita.");
+          }
+        }
+
+        document.getElementById("btn-logout").onclick = () => logout();
+      </script>
+    </div>
+  </body>
+</html>

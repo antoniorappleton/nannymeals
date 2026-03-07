@@ -172,6 +172,18 @@
           </a>
           <a
             class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="my-recipes.html"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >book</span
+            >
+            <span
+              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Minhas</span
+            >
+          </a>
+          <a
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
             href="onboarding.html"
           >
             <span class="material-symbols-outlined text-lg sm:text-xl"
@@ -274,6 +286,12 @@
               Adicionar ao Plano
             </button>
             <button
+              onclick="saveCurrentRecipe()"
+              class="flex-1 bg-secondary text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-premium hover:scale-[0.98] transition-all"
+            >
+              Guardar na Minha Cozinha
+            </button>
+            <button
               onclick="
                 document.getElementById('recipe-modal').classList.add('hidden')
               "
@@ -289,7 +307,7 @@
     <script type="module">
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
       import { auth } from "./src/firebase-init.js";
-      import { getAllRecipes } from "./src/db.js";
+      import { getAllRecipes, saveUserRecipe } from "./src/db.js";
       import { logout } from "./src/auth.js";
 
       const loadingState = document.getElementById("loading-state");
@@ -451,10 +469,26 @@
         window.location.href = `create-custom-plan.html?addRecipe=${selectedRecipe.id}`;
       };
 
+      window.saveCurrentRecipe = async () => {
+        if (!selectedRecipe) return;
+        const user = auth.currentUser;
+        if (!user) {
+          alert("É necessário fazer login para guardar receitas.");
+          return;
+        }
+        try {
+          await saveUserRecipe(user.uid, selectedRecipe.id);
+          alert("Receita adicionada à sua coleção pessoal!");
+        } catch (err) {
+          console.error("Erro ao guardar receita:", err);
+          alert("Falha ao guardar a receita. Veja consola.");
+        }
+      };
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
-            allRecipes = await getAllRecipes();
+            allRecipes = await getAllRecipes(user.uid);
             renderRecipes();
           } catch (error) {
             console.error("Erro ao carregar receitas:", error);

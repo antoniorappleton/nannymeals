@@ -445,7 +445,7 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
-            allRecipes = await getAllRecipes();
+            allRecipes = await getAllRecipes(user.uid);
             updateUI();
 
             // Check if a recipe was passed in URL

@@ -23,7 +23,27 @@ NannyMeal is a **Smart Meal Planner PWA** designed for busy families. It automat
 ### 4. **Tecnologia & Segurança**
 - **PWA Ready**: Instala no telemóvel e usa como uma app nativa.
 - **Firebase Backend**: Autenticação segura e base de dados em tempo real (Firestore).
-- **Protected Config**: Chaves de API isoladas em `src/config.js` (ignorado pelo Git para máxima segurança).
+- **Protected Config**: Chaves de API devem agora ser definidas apenas nas Cloud Functions (ex.: `firebase functions:config:set spoonacular.key="<KEY>"` ou usando variáveis de ambiente no ambiente de build). O frontend não contém mais a chave, todas as requisições passam por um proxy (`spoonacularProxy`).
+
+### Arquitetura Atualizada
+A arquitetura da app foi reorganizada em três camadas:
+
+1. **API Control Layer** _(Firebase Cloud Functions)_
+   - Todas as chamadas à Spoonacular só podem ser feitas por `spoonacularProxy`.
+   - O endereço `/spoonacularProxy` valida se `request.auth.token.email == "antonioappleton@gmail.com"`.
+   - Funções como `enrichAllRecipes` e ações de pesquisa são executadas aqui para proteger a chave e gerir limites.
+
+2. **Base de Dados** _(Firestore)_
+   - Coleção `recipes` global que apenas o administrador pode escrever.
+   - Nova coleção `userRecipes` para receitas pessoais, com campos customizáveis.
+   - Regras documentadas no arquivo `firebase/firestore.rules`.
+
+3. **Camada de Aplicação (Frontend)**
+   - O frontend chama funções Cloud em vez de chamar Spoonacular diretamente.
+   - A biblioteca `spoonacular.js` agora usa `httpsCallable` para aceder ao proxy.
+   - Há páginas novas/alteradas (`my-recipes.html`, botões de guardar receita, etc.) para suportar receitas pessoais.
+
+Essa reorganização garante segurança da API, controlo dos limites diários, e permite que apenas o administrador possa enriquecer ou importar receitas.
 
 ---
 
@@ -55,7 +75,7 @@ NannyMeal is a **Smart Meal Planner PWA** designed for busy families. It automat
    ```
 
 2. **Configurar API Keys**:
-   - Copia o ficheiro `app/public/src/config.template.js` para `app/public/src/config.js`.
+   - Não é mais necessário copiar `config.template.js` para `config.js` a menos que precise de variáveis próprias; a API Spoonacular é chamada exclusivamente de dentro de funções Cloud.
    - Adiciona a tua `SPOONACULAR_API_KEY`.
 
 3. **Deploy**:
