@@ -28,8 +28,8 @@ service cloud.firestore {
     // Weekly plans: each document belongs to a household
     match /weeklyPlans/{planId} {
       allow create: if request.auth != null;
-      allow read, update: if request.auth != null &&
-                          get(/databases/$(database)/documents/households/$(resource.data.householdId)).data.ownerUid == request.auth.uid;
+      allow read: if request.auth != null;
+      allow update: if request.auth != null;
       allow delete: if false;
     }
 
