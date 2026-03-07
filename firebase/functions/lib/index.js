@@ -23,7 +23,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.weeklyPlanJob = void 0;
+exports.enrichAllRecipes = exports.spoonacularProxy = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
+const functions = __importStar(require("firebase-functions"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
@@ -37,6 +38,21 @@ exports.weeklyPlanJob = (0, scheduler_1.onSchedule)("0 6 * * 1", async (event) =
         const settings = doc.data();
         console.log(`Generating plan for household: ${hid}`);
     }
+});
+exports.cleanupExpiredPlans = (0, scheduler_1.onSchedule)("0 2 * * *", async (event) => {
+    const now = admin.firestore.Timestamp.now();
+    const plansRef = db.collection("weeklyPlans");
+    const expiredSnap = await plansRef
+        .where("expiresAt", "<", now)
+        .where("locked", "==", false)
+        .get();
+    let count = 0;
+    for (const plan of expiredSnap.docs) {
+        console.log(`Removing expired plan ${plan.id}`);
+        await plan.ref.delete();
+        count++;
+    }
+    console.log(`cleanupExpiredPlans removed ${count} plans`);
 });
 exports.onFeedbackWrite = (0, firestore_1.onDocumentCreated)("feedback/{fid}", async (event) => {
     var _a;
@@ -86,5 +102,81 @@ exports.exportHouseholdData = (0, https_1.onCall)(async (request) => {
         household: household.data(),
         plans: plans.docs.map(d => d.data())
     };
+});
+const SPOON_API_BASE = "https://api.spoonacular.com";
+const _cfg = functions.config && functions.config();
+const SPOON_API_KEY = process.env.SPOONACULAR_API_KEY ||
+    (_cfg && _cfg.spoonacular && _cfg.spoonacular.key) ||
+    "";
+function isAdmin(auth) {
+    return auth && auth.token && auth.token.email === "antonioappleton@gmail.com";
+}
+async function fetchSpoonacular(path, opts = {}) {
+    if (!SPOON_API_KEY) {
+        throw new Error("Spoonacular key not configured");
+    }
+    const url = `${SPOON_API_BASE}${path}${path.includes("?") ? "&" : "?"}apiKey=${SPOON_API_KEY}`;
+    const response = await fetch(url, opts);
+    if (response.status === 402) {
+        throw new https_1.HttpsError("resource-exhausted", "Spoonacular daily limit reached");
+    }
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Spoonacular error ${response.status}: ${text}`);
+    }
+    return response.json();
+}
+exports.spoonacularProxy = (0, https_1.onCall)(async (request) => {
+    if (!request.auth || !isAdmin(request.auth)) {
+        throw new https_1.HttpsError("permission-denied", "Only admin may call Spoonacular API");
+    }
+    const { action, params } = request.data || {};
+    switch (action) {
+        case "enrichByName": {
+            const q = encodeURIComponent(params.recipeName || "");
+            return await fetchSpoonacular(`/recipes/complexSearch?query=${q}&addRecipeInformation=true&number=1`);
+        }
+        case "searchByCuisine": {
+            const diet = encodeURIComponent(params.diet || "");
+            const count = parseInt(params.count || 10, 10);
+            return await fetchSpoonacular(`/recipes/complexSearch?diet=${diet}&addRecipeInformation=true&fillIngredients=true&number=${count}`);
+        }
+        default:
+            throw new https_1.HttpsError("invalid-argument", `Unknown action: ${action}`);
+    }
+});
+exports.enrichAllRecipes = (0, https_1.onCall)(async (request) => {
+    var _a, _b, _c, _d, _e;
+    if (!request.auth || !isAdmin(request.auth)) {
+        throw new https_1.HttpsError("permission-denied", "Only admin may trigger enrichment");
+    }
+    const rSnap = await db.collection("recipes").get();
+    let count = 0;
+    for (const rDoc of rSnap.docs) {
+        const data = rDoc.data();
+        if (!data.calories || !data.pricePerServing) {
+            const searchData = await fetchSpoonacular(`/recipes/complexSearch?query=${encodeURIComponent(data.name)}&addRecipeInformation=true&number=1`);
+            const details = (searchData.results && searchData.results[0]) || null;
+            if (details) {
+                const enriched = {
+                    calories: Math.round(((_c = (_b = (_a = details.nutrition) === null || _a === void 0 ? void 0 : _a.nutrients) === null || _b === void 0 ? void 0 : _b.find((n) => n.name === "Calories")) === null || _c === void 0 ? void 0 : _c.amount) ||
+                        (details.healthScore > 0 ? details.healthScore * 5 + 200 : 350)),
+                    protein: ((_e = (_d = details.nutrition) === null || _d === void 0 ? void 0 : _d.nutrients) === null || _e === void 0 ? void 0 : _e.find((n) => n.name === "Protein"))
+                        ? `${Math.round(details.nutrition.nutrients.find((n) => n.name === "Protein").amount)}g`
+                        : "20g",
+                    pricePerServing: (details.pricePerServing / 100).toFixed(2),
+                    totalCost: ((details.pricePerServing * (details.servings || 1)) / 100).toFixed(2),
+                    servings: details.servings || 1,
+                    image: details.image,
+                    spoonacularId: details.id,
+                    spoonacularSource: details.sourceUrl,
+                };
+                await rDoc.ref.update(enriched);
+                count++;
+                await new Promise((r) => setTimeout(r, 500));
+            }
+        }
+    }
+    return { updated: count };
 });
 //# sourceMappingURL=index.js.map

@@ -118,9 +118,17 @@ export const exportHouseholdData = onCall(async (request) => {
 // --------- SPOONACULAR PROXY & ADMIN HELPERS ---------
 
 const SPOON_API_BASE = "https://api.spoonacular.com";
-const SPOON_API_KEY = process.env.SPOONACULAR_API_KEY || functions.config().spoonacular.key;
+// read explicit environment variable first, then fallback to firebase config
+const _cfg = functions.config && functions.config();
+const SPOON_API_KEY =
+  process.env.SPOONACULAR_API_KEY ||
+  (_cfg && _cfg.spoonacular && _cfg.spoonacular.key) ||
+  ""; // will throw later if empty
 
-function isAdmin(auth?: admin.auth.DecodedIdToken) {
+// auth object passed for callable functions is of type AuthData
+// which is less strict than DecodedIdToken. We'll accept any and check
+// type assertions at runtime.
+function isAdmin(auth: any) {
   return auth && auth.token && auth.token.email === "antonioappleton@gmail.com";
 }
 
@@ -182,7 +190,7 @@ export const enrichAllRecipes = onCall(async (request) => {
   for (const rDoc of rSnap.docs) {
     const data = rDoc.data();
     if (!data.calories || !data.pricePerServing) {
-      const searchData = await fetchSpoonacular(
+      const searchData: any = await fetchSpoonacular(
         `/recipes/complexSearch?query=${encodeURIComponent(data.name)}&addRecipeInformation=true&number=1`
       );
       const details = (searchData.results && searchData.results[0]) || null;
