@@ -24,3 +24,8 @@ yarn-error.log*
 # Security
 app/public/src/config.js
 !app/public/src/config.template.js
+
+# Environment variables (API keys, secrets)
+.env
+.env.local
+firebase/functions/.env*
