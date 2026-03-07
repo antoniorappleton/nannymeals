@@ -46,83 +46,69 @@
     <div class="app-container glass-effect">
       <!-- Header -->
       <header
-        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10"
+        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10"
       >
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <h1 class="text-xl font-extrabold tracking-tight">
-              Lista de Compras
-            </h1>
-            <p
-              class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]"
-              id="current-grocery-header"
-            >
-              A carregar...
-            </p>
-          </div>
-          <div class="flex gap-2">
-            <button
-              id="btn-scan"
-              class="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-            >
-              <span class="material-symbols-outlined">barcode_scanner</span>
-            </button>
-            <button
-              id="btn-clear"
-              class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400"
-            >
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </div>
-        </div>
-        <div
-          id="cost-badge"
-          class="hidden animate-in fade-in slide-in-from-top-2"
-        >
-          <div
-            class="inline-flex items-center px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-[10px] font-black uppercase tracking-widest gap-2"
+        <div class="flex items-center justify-between mb-3">
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">
+            Lista de Compras
+          </h1>
+          <button
+            id="btn-logout"
+            class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center"
           >
-            <span class="material-symbols-outlined text-sm">payments</span>
-            Estimativa: <span id="total-cost-display">0.00</span>€
-          </div>
+            <span class="material-symbols-outlined">logout</span>
+          </button>
         </div>
+        <p
+          class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]"
+          id="current-grocery-header"
+        >
+          A carregar...
+        </p>
       </header>
 
       <main
         id="grocery-list-container"
-        class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-32"
+        class="flex-1 overflow-y-auto pb-32"
       >
-        <!-- Dynamic grocery categories will be injected here -->
-        <div
-          id="loading-state"
-          class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4"
-        >
+        <div class="p-4 space-y-4">
+          <!-- Dynamic grocery categories will be injected here -->
           <div
-            class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse"
+            id="loading-state"
+            class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4"
           >
-            <span class="material-symbols-outlined text-4xl"
-              >shopping_cart</span
+            <div
+              class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse"
             >
+              <span class="material-symbols-outlined text-4xl"
+                >shopping_cart</span
+              >
+            </div>
+            <p class="font-bold">A carregar a vossa lista...</p>
           </div>
-          <p class="font-bold">A carregar a vossa lista...</p>
-        </div>
-        <div id="empty-state" class="hidden py-12 text-center space-y-4">
-          <p class="text-slate-500 font-medium">
-            Ainda não tens itens na lista. Gera um plano primeiro!
-          </p>
-          <div class="flex items-center justify-center gap-4">
-            <button
-              onclick="window.location.href = 'plan.html'"
-              class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs"
+          <div id="empty-state" class="hidden py-12 text-center space-y-4">
+            <div
+              class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto"
             >
-              Ir para o Plano
-            </button>
-            <button
-              id="btn-generate-auto"
-              class="bg-white dark:bg-slate-800 text-primary border border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs"
-            >
-              Gerar Plano Automático
-            </button>
+              <span class="material-symbols-outlined text-4xl">shopping_cart</span>
+            </div>
+            <p class="text-slate-500 font-medium">
+              Ainda não tens itens na lista. Gera um plano primeiro!
+            </p>
+            <div class="flex items-center justify-center gap-4 flex-wrap">
+              <button
+                onclick="window.location.href = 'plan.html'"
+                class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs"
+              >
+                Ir para o Plano
+              </button>
+              <button
+                id="btn-generate-auto"
+                class="bg-white dark:bg-slate-800 text-primary border border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs"
+              >
+                Gerar Plano
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -195,6 +181,7 @@
     <script type="module">
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
       import { auth } from "./src/firebase-init.js";
+      import { logout } from "./src/auth.js";
       import {
         getLastPlan,
         getHousehold,
@@ -209,7 +196,8 @@
       );
       const loadingState = document.getElementById("loading-state");
       const emptyState = document.getElementById("empty-state");
-      const btnScan = document.getElementById("btn-scan");
+
+      document.getElementById("btn-logout").onclick = () => logout();
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -392,27 +380,36 @@
         const previousItems = groceryContainer.querySelectorAll("section");
         previousItems.forEach((el) => el.remove());
 
-        categories.forEach((cat) => {
+      function renderGroceryList(categories) {
+        loadingState.classList.add("hidden");
+        emptyState.classList.add("hidden");
+
+        // Remove previous items
+        const previousItems = document.querySelectorAll("section[data-category]");
+        previousItems.forEach((el) => el.remove());
+
+        const container = document.querySelector("#grocery-list-container > div");
+
+        categories.forEach((cat, index) => {
           const section = document.createElement("section");
-          section.className = "space-y-4 px-4 pb-4";
+          section.setAttribute("data-category", index);
+          section.className = "space-y-3";
           section.innerHTML = `
-            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-2">${cat.category}</h3>
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-premium overflow-hidden">
-               <div class="divide-y divide-slate-50 dark:divide-slate-800" id="cat-${cat.category.replace(/\s/g, "")}">
-               </div>
+            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">${cat.category}</h3>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-lg overflow-hidden">
+              <div class="divide-y divide-slate-50 dark:divide-slate-800" data-items-list="true">
+              </div>
             </div>
           `;
 
-          const itemsList = section.querySelector(
-            `#cat-${cat.category.replace(/\s/g, "")}`,
-          );
+          const itemsList = section.querySelector('[data-items-list="true"]');
           cat.items.forEach((item) => {
             const itemDiv = document.createElement("div");
             itemDiv.className =
               "flex items-center gap-4 p-5 group transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer";
             itemDiv.setAttribute("data-checked", item.checked || "false");
             itemDiv.innerHTML = `
-                <div class="size-6 rounded-lg border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-data-[checked=true]:border-primary transition-colors group-data-[checked=true]:bg-primary/10">
+                <div class="size-6 rounded-lg border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-data-[checked=true]:border-primary group-data-[checked=true]:bg-primary/10 transition-colors">
                   <span class="material-symbols-outlined text-primary text-lg scale-0 group-data-[checked=true]:scale-100 transition-transform">check</span>
                 </div>
                 <div class="flex-1">
@@ -427,8 +424,9 @@
             itemsList.appendChild(itemDiv);
           });
 
-          groceryContainer.appendChild(section);
+          container.appendChild(section);
         });
+      }
       }
     </script>
   </body>
