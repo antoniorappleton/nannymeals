@@ -144,7 +144,98 @@
         </div>
       </main>
 
-      <!-- Bottom Navigation -->
+      <!-- Recipe Detail Modal -->
+      <div
+        id="recipe-modal"
+        class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end"
+      >
+        <div
+          class="w-full bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom"
+        >
+          <!-- Modal Header -->
+          <div
+            class="sticky top-0 bg-white dark:bg-slate-900 p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800"
+          >
+            <h2 id="modal-recipe-name" class="text-xl font-bold">Receita</h2>
+            <button
+              id="btn-close-modal"
+              class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="p-6 space-y-6">
+            <!-- Ingredientes -->
+            <div class="space-y-3">
+              <h3 class="text-lg font-bold">Ingredientes</h3>
+              <div
+                id="modal-ingredients"
+                class="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl"
+              >
+                <!-- Dinamically filled -->
+              </div>
+            </div>
+
+            <!-- Nutrição -->
+            <div class="space-y-3">
+              <h3 class="text-lg font-bold">Nutrição (por porção)</h3>
+              <div
+                id="modal-nutrition"
+                class="grid grid-cols-2 gap-3 sm:grid-cols-4"
+              >
+                <!-- Dinamically filled -->
+              </div>
+            </div>
+
+            <!-- Instruções -->
+            <div class="space-y-3">
+              <h3 class="text-lg font-bold">Modo de Preparação</h3>
+              <p
+                id="modal-instructions"
+                class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm"
+              >
+                ---
+              </p>
+            </div>
+
+            <!-- Preço & Tempo -->
+            <div class="grid grid-cols-3 gap-3 bg-primary/10 p-4 rounded-2xl">
+              <div class="text-center">
+                <p class="text-xs font-bold text-slate-500 uppercase">Preço</p>
+                <p id="modal-price" class="text-lg font-bold text-primary">---</p>
+              </div>
+              <div class="text-center">
+                <p class="text-xs font-bold text-slate-500 uppercase">Tempo</p>
+                <p id="modal-time" class="text-lg font-bold text-primary">---</p>
+              </div>
+              <div class="text-center">
+                <p class="text-xs font-bold text-slate-500 uppercase">Calorias</p>
+                <p id="modal-calories" class="text-lg font-bold text-primary">
+                  ---
+                </p>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 pb-6">
+              <button
+                id="btn-swap-from-modal"
+                class="flex-1 bg-primary text-slate-900 font-bold h-12 rounded-2xl hover:scale-[0.98] transition-all"
+              >
+                Trocar Refeição
+              </button>
+              <button
+                id="btn-save-recipe"
+                class="flex-1 bg-white dark:bg-slate-800 text-primary border border-primary font-bold h-12 rounded-2xl hover:scale-[0.98] transition-all"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
         <nav
           class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]"
@@ -197,12 +288,14 @@
             >
           </a>
           <a
-            class="flex flex-col items-center gap-1 text-slate-400 group hover:text-primary transition-all"
-            href="onboarding.html"
+            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
+            href="my-recipes.html"
           >
-            <span class="material-symbols-outlined">person</span>
-            <span class="text-[10px] font-bold uppercase tracking-widest"
-              >Perfil</span
+            <span class="material-symbols-outlined text-lg sm:text-xl"
+              >bookmark</span
+            >
+            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
+              >Minhas</span
             >
           </a>
         </nav>
@@ -218,11 +311,15 @@
         generateWeeklyPlan,
         getAllPlans,
         getPlanById,
+        getRecipe,
+        saveUserRecipe,
       } from "./src/db.js";
 
       const mealsContainer = document.getElementById("meals-container");
       const weekDates = document.getElementById("week-dates");
       const adaptationText = document.getElementById("adaptation-text");
+      const recipeModal = document.getElementById("recipe-modal");
+      const btnCloseModal = document.getElementById("btn-close-modal");
 
       const days = [
         "Segunda-feira",
@@ -236,6 +333,109 @@
 
       let allPlans = [];
       let currentPlanIndex = 0;
+      let currentMealData = null;
+
+      // Modal Functions
+      const openRecipeModal = async (meal, planId) => {
+        try {
+          currentMealData = { meal, planId };
+          const recipe = await getRecipe(meal.recipeId);
+          if (!recipe) {
+            alert("Não foi possível carregar os detalhes da receita.");
+            return;
+          }
+
+          // Populate modal
+          document.getElementById("modal-recipe-name").textContent =
+            meal.recipeName;
+
+          // Ingredientes
+          const ingredientsDiv = document.getElementById("modal-ingredients");
+          ingredientsDiv.innerHTML = (recipe.ingredients || [])
+            .map(
+              (ing) => `
+            <div class="flex items-start gap-2 text-sm">
+              <span class="material-symbols-outlined text-base text-primary">check_circle</span>
+              <div>
+                <p class="font-bold">${ing.name || ing}</p>
+                ${ing.amount ? `<p class="text-xs text-slate-500">${ing.amount}${ing.unit ? " " + ing.unit : ""}</p>` : ""}
+              </div>
+            </div>
+          `,
+            )
+            .join("");
+
+          // Nutrição
+          const nutritionDiv = document.getElementById("modal-nutrition");
+          const nutrition = recipe.nutrition || {};
+          nutritionDiv.innerHTML = `
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl text-center">
+              <p class="text-xs font-bold text-slate-500 uppercase">Calorias</p>
+              <p class="text-lg font-bold text-primary">${nutrition.calories || "---"}</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl text-center">
+              <p class="text-xs font-bold text-slate-500 uppercase">Proteína</p>
+              <p class="text-lg font-bold text-primary">${nutrition.protein || "---"}g</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl text-center">
+              <p class="text-xs font-bold text-slate-500 uppercase">Hidratos</p>
+              <p class="text-lg font-bold text-primary">${nutrition.carbs || "---"}g</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl text-center">
+              <p class="text-xs font-bold text-slate-500 uppercase">Gordura</p>
+              <p class="text-lg font-bold text-primary">${nutrition.fat || "---"}g</p>
+            </div>
+          `;
+
+          // Instruções
+          document.getElementById("modal-instructions").textContent =
+            recipe.instructions || "Sem instruções disponíveis.";
+
+          // Preço & Tempo
+          document.getElementById("modal-price").textContent =
+            recipe.pricePerServing ? recipe.pricePerServing + "€" : "---";
+          document.getElementById("modal-time").textContent =
+            recipe.prepTime ? recipe.prepTime + " min" : "---";
+          document.getElementById("modal-calories").textContent =
+            recipe.calories ? recipe.calories + " kcal" : "---";
+
+          // Buttons
+          const btnSwap = document.getElementById("btn-swap-from-modal");
+          btnSwap.onclick = () => {
+            window.location.href = `swaps.html?meal=${allPlans[currentPlanIndex].meals.indexOf(meal)}&plan=${planId}`;
+          };
+
+          const btnSave = document.getElementById("btn-save-recipe");
+          btnSave.onclick = async () => {
+            const user = auth.currentUser;
+            if (user) {
+              try {
+                await saveUserRecipe(user.uid, meal.recipeId);
+                alert("✅ Receita guardada na tua cozinha!");
+                closeRecipeModal();
+              } catch (err) {
+                console.error("Erro ao guardar receita:", err);
+                alert("Erro ao guardar receita.");
+              }
+            }
+          };
+
+          recipeModal.classList.remove("hidden");
+        } catch (err) {
+          console.error("Erro ao abrir modal:", err);
+          alert("Erro ao carregar detalhes da receita.");
+        }
+      };
+
+      const closeRecipeModal = () => {
+        recipeModal.classList.add("hidden");
+        currentMealData = null;
+      };
+
+      btnCloseModal.onclick = closeRecipeModal;
+      recipeModal.onclick = (e) => {
+        if (e.target === recipeModal) closeRecipeModal();
+      };
 
       const renderPlan = (plan) => {
         if (!plan || !plan.meals) {
@@ -274,7 +474,7 @@
             (meal, index) => `
         <div class="space-y-3">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">${days[index] || "Dia extra"}</p>
-          <div class="flex flex-col rounded-3xl overflow-hidden shadow-premium bg-white dark:bg-slate-900 border ${meal.isReplacement ? "border-primary/40 ring-4 ring-primary/5" : "border-slate-100 dark:border-slate-800"}">
+          <div class="flex flex-col rounded-3xl overflow-hidden shadow-premium bg-white dark:bg-slate-900 border ${meal.isReplacement ? "border-primary/40 ring-4 ring-primary/5" : "border-slate-100 dark:border-slate-800"} cursor-pointer hover:scale-[1.02] transition-all" data-meal-index="${index}">
             <div class="p-6 space-y-4">
               <div class="flex justify-between items-start">
                 <h4 class="text-xl font-extrabold tracking-tight">${meal.recipeName}</h4>
@@ -302,6 +502,19 @@
       `,
           )
           .join("");
+
+        // Add click handlers to meal cards
+        setTimeout(() => {
+          document.querySelectorAll("[data-meal-index]").forEach((card) => {
+            card.onclick = async (e) => {
+              // Don't trigger if clicking on buttons/links
+              if (e.target.closest("a") || e.target.closest("button")) return;
+              const mealIndex = parseInt(card.getAttribute("data-meal-index"));
+              const meal = plan.meals[mealIndex];
+              await openRecipeModal(meal, plan.id);
+            };
+          });
+        }, 0);
 
         // Adicionar informações de múltiplos planos se existem
         if (allPlans.length > 1) {
@@ -374,8 +587,8 @@
         }
       });
 
-      // Version V21
-      console.log("Plano carregado [V21]");
+      // Version V22
+      console.log("Plano carregado [V22]");
     </script>
   </body>
 </html>
