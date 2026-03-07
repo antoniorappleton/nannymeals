@@ -118,12 +118,20 @@ export const exportHouseholdData = onCall(async (request) => {
 // --------- SPOONACULAR PROXY & ADMIN HELPERS ---------
 
 const SPOON_API_BASE = "https://api.spoonacular.com";
-// read explicit environment variable first, then fallback to firebase config
-const _cfg = functions.config && functions.config();
-const SPOON_API_KEY =
-  process.env.SPOONACULAR_API_KEY ||
-  (_cfg && _cfg.spoonacular && _cfg.spoonacular.key) ||
-  ""; // will throw later if empty
+
+// safely load the API key from environment or config
+let SPOON_API_KEY = process.env.SPOONACULAR_API_KEY || "";
+if (!SPOON_API_KEY) {
+  try {
+    const cfg = functions.config() as any;
+    if (cfg && cfg.spoonacular && cfg.spoonacular.key) {
+      SPOON_API_KEY = cfg.spoonacular.key;
+    }
+  } catch (e) {
+    console.warn("Unable to load Spoonacular config from functions.config():", e);
+    // continue with empty key; it will fail when actually used
+  }
+}
 
 // auth object passed for callable functions is of type AuthData
 // which is less strict than DecodedIdToken. We'll accept any and check

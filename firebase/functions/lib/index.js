@@ -104,10 +104,18 @@ exports.exportHouseholdData = (0, https_1.onCall)(async (request) => {
     };
 });
 const SPOON_API_BASE = "https://api.spoonacular.com";
-const _cfg = functions.config && functions.config();
-const SPOON_API_KEY = process.env.SPOONACULAR_API_KEY ||
-    (_cfg && _cfg.spoonacular && _cfg.spoonacular.key) ||
-    "";
+let SPOON_API_KEY = process.env.SPOONACULAR_API_KEY || "";
+if (!SPOON_API_KEY) {
+    try {
+        const cfg = functions.config();
+        if (cfg && cfg.spoonacular && cfg.spoonacular.key) {
+            SPOON_API_KEY = cfg.spoonacular.key;
+        }
+    }
+    catch (e) {
+        console.warn("Unable to load Spoonacular config from functions.config():", e);
+    }
+}
 function isAdmin(auth) {
     return auth && auth.token && auth.token.email === "antonioappleton@gmail.com";
 }
