@@ -69,7 +69,7 @@
       </header>
 
       <main
-        class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 pb-28 space-y-6 sm:space-y-8"
+        class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 pb-16"
       >
         <!-- Quick Actions -->
         <section class="grid grid-cols-2 gap-2 sm:gap-3">
@@ -299,6 +299,7 @@
           </p>
         </section>
       </main>
+          <!-- Bottom Navigation Bar will be included dynamically -->
     </div>
 
     <script type="module">
@@ -361,4 +362,18 @@
       console.log("Dashboard carregado [V20]");
     </script>
   </body>
+    <script>
+      // Dynamic include for bottom navigation
+      fetch('bottom-nav.html')
+        .then(res => res.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          document.body.appendChild(temp.firstElementChild);
+          // After nav is loaded, highlight active
+          const script = document.createElement('script');
+          script.src = 'active-screen.js';
+          document.body.appendChild(script);
+        });
+    </script>
 </html>

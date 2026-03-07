@@ -72,7 +72,7 @@
         </p>
       </header>
 
-      <main id="weekly-plan-list" class="flex-1 overflow-y-auto pb-28">
+      <main id="weekly-plan-list" class="flex-1 overflow-y-auto pb-16">
         <!-- Adaptation Notification Banner -->
         <div class="p-4 hidden" id="adaptation-banner">
           <div
@@ -144,6 +144,7 @@
           </div>
         </div>
       </main>
+      <!-- Bottom Navigation Bar will be included dynamically -->
 
       <!-- Recipe Detail Modal -->
       <div
@@ -592,4 +593,18 @@
       console.log("Plano carregado [V22]");
     </script>
   </body>
+    <script>
+      // Dynamic include for bottom navigation
+      fetch('bottom-nav.html')
+        .then(res => res.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          document.body.appendChild(temp.firstElementChild);
+          // After nav is loaded, highlight active
+          const script = document.createElement('script');
+          script.src = 'active-screen.js';
+          document.body.appendChild(script);
+        });
+    </script>
 </html>

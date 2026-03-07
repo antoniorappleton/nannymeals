@@ -47,7 +47,7 @@
         </div>
       </header>
 
-      <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-28">
+      <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-16">
         <!-- Header Section -->
         <div class="space-y-1">
           <h2 class="text-3xl font-extrabold tracking-tight leading-tight">
@@ -227,6 +227,7 @@
           </button>
         </div>
       </main>
+      <!-- Bottom Navigation Bar will be included dynamically -->
 
       <!-- Bottom Navigation -->
       <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
@@ -413,4 +414,18 @@
       console.log("Swaps carregado [V21]");
     </script>
   </body>
+    <script>
+      // Dynamic include for bottom navigation
+      fetch('bottom-nav.html')
+        .then(res => res.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          document.body.appendChild(temp.firstElementChild);
+          // After nav is loaded, highlight active
+          const script = document.createElement('script');
+          script.src = 'active-screen.js';
+          document.body.appendChild(script);
+        });
+    </script>
 </html>

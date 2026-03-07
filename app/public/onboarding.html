@@ -72,7 +72,7 @@
     </div>
 
     <!-- Content Area -->
-    <main class="flex-1 overflow-y-auto px-6 py-8 space-y-12 pb-28">
+    <main class="flex-1 overflow-y-auto px-6 py-8 space-y-12 pb-16">
       <!-- Passo 1: Família -->
       <div id="setup-step-1" class="setup-step space-y-10">
         <div class="space-y-4">
@@ -181,6 +181,7 @@
         </div>
       </div>
     </main>
+      <!-- Bottom Navigation Bar will be included dynamically -->
 
     <!-- Footer Actions -->
     <footer
@@ -203,5 +204,19 @@
   <script type="module" src="src/auth.js?v=13"></script>
   <script type="module" src="src/onboarding.js"></script>
 </body>
+    <script>
+      // Dynamic include for bottom navigation
+      fetch('bottom-nav.html')
+        .then(res => res.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          document.body.appendChild(temp.firstElementChild);
+          // After nav is loaded, highlight active
+          const script = document.createElement('script');
+          script.src = 'active-screen.js';
+          document.body.appendChild(script);
+        });
+    </script>
 
 </html>

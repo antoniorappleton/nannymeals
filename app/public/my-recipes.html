@@ -36,11 +36,12 @@
         </div>
       </header>
 
-      <main class="flex-1 overflow-y-auto pb-28">
+      <main class="flex-1 overflow-y-auto">
         <div id="recipes-container" class="p-4 space-y-4">
           <p class="text-slate-400">A carregar as suas receitas...</p>
         </div>
       </main>
+      <!-- Bottom Navigation Bar will be included dynamically -->
 
       <script type="module">
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -136,4 +137,18 @@
       </script>
     </div>
   </body>
+    <script>
+      // Dynamic include for bottom navigation
+      fetch('bottom-nav.html')
+        .then(res => res.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          document.body.appendChild(temp.firstElementChild);
+          // After nav is loaded, highlight active
+          const script = document.createElement('script');
+          script.src = 'active-screen.js';
+          document.body.appendChild(script);
+        });
+    </script>
 </html>

@@ -79,7 +79,7 @@
 
       <main
         id="grocery-list-container"
-        class="flex-1 overflow-y-auto pb-28"
+        class="flex-1 overflow-y-auto pb-16"
       >
         <div class="p-4 space-y-4">
           <!-- Dynamic grocery categories will be injected here -->
@@ -122,6 +122,7 @@
           </div>
         </div>
       </main>
+          <!-- Bottom Navigation Bar will be included dynamically -->
     </div>
 
     <script type="module">
@@ -336,4 +337,18 @@
       }
     </script>
   </body>
+    <script>
+      // Dynamic include for bottom navigation
+      fetch('bottom-nav.html')
+        .then(res => res.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          document.body.appendChild(temp.firstElementChild);
+          // After nav is loaded, highlight active
+          const script = document.createElement('script');
+          script.src = 'active-screen.js';
+          document.body.appendChild(script);
+        });
+    </script>
 </html>
