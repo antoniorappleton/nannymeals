@@ -30,6 +30,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+// Configurar o domínio de autenticação explicitamente
+auth.languageCode = "pt-PT";
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 

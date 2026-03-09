@@ -6,10 +6,12 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithRedirect,
+  signInWithPopup,
   getRedirectResult,
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
+  browserSessionPersistence,
   signOut,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
@@ -95,8 +97,10 @@ if (authForm) {
 
     try {
       console.log("A tentar autenticar:", email);
+      console.log("Auth config:", auth.config);
       
       if (isLogin) {
+        console.log("A fazer signInWithEmailAndPassword...");
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const confirm = document.getElementById("confirm-password").value;
@@ -144,9 +148,31 @@ if (authForm) {
 
   const googleBtn = document.getElementById("btn-google");
   if (googleBtn) {
-    googleBtn.addEventListener("click", () => {
+    googleBtn.addEventListener("click", async () => {
       if (window.setGoogleLoading) window.setGoogleLoading(true);
-      signInWithRedirect(auth, new GoogleAuthProvider());
+      
+      const provider = new GoogleAuthProvider();
+      // Adicionar escopo para solicitar email
+      provider.addScope("email");
+      provider.addScope("profile");
+      
+      try {
+        // Primeiro tenta com popup (mais confiável)
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.log("Popup falhou, a tentar redirect:", error);
+        // Se popup falhar, usa redirect
+        if (error.code !== "auth/popup-closed-by-user") {
+          try {
+            await signInWithRedirect(auth, provider);
+          } catch (redirectError) {
+            if (window.setGoogleLoading) window.setGoogleLoading(false);
+            showError("Erro no login Google: " + redirectError.message);
+          }
+        } else {
+          if (window.setGoogleLoading) window.setGoogleLoading(false);
+        }
+      }
     });
   }
 }

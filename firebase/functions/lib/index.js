@@ -241,10 +241,11 @@ exports.importRecipes = (0, https_1.onCall)(async (request) => {
     }
     return await doImportRecipes(filters, pages, number);
 });
-const doImportRecipes = async (filters, pagesIn, numberIn) => {
+const doImportRecipes = async (filters, pagesIn, numberIn, completeOnly = true) => {
     const pages = pagesIn || 1;
     const perPage = Math.min(numberIn || 20, 50);
     const imported = [];
+    const skipped = [];
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const callSpoon = async (path, attempt = 0) => {
         try {
@@ -259,6 +260,33 @@ const doImportRecipes = async (filters, pagesIn, numberIn) => {
             }
             throw err;
         }
+    };
+    const isCompleteRecipe = (details) => {
+        const reasons = [];
+        if (!details.image) {
+            reasons.push("Sem imagem");
+        }
+        const ingredients = details.extendedIngredients || details.ingredients || [];
+        if (!ingredients || ingredients.length === 0) {
+            reasons.push("Sem ingredientes");
+        }
+        else {
+            const ingredientsWithData = ingredients.filter((ing) => ing.amount && ing.unit);
+            if (ingredientsWithData.length === 0) {
+                reasons.push("Ingredientes sem quantidades/unidades");
+            }
+        }
+        const hasInstructions = details.instructions && details.instructions.length > 0;
+        const hasAnalyzedInstructions = details.analyzedInstructions &&
+            details.analyzedInstructions.length > 0 &&
+            details.analyzedInstructions.some((inst) => inst.steps && inst.steps.length > 0);
+        if (!hasInstructions && !hasAnalyzedInstructions) {
+            reasons.push("Sem instruções");
+        }
+        return {
+            complete: reasons.length === 0,
+            reasons
+        };
     };
     const normalizeRecipe = (details) => {
         var _a;
@@ -456,21 +484,17 @@ const doImportRecipes = async (filters, pagesIn, numberIn) => {
                         continue;
                     }
                 }
-                for (const ing of (details.extendedIngredients || details.ingredients || [])) {
-                    if ((!ing.estimatedCost || !ing.estimatedCost.value) && ing.id) {
-                        try {
-                            const ingInfo = await callSpoon(`/food/ingredients/${ing.id}/information`);
-                            if (ingInfo) {
-                                ing.estimatedCost = ingInfo.estimatedCost || ing.estimatedCost || null;
-                                ing.aisle = ing.aisle || ingInfo.aisle || null;
-                                ing.shoppingListUnits = ing.shoppingListUnits || ingInfo.shoppingListUnits || [];
-                                ing.possibleUnits = ing.possibleUnits || ingInfo.possibleUnits || [];
-                                ing.nutrition = ing.nutrition || ingInfo.nutrition || null;
-                                await sleep(120);
-                            }
-                        }
-                        catch (e) {
-                        }
+                if (completeOnly) {
+                    const completenessCheck = isCompleteRecipe(details);
+                    if (!completenessCheck.complete) {
+                        console.log(`Skipping incomplete recipe ${details.id}: ${completenessCheck.reasons.join(", ")}`);
+                        skipped.push({
+                            id: `spoonacular_${details.id}`,
+                            spoonacularId: details.id,
+                            title: details.title,
+                            reasons: completenessCheck.reasons
+                        });
+                        continue;
                     }
                 }
                 const normalized = normalizeRecipe(details);
@@ -480,7 +504,7 @@ const doImportRecipes = async (filters, pagesIn, numberIn) => {
             await sleep(250);
         }
     }
-    return { importedCount: imported.length, imported };
+    return { importedCount: imported.length, imported, skippedCount: skipped.length, skipped };
 };
 exports.importRecipesHttp = functions.https.onRequest(async (req, res) => {
     const origin = req.headers.origin || '*';
@@ -507,7 +531,8 @@ exports.importRecipesHttp = functions.https.onRequest(async (req, res) => {
         const filters = body.filters || {};
         const pages = parseInt(body.pages || '1', 10) || 1;
         const number = parseInt(body.number || '20', 10) || 20;
-        const result = await doImportRecipes(filters, pages, number);
+        const completeOnly = body.completeOnly !== undefined ? body.completeOnly : true;
+        const result = await doImportRecipes(filters, pages, number, completeOnly);
         res.status(200).json(result);
         return;
     }

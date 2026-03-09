@@ -193,7 +193,7 @@
         </p>
       </div>
     </div>
-    <script type="module" src="src/auth.js?v=12"></script>
+    <script type="module" src="src/auth.js?v=25"></script> REPLACE
     <script>
       // Script de emergência para limpar cache se detectar versão antiga nos logs
       // VERSÃO V24: Correção de bugs e melhorias
@@ -260,7 +260,7 @@
           );
           if (email) {
             try {
-              const { resetPassword } = await import("./src/auth.js?v=12");
+const { resetPassword } = await import("./src/auth.js?v=25");
               await resetPassword(email);
               alert(
                 "Email de recuperação enviado! Verifique a sua caixa de entrada.",
