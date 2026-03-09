@@ -3,191 +3,186 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin - Importar receitas (Spoonacular)</title>
+    <title>NannyMeal - Admin Import</title>
     <link rel="stylesheet" href="css/global.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="assets/images/hero.webp" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: 'Manrope', sans-serif; }
+    </style>
   </head>
-  <body
-    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display"
-  >
-    <div class="max-w-2xl mx-auto p-6">
-      <h1 class="text-2xl font-extrabold mb-4">
-        Importador Spoonacular (Admin)
-      </h1>
-
-      <p class="text-sm text-slate-500 mb-4">
-        Formulário simples para disparar a função administrativa
-        <strong>importRecipes</strong>.
-      </p>
-
-      <form
-        id="import-form"
-        class="space-y-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800"
-      >
-        <div>
-          <label class="block text-xs font-black uppercase text-slate-400"
-            >Query</label
-          >
-          <input
-            id="q-query"
-            class="w-full mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-            placeholder="pasta"
-          />
-        </div>
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-400"
-              >Diet</label
-            >
-            <input
-              id="q-diet"
-              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-              placeholder="vegetarian"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-400"
-              >Intolerances</label
-            >
-            <input
-              id="q-intolerances"
-              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-              placeholder="gluten"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-400"
-              >Type</label
-            >
-            <input
-              id="q-type"
-              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-              placeholder="main course"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-400"
-              >maxReadyTime</label
-            >
-            <input
-              id="q-maxReadyTime"
-              type="number"
-              min="0"
-              value="30"
-              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-400"
-              >pages</label
-            >
-            <input
-              id="q-pages"
-              type="number"
-              min="1"
-              value="1"
-              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-400"
-              >number</label
-            >
-            <input
-              id="q-number"
-              type="number"
-              min="1"
-              max="50"
-              value="10"
-              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
-            />
-          </div>
-        </div>
-
+  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
+    
+    <!-- Header -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <button
-            id="btn-run"
-            class="bg-primary text-slate-900 px-4 py-3 rounded-2xl font-black"
-            disabled
-          >
-            Executar Import
-          </button>
-          <button
-            id="btn-run-sample"
-            type="button"
-            class="bg-white border border-slate-200 text-primary px-4 py-3 rounded-2xl font-black"
-            disabled
-          >
-            Executar Teste (pasta vegetarian)
-          </button>
-          <button
-            id="btn-migrate"
-            type="button"
-            class="bg-yellow-500 text-slate-900 px-4 py-3 rounded-2xl font-black"
-            disabled
-            title="Migra planos antigos para incluir o campo members"
-          >
-            Migrar Planos
-          </button>
-          <button
-            id="btn-login"
-            type="button"
-            class="ml-auto bg-white border border-slate-200 text-primary px-3 py-2 rounded-2xl font-medium"
-          >
-            Login
-          </button>
-          <button
-            id="btn-logout"
-            type="button"
-            class="bg-white border border-slate-200 text-red-600 px-3 py-2 rounded-2xl font-medium"
-            style="display: none"
-          >
-            Logout
-          </button>
+          <div class="size-10 bg-primary rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-slate-900">restaurant</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-extrabold tracking-tight">Admin Import</h1>
+            <p class="text-xs text-slate-500 font-medium">Spoonacular Recipe Importer</p>
+          </div>
         </div>
-
-        <div id="validation" class="text-red-500 text-sm"></div>
-      </form>
-
-      <div class="mt-6 space-y-4">
-        <div
-          class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800"
-        >
-          <h2 class="font-black">Progresso</h2>
-          <div
-            id="log"
-            class="mt-2 text-xs text-slate-500 max-h-56 overflow-auto font-mono"
-          ></div>
-        </div>
-
-        <div
-          id="result"
-          class="hidden bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800"
-        >
-          <h2 class="font-black">Resultado</h2>
-          <div id="summary" class="mt-2 text-sm text-slate-600"></div>
-          <h3 class="mt-4 font-black">IDs importadas</h3>
-          <pre
-            id="ids"
-            class="text-xs mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md max-h-40 overflow-auto"
-          ></pre>
-
-          <h3 class="mt-4 font-black">
-            Exemplo de documento (primeiro importado)
-          </h3>
-          <pre
-            id="example"
-            class="text-xs mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md max-h-80 overflow-auto"
-          ></pre>
-
-          <div id="verifications" class="mt-3 text-sm"></div>
+        <div class="flex items-center gap-2" id="user-area">
+          <span class="text-sm text-slate-500" id="user-status">A carregar...</span>
         </div>
       </div>
-    </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      
+      <!-- Login Card -->
+      <div id="login-card" class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
+        <div class="flex flex-col items-center justify-center gap-4">
+          <div class="size-16 bg-primary/20 rounded-full flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl text-primary">admin_panel_settings</span>
+          </div>
+          <div class="text-center">
+            <h2 class="text-xl font-bold">Acesso Admin</h2>
+            <p class="text-sm text-slate-500 mt-1">Necessário fazer login para importar receitas</p>
+          </div>
+          <button id="btn-login" class="w-full sm:w-auto bg-primary text-slate-900 px-8 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined">login</span>
+            Login com Google
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Form Card (hidden until logged in) -->
+      <div id="main-card" class="hidden space-y-6">
+        
+        <!-- Import Form -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="size-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">cloud_download</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold">Importar Receitas</h2>
+              <p class="text-xs text-slate-500"> da API Spoonacular</p>
+            </div>
+          </div>
+
+          <form id="import-form" class="space-y-4">
+            <!-- Query -->
+            <div>
+              <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Query de Busca</label>
+              <input id="q-query" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="pasta, chicken, salad..." />
+            </div>
+
+            <!-- Filters Row 1 -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Dieta</label>
+                <select id="q-diet" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                  <option value="">Todas</option>
+                  <option value="vegetarian">Vegetariano</option>
+                  <option value="vegan">Vegano</option>
+                  <option value="gluten free">Sem Glúten</option>
+                  <option value="ketogenic">Ketogénico</option>
+                  <option value="paleo">Paleo</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Intolerâncias</label>
+                <input id="q-intolerances" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="gluten, dairy..." />
+              </div>
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tipo</label>
+                <select id="q-type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                  <option value="">Todos</option>
+                  <option value="main course">Prato Principal</option>
+                  <option value="side dish">Acompanhamento</option>
+                  <option value="appetizer">Entradas</option>
+                  <option value="dessert">Sobremesa</option>
+                  <option value="salad">Salada</option>
+                  <option value="soup">Sopa</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Filters Row 2 -->
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tempo Máx (min)</label>
+                <input id="q-maxReadyTime" type="number" min="0" value="45" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              </div>
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Páginas</label>
+                <input id="q-pages" type="number" min="1" max="10" value="1" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              </div>
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Receitas/Pág</label>
+                <input id="q-number" type="number" min="1" max="50" value="20" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button id="btn-run" type="button" class="flex-1 sm:flex-none bg-primary text-slate-900 px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20" disabled>
+                <span class="material-symbols-outlined">play_arrow</span>
+                Importar
+              </button>
+              <button id="btn-run-sample" type="button" class="flex-1 sm:flex-none bg-blue-600 text-white px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-blue-600/20" disabled>
+                <span class="material-symbols-outlined">science</span>
+                Teste
+              </button>
+              <button id="btn-migrate" type="button" class="flex-1 sm:flex-none bg-amber-500 text-slate-900 px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-amber-500/20" disabled>
+                <span class="material-symbols-outlined">sync</span>
+                Migrar
+              </button>
+              <button id="btn-logout" type="button" class="ml-auto bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-4 py-3 rounded-xl font-bold flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                <span class="material-symbols-outlined">logout</span>
+              </button>
+            </div>
+
+            <div id="validation" class="hidden p-3 rounded-xl text-sm font-medium"></div>
+          </form>
+        </div>
+
+        <!-- Progress Log -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="size-10 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">terminal</span>
+            </div>
+            <h2 class="text-lg font-bold">Log de Progresso</h2>
+          </div>
+          <div id="log" class="bg-slate-900 text-green-400 p-4 rounded-xl text-xs font-mono max-h-64 overflow-auto"></div>
+        </div>
+
+        <!-- Results -->
+        <div id="result" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="size-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+            </div>
+            <h2 class="text-lg font-bold">Resultado</h2>
+          </div>
+          
+          <div id="summary" class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl text-green-800 dark:text-green-200 font-medium mb-4"></div>
+          
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-sm font-black uppercase text-slate-400 tracking-wider mb-2">IDs Importadas</h3>
+              <pre id="ids" class="bg-slate-100 dark:bg-slate-900 p-4 rounded-xl text-xs overflow-auto max-h-32"></pre>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-black uppercase text-slate-400 tracking-wider mb-2">Exemplo (Primeira Receita)</h3>
+              <pre id="example" class="bg-slate-100 dark:bg-slate-900 p-4 rounded-xl text-xs overflow-auto max-h-80"></pre>
+            </div>
+
+            <div id="verifications" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
 
     <script type="module">
       import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js";
@@ -199,7 +194,13 @@
         signOut,
       } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-      const form = document.getElementById("import-form");
+      // Elements
+      const loginCard = document.getElementById("login-card");
+      const mainCard = document.getElementById("main-card");
+      const userStatus = document.getElementById("user-status");
+      const userArea = document.getElementById("user-area");
+      const btnLogin = document.getElementById("btn-login");
+      const btnLogout = document.getElementById("btn-logout");
       const btnRun = document.getElementById("btn-run");
       const btnRunSample = document.getElementById("btn-run-sample");
       const btnMigrate = document.getElementById("btn-migrate");
@@ -212,39 +213,47 @@
       const validation = document.getElementById("validation");
 
       let currentUser = null;
-      const btnLogin = document.getElementById("btn-login");
-      const btnLogout = document.getElementById("btn-logout");
-      const userStatus = document.createElement("div");
-      userStatus.className = "text-sm text-slate-500 ml-2";
-      document.getElementById("import-form").appendChild(userStatus);
 
+      // Logging function
       const log = (t) => {
         const node = document.createElement("div");
-        node.textContent = `[${new Date().toISOString()}] ${t}`;
+        node.innerHTML = `<span class="text-slate-500">[${new Date().toLocaleTimeString()}]</span> ${t}`;
+        node.className = "mb-1";
         logEl.prepend(node);
       };
 
+      // Auth state handler
       onAuthStateChanged(auth, (u) => {
         currentUser = u;
         if (!u) {
-          log("Usuário não autenticado — login necessário");
+          log("Utilizador não autenticado");
+          loginCard.classList.remove("hidden");
+          mainCard.classList.add("hidden");
+          userStatus.textContent = "Não autenticado";
           btnRun.disabled = true;
           btnRunSample.disabled = true;
           btnMigrate.disabled = true;
-          btnLogin.style.display = "inline-block";
-          btnLogout.style.display = "none";
-          userStatus.textContent = "Não autenticado";
         } else {
           log(`Autenticado: ${u.email}`);
+          loginCard.classList.add("hidden");
+          mainCard.classList.remove("hidden");
+          userStatus.textContent = u.email;
           btnRun.disabled = false;
           btnRunSample.disabled = false;
           btnMigrate.disabled = false;
-          btnLogin.style.display = "none";
-          btnLogout.style.display = "inline-block";
-          userStatus.textContent = `Autenticado: ${u.email}`;
+          
+          // Add logout button
+          userArea.innerHTML = `
+            <span class="text-sm text-slate-500">${u.email}</span>
+            <button id="btn-logout-new" class="ml-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              <span class="material-symbols-outlined text-slate-500">logout</span>
+            </button>
+          `;
+          document.getElementById("btn-logout-new").onclick = () => signOut(auth);
         }
       });
 
+      // Login
       btnLogin.addEventListener("click", async () => {
         try {
           const provider = new GoogleAuthProvider();
@@ -254,14 +263,7 @@
         }
       });
 
-      btnLogout.addEventListener("click", async () => {
-        try {
-          await signOut(auth);
-        } catch (err) {
-          log("Logout falhou: " + (err.message || err.toString()));
-        }
-      });
-
+      // Validate
       const validate = (filters, pages, number) => {
         const errs = [];
         if (!filters.query) errs.push("Query é obrigatória");
@@ -270,179 +272,129 @@
         return errs;
       };
 
-      // Migration handler
-      const MIGRATION_URL =
-        "https://us-central1-nannymeal-d966b.cloudfunctions.net/migrateWeeklyPlansMembers";
+      // Migration
+      const MIGRATION_URL = "https://us-central1-nannymeal-d966b.cloudfunctions.net/migrateWeeklyPlansMembers";
       const callMigration = async () => {
-        log("Invocando migrateWeeklyPlansMembers via fetch...");
+        log("A iniciar migração...");
         try {
           if (!currentUser) throw new Error("Utilizador não autenticado");
           const idToken = await currentUser.getIdToken();
           const resp = await fetch(MIGRATION_URL, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + idToken,
-            },
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + idToken },
             body: JSON.stringify({}),
           });
-
-          if (!resp.ok) {
-            const text = await resp.text();
-            log("Erro na migração: " + resp.status + " " + text);
-            throw new Error("HTTP " + resp.status + " - " + text);
-          }
-
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
           const data = await resp.json();
-          log("Migração concluída com sucesso!");
-          log(
-            `Resultado: ${data.migrated} planos migrados de ${data.total} total.`,
-          );
+          log(`Migração concluída: ${data.migrated} de ${data.total}`);
           return data;
         } catch (err) {
-          log("Erro na migração: " + (err.message || err.toString()));
+          log("Erro: " + err.message);
           throw err;
         }
       };
 
-      btnMigrate.addEventListener("click", async (e) => {
-        e.preventDefault();
-        validation.textContent = "";
+      btnMigrate.addEventListener("click", async () => {
+        validation.className = "hidden";
         btnMigrate.disabled = true;
-        btnMigrate.textContent = "A migrar...";
-
+        btnMigrate.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> A migrar...';
         try {
           await callMigration();
-          validation.textContent =
-            "✓ Parabéns! Planos migrados com sucesso. Recarregue a página.";
-          validation.className = "text-green-600 text-sm";
+          validation.textContent = "✓ Migração concluída!";
+          validation.className = "mt-4 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-sm font-medium";
         } catch (err) {
-          validation.textContent =
-            "✗ Erro na migração: " + (err.message || err.toString());
-          validation.className = "text-red-500 text-sm";
+          validation.textContent = "✗ Erro: " + err.message;
+          validation.className = "mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium";
         } finally {
           btnMigrate.disabled = false;
-          btnMigrate.textContent = "Migrar Planos";
+          btnMigrate.innerHTML = '<span class="material-symbols-outlined">sync</span> Migrar';
         }
       });
 
-      // Use the HTTP proxy to avoid CORS preflight issues from raw callable endpoint.
-      const PROXY_URL =
-        "https://us-central1-nannymeal-d966b.cloudfunctions.net/importRecipesHttp";
+      // Import
+      const PROXY_URL = "https://us-central1-nannymeal-d966b.cloudfunctions.net/importRecipesHttp";
       const callImport = async (payload) => {
-        log("Invocando importRecipesHttp via fetch...");
+        log("A importar receitas...");
         try {
           if (!currentUser) throw new Error("Utilizador não autenticado");
           const idToken = await currentUser.getIdToken();
           const resp = await fetch(PROXY_URL, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + idToken,
-            },
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + idToken },
             body: JSON.stringify(payload),
           });
-
-          if (!resp.ok) {
-            const text = await resp.text();
-            log("Erro na chamada HTTP: " + resp.status + " " + text);
-            throw new Error("HTTP " + resp.status + " - " + text);
-          }
-
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
           const data = await resp.json();
-          log("Função retornou com sucesso");
+          log("Importação concluída!");
           return data;
         } catch (err) {
-          log("Erro na chamada: " + (err.message || err.toString()));
+          log("Erro: " + err.message);
           throw err;
         }
       };
 
-      btnRun.addEventListener("click", async (e) => {
-        e.preventDefault();
-        validation.textContent = "";
+      btnRun.addEventListener("click", async () => {
+        validation.className = "hidden";
         resultEl.classList.add("hidden");
-        idsEl.textContent = "";
-        exampleEl.textContent = "";
-        summaryEl.textContent = "";
-        verifEl.innerHTML = "";
-
+        
         const filters = {
           query: document.getElementById("q-query").value.trim(),
-          diet: document.getElementById("q-diet").value.trim(),
+          diet: document.getElementById("q-diet").value,
           intolerances: document.getElementById("q-intolerances").value.trim(),
-          type: document.getElementById("q-type").value.trim(),
-          maxReadyTime:
-            parseInt(document.getElementById("q-maxReadyTime").value, 10) ||
-            undefined,
+          type: document.getElementById("q-type").value,
+          maxReadyTime: parseInt(document.getElementById("q-maxReadyTime").value) || undefined,
         };
-        const pages =
-          parseInt(document.getElementById("q-pages").value, 10) || 1;
-        const number =
-          parseInt(document.getElementById("q-number").value, 10) || 10;
+        const pages = parseInt(document.getElementById("q-pages").value) || 1;
+        const number = parseInt(document.getElementById("q-number").value) || 20;
 
         const errs = validate(filters, pages, number);
         if (errs.length) {
           validation.textContent = errs.join("; ");
+          validation.className = "mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium";
           return;
         }
 
         btnRun.disabled = true;
-        btnRun.textContent = "A executar...";
+        btnRun.innerHTML = '<span class="material-symbols-outlined animate-spin">hourglass_empty</span> A importar...';
 
         try {
-          const payload = { filters, pages, number };
-          const data = await callImport(payload);
-
-          summaryEl.textContent = `Importadas ${data.importedCount} receitas.`;
-          idsEl.textContent = JSON.stringify(
-            data.imported.map((i) => i.id),
-            null,
-            2,
-          );
+          const data = await callImport({ filters, pages, number });
+          summaryEl.textContent = `✓ Importadas ${data.importedCount} receitas`;
+          idsEl.textContent = JSON.stringify(data.imported.map(i => i.id), null, 2);
           resultEl.classList.remove("hidden");
 
-          // fetch example doc
-          if (data.imported && data.imported.length > 0) {
-            const firstId = data.imported[0].id;
-            const docRef = doc(db, "recipes", firstId);
+          // Fetch example
+          if (data.imported?.length > 0) {
+            const docRef = doc(db, "recipes", data.imported[0].id);
             const snap = await getDoc(docRef);
             if (snap.exists()) {
+              exampleEl.textContent = JSON.stringify(snap.data(), null, 2);
               const obj = snap.data();
-              exampleEl.textContent = JSON.stringify(obj, null, 2);
-
-              // Verificações rápidas
-              const verifs = [];
-              verifs.push(
-                `<strong>Ingredientes são objetos:</strong> ${Array.isArray(obj.ingredients) ? (obj.ingredients.length > 0 && typeof obj.ingredients[0] === "object" ? "SIM" : "NÃO - elementos não são objectos") : "NÃO - campo ausente"}`,
-              );
-              verifs.push(
-                `<strong>pricePerServing é numérico:</strong> ${typeof obj.pricePerServing === "number" ? "SIM" : "NÃO - " + typeof obj.pricePerServing}`,
-              );
-              verifs.push(
-                `<strong>instructions presente:</strong> ${obj.instructions ? "SIM" : "NÃO"}`,
-              );
-              verifs.push(
-                `<strong>analyzedInstructions presente:</strong> ${obj.analyzedInstructions && obj.analyzedInstructions.length ? "SIM" : "NÃO"}`,
-              );
-
-              verifEl.innerHTML = verifs
-                .map((v) => `<div class="py-1">${v}</div>`)
-                .join("");
-            } else {
-              exampleEl.textContent = "Documento não encontrado após import.";
+              const verifs = [
+                { label: "Ingredientes", ok: Array.isArray(obj.ingredients) && obj.ingredients.length > 0 && typeof obj.ingredients[0] === "object" },
+                { label: "Preço", ok: typeof obj.pricePerServing === "number" },
+                { label: "Instruções", ok: !!obj.instructions },
+                { label: "Passos", ok: !!(obj.analyzedInstructions && obj.analyzedInstructions.length) }
+              ];
+              verifEl.innerHTML = verifs.map(v => `
+                <div class="p-3 rounded-xl ${v.ok ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}">
+                  <span class="material-symbols-outlined ${v.ok ? 'text-green-600' : 'text-red-600'}">${v.ok ? 'check_circle' : 'cancel'}</span>
+                  <span class="text-xs font-bold ${v.ok ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}">${v.label}</span>
+                </div>
+              `).join('');
             }
           }
         } catch (err) {
-          validation.textContent = "Erro: " + (err.message || err.toString());
+          validation.textContent = "✗ Erro: " + err.message;
+          validation.className = "mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium";
         } finally {
           btnRun.disabled = false;
-          btnRun.textContent = "Executar Import";
+          btnRun.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Importar';
         }
       });
 
-      // sample run
-      btnRunSample.addEventListener("click", async () => {
+      // Sample run
+      btnRunSample.addEventListener("click", () => {
         document.getElementById("q-query").value = "pasta";
         document.getElementById("q-diet").value = "vegetarian";
         document.getElementById("q-type").value = "main course";
@@ -451,6 +403,12 @@
         document.getElementById("q-number").value = "10";
         btnRun.click();
       });
+
+      // Logout (original button)
+      btnLogout?.addEventListener("click", async () => {
+        try { await signOut(auth); } catch (err) { log("Logout falhou: " + err.message); }
+      });
     </script>
   </body>
 </html>
+
