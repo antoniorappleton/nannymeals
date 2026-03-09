@@ -1,222 +1,444 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="light" lang="pt">
-
-<head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>NannyMeal - Configuração</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script src="src/tailwind-config.js"></script>
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="manifest" href="manifest.json" />
-  <style>
-    body {
-      min-height: 100dvh;
-    }
-  </style>
-  <script>
-    // EMERGÊNCIA V23
-    if (localStorage.getItem('app_version') !== 'v23') {
-      localStorage.setItem('app_version', 'v23');
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-          for (let reg of regs) reg.unregister();
-        });
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>NannyMeal - Configuração</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="src/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="manifest" href="manifest.json" />
+    <style>
+      body {
+        min-height: 100dvh;
       }
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          for (let name of names) caches.delete(name);
-          setTimeout(() => window.location.reload(true), 500);
-        });
+    </style>
+    <script>
+      // EMERGÊNCIA V23
+      if (localStorage.getItem("app_version") !== "v23") {
+        localStorage.setItem("app_version", "v23");
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            for (let reg of regs) reg.unregister();
+          });
+        }
+        if ("caches" in window) {
+          caches.keys().then((names) => {
+            for (let name of names) caches.delete(name);
+            setTimeout(() => window.location.reload(true), 500);
+          });
+        }
       }
-    }
-  </script>
-</head>
+    </script>
+  </head>
 
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-  <div class="app-container glass-effect">
-    <!-- Header -->
-    <header
-      class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <button id="btn-back"
-          class="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-slate-400">
-          <span class="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 class="text-xl font-extrabold tracking-tight">Vosso Perfil</h1>
-      </div>
-      <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400">
-        <span class="material-symbols-outlined">logout</span>
-      </button>
-    </header>
-
-    <!-- Progress Indicator -->
-    <div class="px-6 py-8 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 space-y-4">
-      <div class="flex justify-between items-end">
-        <div>
-          <p class="text-2xl font-black tracking-tight" id="step-label">Passo 1 de 4</p>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Personalização</p>
-        </div>
-        <div class="size-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-sm">
-          <span class="material-symbols-outlined text-2xl">person</span>
-        </div>
-      </div>
-      <div class="rounded-full bg-slate-100 dark:bg-slate-800 h-2.5 overflow-hidden">
-        <div class="h-full rounded-full bg-primary transition-all duration-700 shadow-premium" id="progress-bar"
-          style="width: 25%"></div>
-      </div>
-    </div>
-
-    <!-- Content Area -->
-    <main class="flex-1 overflow-y-auto px-6 py-8 space-y-12 pb-28">
-      <!-- Passo 1: Família -->
-      <div id="setup-step-1" class="setup-step space-y-10">
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Adultos ao
-            Jantar</label>
-          <div class="flex gap-3" id="adult-selector">
-            <button data-value="1"
-              class="w-16 h-16 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-primary/50 text-xl">1</button>
-            <button data-value="2"
-              class="w-16 h-16 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary text-xl">2</button>
-            <button data-value="3"
-              class="w-16 h-16 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-primary/50 text-xl">3</button>
-            <button data-value="4"
-              class="w-16 h-16 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-primary/50 text-xl">4</button>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Crianças</label>
-          <div id="children-list" class="space-y-3">
-            <!-- Dynamic children list -->
-          </div>
-          <button id="btn-add-child"
-            class="w-full flex items-center justify-center gap-3 py-6 rounded-2xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400 font-bold hover:border-primary/50 hover:text-primary transition-all">
-            <span class="material-symbols-outlined">add_circle</span>
-            <span>Adicionar criança</span>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
+  >
+    <div class="app-container glass-effect">
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-8 pb-4 border-b border-primary/10 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <button
+            id="btn-back"
+            class="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-slate-400"
+          >
+            <span class="material-symbols-outlined">arrow_back</span>
           </button>
+          <h1 class="text-xl font-extrabold tracking-tight">Vosso Perfil</h1>
+        </div>
+        <button
+          id="btn-logout"
+          class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400"
+        >
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+      </header>
+
+      <!-- Progress Indicator -->
+      <div
+        class="px-6 py-8 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 space-y-4"
+      >
+        <div class="flex justify-between items-end">
+          <div>
+            <p class="text-2xl font-black tracking-tight" id="step-label">
+              Passo 1 de 4
+            </p>
+            <p
+              class="text-xs font-bold text-slate-500 uppercase tracking-widest"
+            >
+              Personalização
+            </p>
+          </div>
+          <div
+            class="size-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-sm"
+          >
+            <span class="material-symbols-outlined text-2xl">person</span>
+          </div>
+        </div>
+        <div
+          class="rounded-full bg-slate-100 dark:bg-slate-800 h-2.5 overflow-hidden"
+        >
+          <div
+            class="h-full rounded-full bg-primary transition-all duration-700 shadow-premium"
+            id="progress-bar"
+            style="width: 25%"
+          ></div>
         </div>
       </div>
 
-      <!-- Passo 2: Preferências (Initially Hidden) -->
-      <div id="setup-step-2" class="setup-step hidden space-y-10">
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Estilo
-            Alimentar</label>
-          <div class="grid grid-cols-2 gap-4" id="diet-style-selector">
-            <button data-value="Sem restrições"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all bg-primary text-slate-900 shadow-premium">Sem
-              restrições</button>
-            <button data-value="Vegetariano"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Vegetariano</button>
-            <button data-value="Vegano"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Vegano</button>
-            <button data-value="Mediterrâneo"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Mediterrâneo</button>
+      <!-- Content Area -->
+      <main class="flex-1 overflow-y-auto px-6 py-8 space-y-12 pb-28">
+        <!-- Passo 1: Família -->
+        <div id="setup-step-1" class="setup-step space-y-10">
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Adultos ao Jantar</label
+            >
+            <div class="flex gap-3" id="adult-selector">
+              <button
+                data-value="1"
+                class="w-16 h-16 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-primary/50 text-xl"
+              >
+                1
+              </button>
+              <button
+                data-value="2"
+                class="w-16 h-16 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary text-xl"
+              >
+                2
+              </button>
+              <button
+                data-value="3"
+                class="w-16 h-16 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-primary/50 text-xl"
+              >
+                3
+              </button>
+              <button
+                data-value="4"
+                class="w-16 h-16 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-primary/50 text-xl"
+              >
+                4
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Passo 3: Alergias -->
-      <div id="setup-step-3" class="setup-step hidden space-y-10">
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Alergias e
-            Restrições</label>
-          <div class="grid grid-cols-2 gap-4" id="allergies-selector">
-            <button data-value="Glúten"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Glúten</button>
-            <button data-value="Lactose"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Lactose</button>
-            <button data-value="Frutos Secos"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Frutos
-              Secos</button>
-            <button data-value="Marisco"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Marisco</button>
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Crianças</label
+            >
+            <div id="children-list" class="space-y-3">
+              <!-- Dynamic children list -->
+            </div>
+            <button
+              id="btn-add-child"
+              class="w-full flex items-center justify-center gap-3 py-6 rounded-2xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400 font-bold hover:border-primary/50 hover:text-primary transition-all"
+            >
+              <span class="material-symbols-outlined">add_circle</span>
+              <span>Adicionar criança</span>
+            </button>
           </div>
         </div>
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Não Gostamos
-            de...</label>
-          <div class="grid grid-cols-2 gap-4" id="exclusions-selector">
-            <button data-value="Coentros"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Coentros</button>
-            <button data-value="Pickles"
-              class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">Pickles</button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Passo 4: Tempo e Agenda -->
-      <div id="setup-step-4" class="setup-step hidden space-y-10">
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Tempo Máximo
-            (Minutos)</label>
-          <div class="flex gap-3 overflow-x-auto pb-4" id="cooking-time-selector">
-            <button data-value="15"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">15</button>
-            <button data-value="30"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary">30</button>
-            <button data-value="45"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">45</button>
-            <button data-value="60"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">60</button>
+        <!-- Passo 2: Preferências (Initially Hidden) -->
+        <div id="setup-step-2" class="setup-step hidden space-y-10">
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Estilo Alimentar</label
+            >
+            <div class="grid grid-cols-2 gap-4" id="diet-style-selector">
+              <button
+                data-value="Sem restrições"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all bg-primary text-slate-900 shadow-premium"
+              >
+                Sem restrições
+              </button>
+              <button
+                data-value="Vegetariano"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Vegetariano
+              </button>
+              <button
+                data-value="Vegano"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Vegano
+              </button>
+              <button
+                data-value="Mediterrâneo"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Mediterrâneo
+              </button>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Nível de Orçamento</label
+            >
+            <div class="grid grid-cols-3 gap-4" id="budget-level-selector">
+              <button
+                data-value="low"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Baixo
+              </button>
+              <button
+                data-value="medium"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all bg-primary text-slate-900 shadow-premium"
+              >
+                Médio
+              </button>
+              <button
+                data-value="high"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Elevado
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Reaproveitamento / Restos</label
+            >
+            <div class="grid grid-cols-3 gap-4" id="leftover-selector">
+              <button
+                data-value="none"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Não
+              </button>
+              <button
+                data-value="some"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all bg-primary text-slate-900 shadow-premium"
+              >
+                Algum
+              </button>
+              <button
+                data-value="high"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Muito
+              </button>
+            </div>
           </div>
         </div>
-        <div class="space-y-4">
-          <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2">Dias por
-            Semana</label>
-          <div class="flex gap-3 overflow-x-auto pb-4" id="cooking-days-selector">
-            <button data-value="3"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">3</button>
-            <button data-value="5"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary">5</button>
-            <button data-value="7"
-              class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">7</button>
+
+        <!-- Passo 3: Alergias -->
+        <div id="setup-step-3" class="setup-step hidden space-y-10">
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Alergias e Restrições</label
+            >
+            <div class="grid grid-cols-2 gap-4" id="allergies-selector">
+              <button
+                data-value="Glúten"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Glúten
+              </button>
+              <button
+                data-value="Lactose"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Lactose
+              </button>
+              <button
+                data-value="Frutos Secos"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Frutos Secos
+              </button>
+              <button
+                data-value="Marisco"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Marisco
+              </button>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Não Gostamos de...</label
+            >
+            <div class="grid grid-cols-2 gap-4" id="exclusions-selector">
+              <button
+                data-value="Coentros"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Coentros
+              </button>
+              <button
+                data-value="Pickles"
+                class="py-5 px-4 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Pickles
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+
+        <!-- Passo 4: Tempo e Agenda -->
+        <div id="setup-step-4" class="setup-step hidden space-y-10">
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Tempo Máximo (Minutos)</label
+            >
+            <div
+              class="flex gap-3 overflow-x-auto pb-4"
+              id="cooking-time-selector"
+            >
+              <button
+                data-value="15"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                15
+              </button>
+              <button
+                data-value="30"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary"
+              >
+                30
+              </button>
+              <button
+                data-value="45"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                45
+              </button>
+              <button
+                data-value="60"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                60
+              </button>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Dias por Semana</label
+            >
+            <div
+              class="flex gap-3 overflow-x-auto pb-4"
+              id="cooking-days-selector"
+            >
+              <button
+                data-value="3"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                3
+              </button>
+              <button
+                data-value="5"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all bg-primary text-slate-900 shadow-premium border-2 border-primary"
+              >
+                5
+              </button>
+              <button
+                data-value="7"
+                class="size-16 shrink-0 rounded-2xl font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                7
+              </button>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <label
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block px-2"
+              >Nível de Habilidade na Cozinha</label
+            >
+            <div class="grid grid-cols-3 gap-4" id="skill-level-selector">
+              <button
+                data-value="beginner"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Iniciante
+              </button>
+              <button
+                data-value="intermediate"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all bg-primary text-slate-900 shadow-premium"
+              >
+                Intermédio
+              </button>
+              <button
+                data-value="advanced"
+                class="py-4 px-3 rounded-2xl text-sm font-black transition-all text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700"
+              >
+                Avançado
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
       <!-- Bottom Navigation Bar will be included dynamically -->
 
-    <!-- Footer Actions -->
-    <footer
-      class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 z-40">
-      <div class="px-2 mb-4">
-        <p id="footer-note" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center"></p>
-      </div>
-      <div class="flex gap-4">
-        <button id="btn-prev"
-          class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-400 font-black py-5 rounded-2xl hidden uppercase tracking-widest text-[10px] active:scale-95 transition-all">Anterior</button>
-        <button id="btn-next"
-          class="flex-[2] bg-primary text-slate-900 font-black py-5 rounded-2xl shadow-premium flex items-center justify-center gap-2 uppercase tracking-widest text-xs active:scale-95 transition-all">
-          Seguinte
-          <span class="material-symbols-outlined text-xl font-bold">arrow_forward</span>
-        </button>
-      </div>
-    </footer>
-  </div>
+      <!-- Footer Actions -->
+      <footer
+          class="fixed left-0 right-0 max-w-md mx-auto p-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 z-40"
+  style="bottom: 88px;"
+      >
+        <div class="px-2 mb-4">
+          <p
+            id="footer-note"
+            class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center"
+          ></p>
+        </div>
+        <div class="flex gap-4">
+          <button
+            id="btn-prev"
+            class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-400 font-black py-5 rounded-2xl hidden uppercase tracking-widest text-[10px] active:scale-95 transition-all"
+          >
+            Anterior
+          </button>
+          <button
+            id="btn-next"
+            class="flex-[2] bg-primary text-slate-900 font-black py-5 rounded-2xl shadow-premium flex items-center justify-center gap-2 uppercase tracking-widest text-xs active:scale-95 transition-all"
+          >
+            Seguinte
+            <span class="material-symbols-outlined text-xl font-bold"
+              >arrow_forward</span
+            >
+          </button>
+        </div>
+      </footer>
+    </div>
 
-  <script type="module" src="src/auth.js?v=13"></script>
-  <script type="module" src="src/onboarding.js"></script>
-</body>
-    <script>
-      // Dynamic include for bottom navigation
-      fetch('bottom-nav.html')
-        .then(res => res.text())
-        .then(html => {
-          const temp = document.createElement('div');
-          temp.innerHTML = html;
-          document.body.appendChild(temp.firstElementChild);
-          // After nav is loaded, highlight active
-          const script = document.createElement('script');
-          script.src = 'active-screen.js';
-          document.body.appendChild(script);
-        });
-    </script>
-
+    <script type="module" src="src/auth.js?v=13"></script>
+    <script type="module" src="src/onboarding.js"></script>
+  </body>
+  <script>
+    // Dynamic include for bottom navigation
+    fetch("bottom-nav.html")
+      .then((res) => res.text())
+      .then((html) => {
+        const temp = document.createElement("div");
+        temp.innerHTML = html;
+        document.body.appendChild(temp.firstElementChild);
+        // After nav is loaded, highlight active
+        const script = document.createElement("script");
+        script.src = "active-screen.js";
+        document.body.appendChild(script);
+      });
+  </script>
 </html>
