@@ -1061,7 +1061,7 @@ export const swapMealImproved = async (
       isReplacement: true,
       replacedReason: reason,
       originalRecipeId: oldMeal.recipeId,
-      replacedAt: serverTimestamp(),
+      replacedAt: new Date().toISOString(),
     };
 
     await updateDoc(planRef, { meals });
@@ -1096,7 +1096,7 @@ export const updateMeal = async (planId, mealIndex, mealUpdates) => {
     meals[mealIndex] = {
       ...meals[mealIndex],
       ...mealUpdates,
-      updatedAt: serverTimestamp(),
+      updatedAt: new Date().toISOString(),
     };
 
     await updateDoc(planRef, { meals });

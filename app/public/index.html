@@ -196,10 +196,10 @@
     <script type="module" src="src/auth.js?v=25"></script> REPLACE
     <script>
       // Script de emergência para limpar cache se detectar versão antiga nos logs
-      // VERSÃO V24: Correção de bugs e melhorias
-      if (localStorage.getItem("app_version") !== "v24") {
-        console.log("URGENTE: Limpando ambientes para v24...");
-        localStorage.setItem("app_version", "v24");
+      // VERSÃO V25: Correção de bugs e melhorias
+      if (localStorage.getItem("app_version") !== "v25") {
+        console.log("URGENTE: Limpando ambientes para v25...");
+        localStorage.setItem("app_version", "v25");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) {
