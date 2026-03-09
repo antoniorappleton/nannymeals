@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.enrichAllRecipes = exports.spoonacularProxy = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
+exports.importRecipesHttp = exports.importRecipes = exports.enrichAllRecipesHttp = exports.enrichAllRecipes = exports.spoonacularProxy = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
 const functions = __importStar(require("firebase-functions"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-functions/v2/firestore");
@@ -153,11 +153,8 @@ exports.spoonacularProxy = (0, https_1.onCall)(async (request) => {
             throw new https_1.HttpsError("invalid-argument", `Unknown action: ${action}`);
     }
 });
-exports.enrichAllRecipes = (0, https_1.onCall)(async (request) => {
+const doEnrichAllRecipes = async () => {
     var _a, _b, _c, _d, _e;
-    if (!request.auth || !isAdmin(request.auth)) {
-        throw new https_1.HttpsError("permission-denied", "Only admin may trigger enrichment");
-    }
     const rSnap = await db.collection("recipes").get();
     let count = 0;
     for (const rDoc of rSnap.docs) {
@@ -186,5 +183,328 @@ exports.enrichAllRecipes = (0, https_1.onCall)(async (request) => {
         }
     }
     return { updated: count };
+};
+exports.enrichAllRecipes = (0, https_1.onCall)(async (request) => {
+    if (!request.auth || !isAdmin(request.auth)) {
+        throw new https_1.HttpsError("permission-denied", "Only admin may trigger enrichment");
+    }
+    return await doEnrichAllRecipes();
+});
+exports.enrichAllRecipesHttp = functions.https.onRequest(async (req, res) => {
+    const origin = req.headers.origin || '*';
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+    try {
+        const authHeader = (req.headers.authorization || '').toString();
+        if (!authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ error: 'Missing Authorization header' });
+            return;
+        }
+        const idToken = authHeader.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+        const result = await doEnrichAllRecipes();
+        res.status(200).json(result);
+        return;
+    }
+    catch (err) {
+        console.error('enrichAllRecipesHttp error:', err);
+        res.status(500).json({ error: err.message || String(err) });
+        return;
+    }
+});
+exports.importRecipes = (0, https_1.onCall)(async (request) => {
+    var _a, _b, _c;
+    const filters = ((_a = request.data) === null || _a === void 0 ? void 0 : _a.filters) || {};
+    const pages = parseInt(((_b = request.data) === null || _b === void 0 ? void 0 : _b.pages) || "1", 10) || 1;
+    const number = parseInt(((_c = request.data) === null || _c === void 0 ? void 0 : _c.number) || "20", 10) || 20;
+    if (!request.auth || !isAdmin(request.auth)) {
+        throw new https_1.HttpsError("permission-denied", "Only admin may import recipes");
+    }
+    return await doImportRecipes(filters, pages, number);
+});
+const doImportRecipes = async (filters, pagesIn, numberIn) => {
+    const pages = pagesIn || 1;
+    const perPage = Math.min(numberIn || 20, 50);
+    const imported = [];
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const callSpoon = async (path, attempt = 0) => {
+        try {
+            return await fetchSpoonacular(path);
+        }
+        catch (err) {
+            if (attempt < 3) {
+                const backoff = 500 * Math.pow(2, attempt);
+                console.warn(`Spoonacular call failed, retrying in ${backoff}ms`, err.message || err);
+                await sleep(backoff);
+                return callSpoon(path, attempt + 1);
+            }
+            throw err;
+        }
+    };
+    const normalizeRecipe = (details) => {
+        var _a;
+        const title = details.title || details.name || "";
+        const servings = details.servings || 1;
+        const readyInMinutes = details.readyInMinutes || details.preparationMinutes || details.cookingMinutes || 0;
+        const ingredients = (details.extendedIngredients || details.ingredients || []).map((ing) => {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+            const measures = ing.measures || ing.measure || {};
+            return {
+                spoonacularIngredientId: ing.id || null,
+                name: ing.name || ing.originalName || (ing.original || "").split(" ").slice(1).join(" ") || "",
+                originalName: ing.originalName || ing.name || ing.original || "",
+                original: ing.original || ing.originalString || ing.raw || "",
+                amount: ing.amount || ((_b = (_a = ing.measures) === null || _a === void 0 ? void 0 : _a.metric) === null || _b === void 0 ? void 0 : _b.amount) || null,
+                unit: ing.unit || ing.unitLong || (measures.metric && measures.metric.unitShort) || null,
+                aisle: ing.aisle || null,
+                consistency: ing.consistency || null,
+                image: ing.image || null,
+                meta: ing.meta || ing.metaInformation || [],
+                measures: {
+                    metric: {
+                        amount: (_d = (_c = measures.metric) === null || _c === void 0 ? void 0 : _c.amount) !== null && _d !== void 0 ? _d : null,
+                        unitLong: (_f = (_e = measures.metric) === null || _e === void 0 ? void 0 : _e.unitLong) !== null && _f !== void 0 ? _f : null,
+                        unitShort: (_h = (_g = measures.metric) === null || _g === void 0 ? void 0 : _g.unitShort) !== null && _h !== void 0 ? _h : null,
+                    },
+                    us: {
+                        amount: (_k = (_j = measures.us) === null || _j === void 0 ? void 0 : _j.amount) !== null && _k !== void 0 ? _k : null,
+                        unitLong: (_m = (_l = measures.us) === null || _l === void 0 ? void 0 : _l.unitLong) !== null && _m !== void 0 ? _m : null,
+                        unitShort: (_p = (_o = measures.us) === null || _o === void 0 ? void 0 : _o.unitShort) !== null && _p !== void 0 ? _p : null,
+                    },
+                },
+                estimatedCost: ing.estimatedCost || (((_q = ing.estimatedCost) === null || _q === void 0 ? void 0 : _q.value) ? ing.estimatedCost : null) || null,
+                shoppingListUnits: ing.shoppingListUnits || [],
+                possibleUnits: ing.possibleUnits || [],
+                nutrition: ing.nutrition || null,
+            };
+        });
+        const inferSkillLevel = (r) => {
+            const numIng = (r.extendedIngredients || r.ingredients || []).length;
+            const time = r.readyInMinutes || 0;
+            if (time <= 20 && numIng <= 6)
+                return "beginner";
+            if (time <= 45 && numIng <= 10)
+                return "intermediate";
+            return "advanced";
+        };
+        const inferLeftoverFriendly = (r) => {
+            const servingsLocal = r.servings || 1;
+            const dishTypes = r.dishTypes || [];
+            const tags = dishTypes.map((d) => d.toLowerCase());
+            if (servingsLocal >= 4)
+                return true;
+            if (tags.includes("meal prep") || tags.includes("batch"))
+                return true;
+            return false;
+        };
+        const buildTags = (r) => {
+            const t = [];
+            const flags = {
+                vegetarian: r.vegetarian,
+                vegan: r.vegan,
+                "gluten-free": r.glutenFree,
+                "dairy-free": r.dairyFree,
+                ketogenic: r.ketogenic,
+                "low-fodmap": r.lowFodmap,
+                whole30: r.whole30,
+            };
+            Object.keys(flags).forEach((k) => { if (flags[k])
+                t.push(k); });
+            if (r.dishTypes)
+                t.push(...r.dishTypes.map((d) => d.toLowerCase()));
+            if (r.cuisines)
+                t.push(...r.cuisines.map((c) => c.toLowerCase()));
+            if (r.cheap)
+                t.push("cheap");
+            if ((r.readyInMinutes || 0) <= 20)
+                t.push("quick");
+            if ((r.servings || 1) >= 4)
+                t.push("family-friendly");
+            return Array.from(new Set(t));
+        };
+        const nutritionArray = ((_a = details.nutrition) === null || _a === void 0 ? void 0 : _a.nutrients) || [];
+        const nutrition = {};
+        const want = ["Calories", "Protein", "Fat", "Carbohydrates", "Sugar", "Fiber", "Sodium"];
+        want.forEach((k) => {
+            const n = nutritionArray.find((x) => x.name === k);
+            if (n) {
+                const key = k.toLowerCase();
+                nutrition[key] = { amount: n.amount, unit: n.unit };
+            }
+        });
+        const normalized = {
+            id: `spoonacular_${details.id}`,
+            spoonacularId: details.id,
+            name: title,
+            image: details.image || null,
+            prepTime: details.readyInMinutes || 0,
+            preparationMinutes: details.preparationMinutes || 0,
+            cookingMinutes: details.cookingMinutes || 0,
+            servings,
+            pricePerServing: details.pricePerServing ? (details.pricePerServing / 100) : null,
+            cheap: !!details.cheap,
+            healthScore: details.healthScore || null,
+            spoonacularScore: details.spoonacularScore || details.spoonacularScore || null,
+            diets: details.diets || [],
+            cuisines: details.cuisines || [],
+            dishTypes: details.dishTypes || [],
+            flags: {
+                vegetarian: !!details.vegetarian,
+                vegan: !!details.vegan,
+                glutenFree: !!details.glutenFree,
+                dairyFree: !!details.dairyFree,
+                ketogenic: !!details.ketogenic,
+                lowFodmap: !!details.lowFodmap,
+                sustainable: !!details.sustainable,
+                veryHealthy: !!details.veryHealthy,
+                veryPopular: !!details.veryPopular,
+                whole30: !!details.whole30,
+            },
+            tags: buildTags(details),
+            skillLevel: inferSkillLevel(details),
+            leftoverFriendly: inferLeftoverFriendly(details),
+            summary: (details.summary || "").replace(/<[^>]*>/g, ""),
+            instructions: details.instructions || null,
+            analyzedInstructions: details.analyzedInstructions || [],
+            nutrition: Object.keys(nutrition).length ? nutrition : null,
+            ingredients,
+            sourceName: details.sourceName || null,
+            sourceUrl: details.sourceUrl || null,
+            spoonacularSourceUrl: details.spoonacularSourceUrl || details.spoonacularSource || null,
+            importSource: "spoonacular",
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+        normalized.searchText = `${normalized.name} ${(normalized.tags || []).join(" ")} ${(normalized.dishTypes || []).join(" ")}`;
+        return normalized;
+    };
+    const upsertRecipe = async (recipeDoc) => {
+        const ref = db.collection("recipes").doc(recipeDoc.id);
+        await ref.set(recipeDoc, { merge: true });
+        return recipeDoc.id;
+    };
+    for (let p = 0; p < pages; p++) {
+        const offset = p * perPage;
+        const params = [];
+        if (filters.query)
+            params.push(`query=${encodeURIComponent(filters.query)}`);
+        if (filters.cuisine)
+            params.push(`cuisine=${encodeURIComponent(filters.cuisine)}`);
+        if (filters.diet)
+            params.push(`diet=${encodeURIComponent(filters.diet)}`);
+        if (filters.intolerances)
+            params.push(`intolerances=${encodeURIComponent(filters.intolerances)}`);
+        if (filters.includeIngredients)
+            params.push(`includeIngredients=${encodeURIComponent(filters.includeIngredients)}`);
+        if (filters.excludeIngredients)
+            params.push(`excludeIngredients=${encodeURIComponent(filters.excludeIngredients)}`);
+        if (filters.type)
+            params.push(`type=${encodeURIComponent(filters.type)}`);
+        if (filters.maxReadyTime)
+            params.push(`maxReadyTime=${encodeURIComponent(filters.maxReadyTime)}`);
+        if (filters.minServings)
+            params.push(`minServings=${encodeURIComponent(filters.minServings)}`);
+        if (filters.maxServings)
+            params.push(`maxServings=${encodeURIComponent(filters.maxServings)}`);
+        if (filters.sort)
+            params.push(`sort=${encodeURIComponent(filters.sort)}`);
+        if (filters.sortDirection)
+            params.push(`sortDirection=${encodeURIComponent(filters.sortDirection)}`);
+        params.push(`offset=${offset}`);
+        params.push(`number=${perPage}`);
+        params.push(`addRecipeInformation=true&fillIngredients=true&addRecipeNutrition=true&addRecipeInstructions=true&instructionsRequired=true`);
+        const path = `/recipes/complexSearch?${params.join("&")}`;
+        const searchData = await callSpoon(path);
+        const results = searchData.results || [];
+        const ids = results.map((r) => r.id).filter(Boolean);
+        if (ids.length === 0)
+            continue;
+        const chunks = [];
+        for (let i = 0; i < ids.length; i += 50)
+            chunks.push(ids.slice(i, i + 50));
+        for (const chunk of chunks) {
+            const bulkPath = `/recipes/informationBulk?ids=${chunk.join(",")}&includeNutrition=true`;
+            const bulkData = await callSpoon(bulkPath);
+            const bulkResults = bulkData || [];
+            for (const details of bulkResults) {
+                if (!details.title || !details.servings || !details.readyInMinutes || !(details.extendedIngredients || details.ingredients)) {
+                    try {
+                        const single = await callSpoon(`/recipes/${details.id}/information?includeNutrition=true`);
+                        Object.assign(details, single || {});
+                    }
+                    catch (e) {
+                        console.warn(`Skipping recipe ${details.id} due to missing fields`);
+                        continue;
+                    }
+                }
+                for (const ing of (details.extendedIngredients || details.ingredients || [])) {
+                    if ((!ing.estimatedCost || !ing.estimatedCost.value) && ing.id) {
+                        try {
+                            const ingInfo = await callSpoon(`/food/ingredients/${ing.id}/information`);
+                            if (ingInfo) {
+                                ing.estimatedCost = ingInfo.estimatedCost || ing.estimatedCost || null;
+                                ing.aisle = ing.aisle || ingInfo.aisle || null;
+                                ing.shoppingListUnits = ing.shoppingListUnits || ingInfo.shoppingListUnits || [];
+                                ing.possibleUnits = ing.possibleUnits || ingInfo.possibleUnits || [];
+                                ing.nutrition = ing.nutrition || ingInfo.nutrition || null;
+                                await sleep(120);
+                            }
+                        }
+                        catch (e) {
+                        }
+                    }
+                }
+                const normalized = normalizeRecipe(details);
+                await upsertRecipe(normalized);
+                imported.push({ id: normalized.id, spoonacularId: normalized.spoonacularId });
+            }
+            await sleep(250);
+        }
+    }
+    return { importedCount: imported.length, imported };
+};
+exports.importRecipesHttp = functions.https.onRequest(async (req, res) => {
+    const origin = req.headers.origin || '*';
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+    try {
+        const authHeader = (req.headers.authorization || '').toString();
+        if (!authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ error: 'Missing Authorization header' });
+            return;
+        }
+        const idToken = authHeader.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+        const body = req.body || {};
+        const filters = body.filters || {};
+        const pages = parseInt(body.pages || '1', 10) || 1;
+        const number = parseInt(body.number || '20', 10) || 20;
+        const result = await doImportRecipes(filters, pages, number);
+        res.status(200).json(result);
+        return;
+    }
+    catch (err) {
+        console.error('importRecipesHttp error:', err);
+        res.status(500).json({ error: err.message || String(err) });
+        return;
+    }
 });
 //# sourceMappingURL=index.js.map

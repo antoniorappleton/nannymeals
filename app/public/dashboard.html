@@ -16,6 +16,7 @@
     <script src="src/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/global.css" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="assets/images/hero.webp" />
     <script>
       // EMERGÊNCIA V23
       if (localStorage.getItem("app_version") !== "v23") {
@@ -44,7 +45,6 @@
     class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
   >
     <div class="app-container glass-effect">
-
       <!-- Header -->
       <header
         class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10"
@@ -299,7 +299,7 @@
           </p>
         </section>
       </main>
-          <!-- Bottom Navigation Bar will be included dynamically -->
+      <!-- Bottom Navigation Bar will be included dynamically -->
     </div>
 
     <script type="module">
@@ -345,13 +345,16 @@
           const btnSync = document.createElement("button");
           btnSync.className =
             "fixed bottom-24 right-4 size-12 bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center z-50 animate-bounce";
-          btnSync.innerHTML = '<span class="material-symbols-outlined">sync</span>';
+          btnSync.innerHTML =
+            '<span class="material-symbols-outlined">sync</span>';
           btnSync.onclick = async () => {
             btnSync.classList.remove("animate-bounce");
             btnSync.innerHTML =
               '<span class="material-symbols-outlined animate-spin">sync</span>';
             const count = await enrichAllRecipes();
-            alert(`${count.updated || count} receitas enriquecidas com sucesso!`);
+            alert(
+              `${count.updated || count} receitas enriquecidas com sucesso!`,
+            );
             location.reload();
           };
           document.body.appendChild(btnSync);
@@ -362,18 +365,18 @@
       console.log("Dashboard carregado [V20]");
     </script>
   </body>
-    <script>
-      // Dynamic include for bottom navigation
-      fetch('bottom-nav.html')
-        .then(res => res.text())
-        .then(html => {
-          const temp = document.createElement('div');
-          temp.innerHTML = html;
-          document.body.appendChild(temp.firstElementChild);
-          // After nav is loaded, highlight active
-          const script = document.createElement('script');
-          script.src = 'active-screen.js';
-          document.body.appendChild(script);
-        });
-    </script>
+  <script>
+    // Dynamic include for bottom navigation
+    fetch("bottom-nav.html")
+      .then((res) => res.text())
+      .then((html) => {
+        const temp = document.createElement("div");
+        temp.innerHTML = html;
+        document.body.appendChild(temp.firstElementChild);
+        // After nav is loaded, highlight active
+        const script = document.createElement("script");
+        script.src = "active-screen.js";
+        document.body.appendChild(script);
+      });
+  </script>
 </html>

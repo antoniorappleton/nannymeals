@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin - Importar receitas (Spoonacular)</title>
+    <link rel="stylesheet" href="css/global.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="assets/images/hero.webp" />
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display"
+  >
+    <div class="max-w-2xl mx-auto p-6">
+      <h1 class="text-2xl font-extrabold mb-4">
+        Importador Spoonacular (Admin)
+      </h1>
+
+      <p class="text-sm text-slate-500 mb-4">
+        Formulário simples para disparar a função administrativa
+        <strong>importRecipes</strong>.
+      </p>
+
+      <form
+        id="import-form"
+        class="space-y-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800"
+      >
+        <div>
+          <label class="block text-xs font-black uppercase text-slate-400"
+            >Query</label
+          >
+          <input
+            id="q-query"
+            class="w-full mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+            placeholder="pasta"
+          />
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400"
+              >Diet</label
+            >
+            <input
+              id="q-diet"
+              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+              placeholder="vegetarian"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400"
+              >Intolerances</label
+            >
+            <input
+              id="q-intolerances"
+              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+              placeholder="gluten"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400"
+              >Type</label
+            >
+            <input
+              id="q-type"
+              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+              placeholder="main course"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400"
+              >maxReadyTime</label
+            >
+            <input
+              id="q-maxReadyTime"
+              type="number"
+              min="0"
+              value="30"
+              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400"
+              >pages</label
+            >
+            <input
+              id="q-pages"
+              type="number"
+              min="1"
+              value="1"
+              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400"
+              >number</label
+            >
+            <input
+              id="q-number"
+              type="number"
+              min="1"
+              max="50"
+              value="10"
+              class="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            id="btn-run"
+            class="bg-primary text-slate-900 px-4 py-3 rounded-2xl font-black"
+            disabled
+          >
+            Executar Import
+          </button>
+          <button
+            id="btn-run-sample"
+            type="button"
+            class="bg-white border border-slate-200 text-primary px-4 py-3 rounded-2xl font-black"
+            disabled
+          >
+            Executar Teste (pasta vegetarian)
+          </button>
+          <button
+            id="btn-login"
+            type="button"
+            class="ml-auto bg-white border border-slate-200 text-primary px-3 py-2 rounded-2xl font-medium"
+          >
+            Login
+          </button>
+          <button
+            id="btn-logout"
+            type="button"
+            class="bg-white border border-slate-200 text-red-600 px-3 py-2 rounded-2xl font-medium"
+            style="display: none"
+          >
+            Logout
+          </button>
+        </div>
+
+        <div id="validation" class="text-red-500 text-sm"></div>
+      </form>
+
+      <div class="mt-6 space-y-4">
+        <div
+          class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800"
+        >
+          <h2 class="font-black">Progresso</h2>
+          <div
+            id="log"
+            class="mt-2 text-xs text-slate-500 max-h-56 overflow-auto font-mono"
+          ></div>
+        </div>
+
+        <div
+          id="result"
+          class="hidden bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800"
+        >
+          <h2 class="font-black">Resultado</h2>
+          <div id="summary" class="mt-2 text-sm text-slate-600"></div>
+          <h3 class="mt-4 font-black">IDs importadas</h3>
+          <pre
+            id="ids"
+            class="text-xs mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md max-h-40 overflow-auto"
+          ></pre>
+
+          <h3 class="mt-4 font-black">
+            Exemplo de documento (primeiro importado)
+          </h3>
+          <pre
+            id="example"
+            class="text-xs mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md max-h-80 overflow-auto"
+          ></pre>
+
+          <div id="verifications" class="mt-3 text-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js";
+      import { auth, functions, db, doc, getDoc } from "./src/firebase-init.js";
+      import {
+        onAuthStateChanged,
+        signInWithPopup,
+        GoogleAuthProvider,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+      const form = document.getElementById("import-form");
+      const btnRun = document.getElementById("btn-run");
+      const btnRunSample = document.getElementById("btn-run-sample");
+      const logEl = document.getElementById("log");
+      const resultEl = document.getElementById("result");
+      const idsEl = document.getElementById("ids");
+      const exampleEl = document.getElementById("example");
+      const summaryEl = document.getElementById("summary");
+      const verifEl = document.getElementById("verifications");
+      const validation = document.getElementById("validation");
+
+      let currentUser = null;
+      const btnLogin = document.getElementById("btn-login");
+      const btnLogout = document.getElementById("btn-logout");
+      const userStatus = document.createElement("div");
+      userStatus.className = "text-sm text-slate-500 ml-2";
+      document.getElementById("import-form").appendChild(userStatus);
+
+      const log = (t) => {
+        const node = document.createElement("div");
+        node.textContent = `[${new Date().toISOString()}] ${t}`;
+        logEl.prepend(node);
+      };
+
+      onAuthStateChanged(auth, (u) => {
+        currentUser = u;
+        if (!u) {
+          log("Usuário não autenticado — login necessário");
+          btnRun.disabled = true;
+          btnRunSample.disabled = true;
+          btnLogin.style.display = "inline-block";
+          btnLogout.style.display = "none";
+          userStatus.textContent = "Não autenticado";
+        } else {
+          log(`Autenticado: ${u.email}`);
+          btnRun.disabled = false;
+          btnRunSample.disabled = false;
+          btnLogin.style.display = "none";
+          btnLogout.style.display = "inline-block";
+          userStatus.textContent = `Autenticado: ${u.email}`;
+        }
+      });
+
+      btnLogin.addEventListener("click", async () => {
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithPopup(auth, provider);
+        } catch (err) {
+          log("Login falhou: " + (err.message || err.toString()));
+        }
+      });
+
+      btnLogout.addEventListener("click", async () => {
+        try {
+          await signOut(auth);
+        } catch (err) {
+          log("Logout falhou: " + (err.message || err.toString()));
+        }
+      });
+
+      const validate = (filters, pages, number) => {
+        const errs = [];
+        if (!filters.query) errs.push("Query é obrigatória");
+        if (pages < 1) errs.push("Pages deve ser >= 1");
+        if (number < 1 || number > 50) errs.push("Number deve ser 1..50");
+        return errs;
+      };
+
+      // Use the HTTP proxy to avoid CORS preflight issues from raw callable endpoint.
+      const PROXY_URL =
+        "https://us-central1-nannymeal-d966b.cloudfunctions.net/importRecipesHttp";
+      const callImport = async (payload) => {
+        log("Invocando importRecipesHttp via fetch...");
+        try {
+          if (!currentUser) throw new Error("Utilizador não autenticado");
+          const idToken = await currentUser.getIdToken();
+          const resp = await fetch(PROXY_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + idToken,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!resp.ok) {
+            const text = await resp.text();
+            log("Erro na chamada HTTP: " + resp.status + " " + text);
+            throw new Error("HTTP " + resp.status + " - " + text);
+          }
+
+          const data = await resp.json();
+          log("Função retornou com sucesso");
+          return data;
+        } catch (err) {
+          log("Erro na chamada: " + (err.message || err.toString()));
+          throw err;
+        }
+      };
+
+      btnRun.addEventListener("click", async (e) => {
+        e.preventDefault();
+        validation.textContent = "";
+        resultEl.classList.add("hidden");
+        idsEl.textContent = "";
+        exampleEl.textContent = "";
+        summaryEl.textContent = "";
+        verifEl.innerHTML = "";
+
+        const filters = {
+          query: document.getElementById("q-query").value.trim(),
+          diet: document.getElementById("q-diet").value.trim(),
+          intolerances: document.getElementById("q-intolerances").value.trim(),
+          type: document.getElementById("q-type").value.trim(),
+          maxReadyTime:
+            parseInt(document.getElementById("q-maxReadyTime").value, 10) ||
+            undefined,
+        };
+        const pages =
+          parseInt(document.getElementById("q-pages").value, 10) || 1;
+        const number =
+          parseInt(document.getElementById("q-number").value, 10) || 10;
+
+        const errs = validate(filters, pages, number);
+        if (errs.length) {
+          validation.textContent = errs.join("; ");
+          return;
+        }
+
+        btnRun.disabled = true;
+        btnRun.textContent = "A executar...";
+
+        try {
+          const payload = { filters, pages, number };
+          const data = await callImport(payload);
+
+          summaryEl.textContent = `Importadas ${data.importedCount} receitas.`;
+          idsEl.textContent = JSON.stringify(
+            data.imported.map((i) => i.id),
+            null,
+            2,
+          );
+          resultEl.classList.remove("hidden");
+
+          // fetch example doc
+          if (data.imported && data.imported.length > 0) {
+            const firstId = data.imported[0].id;
+            const docRef = doc(db, "recipes", firstId);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+              const obj = snap.data();
+              exampleEl.textContent = JSON.stringify(obj, null, 2);
+
+              // Verificações rápidas
+              const verifs = [];
+              verifs.push(
+                `<strong>Ingredientes são objetos:</strong> ${Array.isArray(obj.ingredients) ? (obj.ingredients.length > 0 && typeof obj.ingredients[0] === "object" ? "SIM" : "NÃO - elementos não são objectos") : "NÃO - campo ausente"}`,
+              );
+              verifs.push(
+                `<strong>pricePerServing é numérico:</strong> ${typeof obj.pricePerServing === "number" ? "SIM" : "NÃO - " + typeof obj.pricePerServing}`,
+              );
+              verifs.push(
+                `<strong>instructions presente:</strong> ${obj.instructions ? "SIM" : "NÃO"}`,
+              );
+              verifs.push(
+                `<strong>analyzedInstructions presente:</strong> ${obj.analyzedInstructions && obj.analyzedInstructions.length ? "SIM" : "NÃO"}`,
+              );
+
+              verifEl.innerHTML = verifs
+                .map((v) => `<div class="py-1">${v}</div>`)
+                .join("");
+            } else {
+              exampleEl.textContent = "Documento não encontrado após import.";
+            }
+          }
+        } catch (err) {
+          validation.textContent = "Erro: " + (err.message || err.toString());
+        } finally {
+          btnRun.disabled = false;
+          btnRun.textContent = "Executar Import";
+        }
+      });
+
+      // sample run
+      btnRunSample.addEventListener("click", async () => {
+        document.getElementById("q-query").value = "pasta";
+        document.getElementById("q-diet").value = "vegetarian";
+        document.getElementById("q-type").value = "main course";
+        document.getElementById("q-maxReadyTime").value = "30";
+        document.getElementById("q-pages").value = "1";
+        document.getElementById("q-number").value = "10";
+        btnRun.click();
+      });
+    </script>
+  </body>
+</html>
