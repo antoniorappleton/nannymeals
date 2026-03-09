@@ -79,20 +79,66 @@ const authForm = document.getElementById("auth-form");
 if (authForm) {
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     const isLogin = window.isLoginMode !== false;
 
+    // Validações locais
+    if (!email || !email.includes("@")) {
+      showError("Por favor, insira um email válido.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      showError("A password deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
     try {
+      console.log("A tentar autenticar:", email);
+      
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const confirm = document.getElementById("confirm-password").value;
-        if (password !== confirm) throw new Error("As passwords não coincidem.");
+        if (password !== confirm) {
+          showError("As passwords não coincidem.");
+          return;
+        }
+        if (password.length < 6) {
+          showError("A password deve ter pelo menos 6 caracteres.");
+          return;
+        }
         await createUserWithEmailAndPassword(auth, email, password);
       }
     } catch (error) {
-      showError(error.message);
+      console.error("Erro de autenticação:", error);
+      
+      // Tratar erros específicos do Firebase
+      let errorMessage = error.message;
+      
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "Este email já está registado. Tente fazer login.";
+      } else if (error.code === "auth/user-not-found") {
+        errorMessage = "Utilizador não encontrado. Registe-se primeiro.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Password incorreta. Tente novamente.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Email inválido. Verifique o formato.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Demasiadas tentativas. Aguarde alguns minutos.";
+      } else if (error.code === "auth/network-request-failed") {
+        errorMessage = "Erro de rede. Verifique a sua conexão.";
+      } else if (error.code === "auth/invalid-credential") {
+        // Este erro pode ter várias causas - vamos dar uma mensagem mais útil
+        console.log("Erro de credencial inválida - detalhes:", error);
+        if (isLogin) {
+          errorMessage = "Não foi possível fazer login. Verifique o email e password, ou crie uma nova conta.";
+        } else {
+          errorMessage = "Não foi possível criar conta. O email pode já estar em uso ou há um problema com a configuração.";
+        }
+      }
+      
+      showError(errorMessage);
     }
   });
 

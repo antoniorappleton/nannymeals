@@ -55,6 +55,7 @@
               >
               <input
                 id="email"
+                autocomplete="email"
                 class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-4 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400 dark:text-white font-medium"
                 placeholder="chef@familia.com"
                 type="email"
@@ -83,6 +84,7 @@
               >
               <input
                 id="password"
+                autocomplete="current-password"
                 class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-12 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400 dark:text-white font-medium"
                 placeholder="••••••••"
                 type="password"
@@ -116,6 +118,7 @@
               >
               <input
                 id="confirm-password"
+                autocomplete="new-password"
                 class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-4 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 placeholder="••••••••"
                 type="password"
@@ -193,10 +196,10 @@
     <script type="module" src="src/auth.js?v=12"></script>
     <script>
       // Script de emergência para limpar cache se detectar versão antiga nos logs
-      // EMERGÊNCIA V22: Limpeza Total e Correção do Onboarding
-      if (localStorage.getItem("app_version") !== "v22") {
-        console.log("URGENTE: Limpando ambientes para v22...");
-        localStorage.setItem("app_version", "v22");
+      // VERSÃO V24: Correção de bugs e melhorias
+      if (localStorage.getItem("app_version") !== "v24") {
+        console.log("URGENTE: Limpando ambientes para v24...");
+        localStorage.setItem("app_version", "v24");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) {

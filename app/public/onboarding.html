@@ -22,9 +22,10 @@
       }
     </style>
     <script>
-      // EMERGÊNCIA V23
-      if (localStorage.getItem("app_version") !== "v23") {
-        localStorage.setItem("app_version", "v23");
+      // VERSÃO V24: Correção de bugs e melhorias
+      if (localStorage.getItem("app_version") !== "v24") {
+        console.log("URGENTE: Limpando ambientes para v24...");
+        localStorage.setItem("app_version", "v24");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) reg.unregister();
