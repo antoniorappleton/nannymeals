@@ -282,11 +282,12 @@ export const importRecipes = onCall(async (request) => {
  * Core implementation of the import logic extracted so it can be used
  * by both the callable function and an HTTP proxy (with explicit CORS).
  */
-const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number) => {
+const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number, completeOnly: boolean = true) => {
   const pages = pagesIn || 1;
   const perPage = Math.min(numberIn || 20, 50);
 
   const imported: any[] = [];
+  const skipped: any[] = [];
 
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -303,6 +304,43 @@ const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number) 
       }
       throw err;
     }
+  };
+
+  // Validate if a recipe is "complete" - has image, ingredients with amounts/units, and instructions
+  const isCompleteRecipe = (details: any): { complete: boolean; reasons: string[] } => {
+    const reasons: string[] = [];
+    
+    // Check for image
+    if (!details.image) {
+      reasons.push("Sem imagem");
+    }
+    
+    // Check for ingredients with amounts and units
+    const ingredients = details.extendedIngredients || details.ingredients || [];
+    if (!ingredients || ingredients.length === 0) {
+      reasons.push("Sem ingredientes");
+    } else {
+      // Check if at least some ingredients have amounts/units
+      const ingredientsWithData = ingredients.filter((ing: any) => ing.amount && ing.unit);
+      if (ingredientsWithData.length === 0) {
+        reasons.push("Ingredientes sem quantidades/unidades");
+      }
+    }
+    
+    // Check for instructions - either plain text or analyzed instructions with steps
+    const hasInstructions = details.instructions && details.instructions.length > 0;
+    const hasAnalyzedInstructions = details.analyzedInstructions && 
+      details.analyzedInstructions.length > 0 && 
+      details.analyzedInstructions.some((inst: any) => inst.steps && inst.steps.length > 0);
+    
+    if (!hasInstructions && !hasAnalyzedInstructions) {
+      reasons.push("Sem instruções");
+    }
+    
+    return {
+      complete: reasons.length === 0,
+      reasons
+    };
   };
 
   // Normalize a single spoonacular recipe payload into the app schema
@@ -501,7 +539,10 @@ const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number) 
           }
         }
 
-        // Enrich ingredients lazily: only fetch ingredient info for those missing estimatedCost
+        // SKIPPED: This was making 1 API call per ingredient = TOO EXPENSIVE!
+        // The fillIngredients=true in complexSearch already gives us enough data
+        // Each ingredient info call costs 2 points - with 20 recipes x 10 ingredients = 200 points!
+        /*
         for (const ing of (details.extendedIngredients || details.ingredients || []) as any[]) {
           if ((!ing.estimatedCost || !ing.estimatedCost.value) && ing.id) {
             try {
@@ -512,12 +553,27 @@ const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number) 
                 ing.shoppingListUnits = ing.shoppingListUnits || ingInfo.shoppingListUnits || [];
                 ing.possibleUnits = ing.possibleUnits || ingInfo.possibleUnits || [];
                 ing.nutrition = ing.nutrition || ingInfo.nutrition || null;
-                // small delay to respect quota
                 await sleep(120);
               }
             } catch (e) {
               // ignore ingredient enrich failure
             }
+          }
+        }
+        */
+
+        // Check if recipe is complete (only when completeOnly is true)
+        if (completeOnly) {
+          const completenessCheck = isCompleteRecipe(details);
+          if (!completenessCheck.complete) {
+            console.log(`Skipping incomplete recipe ${details.id}: ${completenessCheck.reasons.join(", ")}`);
+            skipped.push({ 
+              id: `spoonacular_${details.id}`, 
+              spoonacularId: details.id,
+              title: details.title,
+              reasons: completenessCheck.reasons 
+            });
+            continue;
           }
         }
 
@@ -530,7 +586,7 @@ const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number) 
     }
   }
 
-  return { importedCount: imported.length, imported };
+  return { importedCount: imported.length, imported, skippedCount: skipped.length, skipped };
 };
 
 // HTTP proxy with CORS support for admin UI. Expects Authorization: Bearer <idToken>
@@ -553,8 +609,9 @@ export const importRecipesHttp = functions.https.onRequest(async (req, res) => {
     const filters = body.filters || {};
     const pages = parseInt(body.pages || '1', 10) || 1;
     const number = parseInt(body.number || '20', 10) || 20;
+    const completeOnly = body.completeOnly !== undefined ? body.completeOnly : true;
 
-    const result = await doImportRecipes(filters, pages, number);
+    const result = await doImportRecipes(filters, pages, number, completeOnly);
     res.status(200).json(result);
     return;
   } catch (err: any) {

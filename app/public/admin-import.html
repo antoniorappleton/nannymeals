@@ -121,6 +121,14 @@
               </div>
             </div>
 
+            <!-- Complete Only Checkbox -->
+            <div class="flex items-center gap-3 pt-2">
+              <input type="checkbox" id="q-completeOnly" checked class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" />
+              <label for="q-completeOnly" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Apenas receitas completas (com imagem, ingredientes e instruções)
+              </label>
+            </div>
+
             <!-- Action Buttons -->
             <div class="flex flex-wrap gap-3 pt-2">
               <button id="btn-run" type="button" class="flex-1 sm:flex-none bg-primary text-slate-900 px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20" disabled>
@@ -346,6 +354,7 @@
         };
         const pages = parseInt(document.getElementById("q-pages").value) || 1;
         const number = parseInt(document.getElementById("q-number").value) || 20;
+        const completeOnly = document.getElementById("q-completeOnly").checked;
 
         const errs = validate(filters, pages, number);
         if (errs.length) {
@@ -358,8 +367,15 @@
         btnRun.innerHTML = '<span class="material-symbols-outlined animate-spin">hourglass_empty</span> A importar...';
 
         try {
-          const data = await callImport({ filters, pages, number });
-          summaryEl.textContent = `✓ Importadas ${data.importedCount} receitas`;
+          const data = await callImport({ filters, pages, number, completeOnly });
+          
+          // Build summary message
+          let summaryMsg = `✓ Importadas ${data.importedCount} receitas`;
+          if (completeOnly && data.skippedCount > 0) {
+            summaryMsg += ` (${data.skippedCount} ignoradas por incompletas)`;
+          }
+          summaryEl.textContent = summaryMsg;
+          
           idsEl.textContent = JSON.stringify(data.imported.map(i => i.id), null, 2);
           resultEl.classList.remove("hidden");
 
