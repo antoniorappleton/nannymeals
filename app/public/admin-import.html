@@ -125,6 +125,15 @@
             Executar Teste (pasta vegetarian)
           </button>
           <button
+            id="btn-migrate"
+            type="button"
+            class="bg-yellow-500 text-slate-900 px-4 py-3 rounded-2xl font-black"
+            disabled
+            title="Migra planos antigos para incluir o campo members"
+          >
+            Migrar Planos
+          </button>
+          <button
             id="btn-login"
             type="button"
             class="ml-auto bg-white border border-slate-200 text-primary px-3 py-2 rounded-2xl font-medium"
@@ -193,6 +202,7 @@
       const form = document.getElementById("import-form");
       const btnRun = document.getElementById("btn-run");
       const btnRunSample = document.getElementById("btn-run-sample");
+      const btnMigrate = document.getElementById("btn-migrate");
       const logEl = document.getElementById("log");
       const resultEl = document.getElementById("result");
       const idsEl = document.getElementById("ids");
@@ -220,6 +230,7 @@
           log("Usuário não autenticado — login necessário");
           btnRun.disabled = true;
           btnRunSample.disabled = true;
+          btnMigrate.disabled = true;
           btnLogin.style.display = "inline-block";
           btnLogout.style.display = "none";
           userStatus.textContent = "Não autenticado";
@@ -227,6 +238,7 @@
           log(`Autenticado: ${u.email}`);
           btnRun.disabled = false;
           btnRunSample.disabled = false;
+          btnMigrate.disabled = false;
           btnLogin.style.display = "none";
           btnLogout.style.display = "inline-block";
           userStatus.textContent = `Autenticado: ${u.email}`;
@@ -257,6 +269,62 @@
         if (number < 1 || number > 50) errs.push("Number deve ser 1..50");
         return errs;
       };
+
+      // Migration handler
+      const MIGRATION_URL =
+        "https://us-central1-nannymeal-d966b.cloudfunctions.net/migrateWeeklyPlansMembers";
+      const callMigration = async () => {
+        log("Invocando migrateWeeklyPlansMembers via fetch...");
+        try {
+          if (!currentUser) throw new Error("Utilizador não autenticado");
+          const idToken = await currentUser.getIdToken();
+          const resp = await fetch(MIGRATION_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + idToken,
+            },
+            body: JSON.stringify({}),
+          });
+
+          if (!resp.ok) {
+            const text = await resp.text();
+            log("Erro na migração: " + resp.status + " " + text);
+            throw new Error("HTTP " + resp.status + " - " + text);
+          }
+
+          const data = await resp.json();
+          log("Migração concluída com sucesso!");
+          log(
+            `Resultado: ${data.migrated} planos migrados de ${data.total} total.`,
+          );
+          return data;
+        } catch (err) {
+          log("Erro na migração: " + (err.message || err.toString()));
+          throw err;
+        }
+      };
+
+      btnMigrate.addEventListener("click", async (e) => {
+        e.preventDefault();
+        validation.textContent = "";
+        btnMigrate.disabled = true;
+        btnMigrate.textContent = "A migrar...";
+
+        try {
+          await callMigration();
+          validation.textContent =
+            "✓ Parabéns! Planos migrados com sucesso. Recarregue a página.";
+          validation.className = "text-green-600 text-sm";
+        } catch (err) {
+          validation.textContent =
+            "✗ Erro na migração: " + (err.message || err.toString());
+          validation.className = "text-red-500 text-sm";
+        } finally {
+          btnMigrate.disabled = false;
+          btnMigrate.textContent = "Migrar Planos";
+        }
+      });
 
       // Use the HTTP proxy to avoid CORS preflight issues from raw callable endpoint.
       const PROXY_URL =

@@ -291,7 +291,7 @@ const doImportRecipes = async (filters: any, pagesIn: number, numberIn: number) 
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   // retry wrapper around fetchSpoonacular
-  const callSpoon = async (path: string, attempt = 0) => {
+  const callSpoon = async (path: string, attempt = 0): Promise<any> => {
     try {
       return await fetchSpoonacular(path);
     } catch (err: any) {
@@ -563,3 +563,91 @@ export const importRecipesHttp = functions.https.onRequest(async (req, res) => {
     return;
   }
 });
+
+/**
+ * Migration: Add members field to all existing weeklyPlans
+ * This is a one-time operation to support the new members-based authorization.
+ * For each plan, adds the household owner's UID to the members array.
+ */
+export const migrateWeeklyPlansMembers = functions.https.onRequest(
+  async (req, res) => {
+    const origin = req.headers.origin || '*';
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    try {
+      // Verify admin
+      const authHeader = (req.headers.authorization || '').toString();
+      if (!authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing Authorization header' });
+        return;
+      }
+      const idToken = authHeader.split(' ')[1];
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+      }
+
+      // Get all plans without members field
+      const plansSnap = await db.collection('weeklyPlans').get();
+      let migrated = 0;
+
+      for (const planDoc of plansSnap.docs) {
+        const plan = planDoc.data();
+
+        // Skip if already has members
+        if (Array.isArray(plan.members)) {
+          console.log(`Plan ${planDoc.id} already has members, skipping`);
+          continue;
+        }
+
+        const householdId = plan.householdId;
+        if (!householdId) {
+          console.warn(`Plan ${planDoc.id} has no householdId, skipping`);
+          continue;
+        }
+
+        // Get household to get owner UID
+        const householdDoc = await db
+          .collection('households')
+          .doc(householdId)
+          .get();
+        const household = householdDoc.data();
+        if (!household || !household.ownerUid) {
+          console.warn(
+            `Household ${householdId} not found or missing ownerUid, skipping plan ${planDoc.id}`
+          );
+          continue;
+        }
+
+        // Add members array with household owner
+        const members = household.members || [household.ownerUid];
+        if (!members.includes(household.ownerUid)) {
+          members.push(household.ownerUid);
+        }
+
+        await planDoc.ref.update({ members });
+        migrated++;
+        console.log(
+          `Migrated plan ${planDoc.id} with members: ${members.join(', ')}`
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Migrated ${migrated} plans`,
+        migrated,
+        total: plansSnap.size,
+      });
+    } catch (err: any) {
+      console.error('migrateWeeklyPlansMembers error:', err);
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  }
+);

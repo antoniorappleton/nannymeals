@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.importRecipesHttp = exports.importRecipes = exports.enrichAllRecipesHttp = exports.enrichAllRecipes = exports.spoonacularProxy = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
+exports.migrateWeeklyPlansMembers = exports.importRecipesHttp = exports.importRecipes = exports.enrichAllRecipesHttp = exports.enrichAllRecipes = exports.spoonacularProxy = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
 const functions = __importStar(require("firebase-functions"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-functions/v2/firestore");
@@ -505,6 +505,69 @@ exports.importRecipesHttp = functions.https.onRequest(async (req, res) => {
         console.error('importRecipesHttp error:', err);
         res.status(500).json({ error: err.message || String(err) });
         return;
+    }
+});
+exports.migrateWeeklyPlansMembers = functions.https.onRequest(async (req, res) => {
+    const origin = req.headers.origin || '*';
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+    try {
+        const authHeader = (req.headers.authorization || '').toString();
+        if (!authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ error: 'Missing Authorization header' });
+            return;
+        }
+        const idToken = authHeader.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+        const plansSnap = await db.collection('weeklyPlans').get();
+        let migrated = 0;
+        for (const planDoc of plansSnap.docs) {
+            const plan = planDoc.data();
+            if (Array.isArray(plan.members)) {
+                console.log(`Plan ${planDoc.id} already has members, skipping`);
+                continue;
+            }
+            const householdId = plan.householdId;
+            if (!householdId) {
+                console.warn(`Plan ${planDoc.id} has no householdId, skipping`);
+                continue;
+            }
+            const householdDoc = await db
+                .collection('households')
+                .doc(householdId)
+                .get();
+            const household = householdDoc.data();
+            if (!household || !household.ownerUid) {
+                console.warn(`Household ${householdId} not found or missing ownerUid, skipping plan ${planDoc.id}`);
+                continue;
+            }
+            const members = household.members || [household.ownerUid];
+            if (!members.includes(household.ownerUid)) {
+                members.push(household.ownerUid);
+            }
+            await planDoc.ref.update({ members });
+            migrated++;
+            console.log(`Migrated plan ${planDoc.id} with members: ${members.join(', ')}`);
+        }
+        res.status(200).json({
+            success: true,
+            message: `Migrated ${migrated} plans`,
+            migrated,
+            total: plansSnap.size,
+        });
+    }
+    catch (err) {
+        console.error('migrateWeeklyPlansMembers error:', err);
+        res.status(500).json({ error: err.message || String(err) });
     }
 });
 //# sourceMappingURL=index.js.map

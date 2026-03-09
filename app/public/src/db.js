@@ -1,5 +1,6 @@
 import {
   db,
+  auth,
   doc,
   getDoc,
   setDoc,
@@ -26,18 +27,51 @@ import { seedRecipes } from "./seed-recipes.js";
  */
 
 export const getHousehold = async (id) => {
-  // Try direct HID
-  let snap = await getDoc(doc(db, "households", id));
-  if (snap.exists()) return { id: snap.id, ...snap.data() };
+  try {
+    const userRef = doc(db, "users", id);
+    const userSnap = await getDoc(userRef);
 
-  // Try User UID lookup
-  const userSnap = await getDoc(doc(db, "users", id));
-  if (userSnap.exists() && userSnap.data().householdId) {
-    const hid = userSnap.data().householdId;
-    snap = await getDoc(doc(db, "households", hid));
-    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+    // Se o utilizador tem householdId registado
+    if (userSnap.exists() && userSnap.data().householdId) {
+      const hid = userSnap.data().householdId;
+      const householdRef = doc(db, "households", hid);
+      const householdSnap = await getDoc(householdRef);
+
+      if (householdSnap.exists()) {
+        return { id: householdSnap.id, ...householdSnap.data() };
+      }
+    }
+
+    // Fallback: tentar directamente como householdId
+    const snap = await getDoc(doc(db, "households", id));
+    if (snap.exists()) {
+      return { id: snap.id, ...snap.data() };
+    }
+
+    // Se chegou aqui, não tem household - CRIAR AUTOMATICAMENTE
+    console.log(
+      "Nenhuma household encontrada. A criar uma nova automaticamente...",
+    );
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error("Utilizador não autenticado");
+    }
+
+    const newHouseholdId = await createHousehold(currentUser.uid, {
+      name: `Família de ${currentUser.displayName || currentUser.email}`,
+      dietaryPreferences: [],
+      allergies: [],
+      members: [], // Será preenchido quando outros membros aderirem
+      createdAt: serverTimestamp(),
+    });
+
+    // Retornar a household recém criada
+    const newSnap = await getDoc(doc(db, "households", newHouseholdId));
+    return newSnap.exists() ? { id: newSnap.id, ...newSnap.data() } : null;
+  } catch (error) {
+    console.error("getHousehold error:", error);
+    throw error;
   }
-  return null;
 };
 
 export const saveHousehold = async (hid, data) => {
@@ -75,8 +109,10 @@ export const submitMealFeedback = async (planId, mealIndex, feedback) => {
   const planRef = doc(db, "weeklyPlans", planId);
   const planSnap = await getDoc(planRef);
   if (!planSnap.exists()) return;
+  const planData = planSnap.data();
+  const meals = planData.meals || [];
+  const householdId = planData.householdId || null;
 
-  const meals = planSnap.data().meals;
   meals[mealIndex].feedback = {
     ...feedback,
     timestamp: new Date().toISOString(),
@@ -84,8 +120,9 @@ export const submitMealFeedback = async (planId, mealIndex, feedback) => {
 
   await updateDoc(planRef, { meals });
 
-  // Also log to global feedback for analysis
+  // Also log to global feedback for analysis — include householdId for rules and functions
   await addDoc(collection(db, "feedback"), {
+    householdId,
     planId,
     mealIndex,
     recipeId: meals[mealIndex].recipeId,
@@ -120,16 +157,35 @@ export const swapMeal = async (planId, mealIndex, newRecipeId, reason) => {
 
 export const getHouseholdStats = async (uid) => {
   try {
-    // 1. Resolve HouseholdId if passing UID
-    let hid = uid;
-    const userSnap = await getDoc(doc(db, "users", uid));
-    if (userSnap.exists()) {
-      hid = userSnap.data().householdId || uid;
+    console.debug("getHouseholdStats VTEST-1", {
+      uid,
+      currentUser: auth.currentUser
+        ? { uid: auth.currentUser.uid, email: auth.currentUser.email }
+        : null,
+    });
+
+    const household = await getHousehold(uid);
+    if (!household) {
+      throw new Error("Household não encontrada para o utilizador.");
     }
 
-    const plansSnap = await getDocs(
-      query(collection(db, "weeklyPlans"), where("householdId", "==", hid)),
+    const hid = household.id;
+
+    console.debug(
+      "getHouseholdStats VTEST-1: querying weeklyPlans for householdId",
+      hid,
     );
+
+    let plansSnap;
+    try {
+      plansSnap = await getDocs(
+        query(collection(db, "weeklyPlans"), where("householdId", "==", hid)),
+      );
+    } catch (e) {
+      console.error("getHouseholdStats: failed to query weeklyPlans", e);
+      throw e;
+    }
+
     const allPlans = plansSnap.docs.map((d) => d.data());
 
     let totalSaved = 0;
@@ -292,8 +348,10 @@ export const generateWeeklyPlan = async (id) => {
 
   // compute expiration date client-side (30 days)
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const currentUser = auth.currentUser;
   const newPlan = {
     householdId,
+    members: currentUser ? [currentUser.uid] : [],
     createdAt: serverTimestamp(),
     expiresAt,
     locked: false,
@@ -366,17 +424,45 @@ export const getMealRecommendations = async (householdId, count) => {
 
   if (allergies.length > 0) {
     recipes = recipes.filter((r) => {
-      const ingredientsStr = (r.ingredients || []).join(" ").toLowerCase();
+      const ingredientsArr = r.ingredients || [];
+      const ingredientsStr = ingredientsArr
+        .map((ing) => {
+          if (!ing) return "";
+          if (typeof ing === "string") return ing;
+          // Spoonacular-style ingredient object
+          return (
+            ing.name ||
+            ing.original ||
+            ing.originalString ||
+            JSON.stringify(ing)
+          );
+        })
+        .join(" ")
+        .toLowerCase();
+
       return !allergies.some((a) => ingredientsStr.includes(a.toLowerCase()));
     });
   }
 
   // 2. Scoring (Heuristics)
   // Fetch historical feedback for scoring
-  const fSnap = await getDocs(
-    query(collection(db, "feedback"), where("recipeId", "!=", "")),
-  );
-  const historicalFeedback = fSnap.docs.map((d) => d.data());
+  // Fetch only household-scoped feedback to compute personalized scores
+  let historicalFeedback = [];
+  try {
+    const fSnap = await getDocs(
+      query(
+        collection(db, "feedback"),
+        where("householdId", "==", householdId),
+      ),
+    );
+    historicalFeedback = fSnap.docs.map((d) => d.data());
+  } catch (err) {
+    console.warn(
+      "getMealRecommendations: failed to fetch feedback, continuing",
+      err,
+    );
+    historicalFeedback = [];
+  }
 
   const scoredRecipes = recipes.map((r) => {
     let score = 100; // Base score
@@ -449,14 +535,25 @@ export const generateGroceryListFromPlan = async (planId) => {
     }
 
     (meal.ingredients || []).forEach((ingredient) => {
+      // Normalize ingredient text whether it's a string or an object
+      let ingredientText = "";
+      if (!ingredient) return;
+      if (typeof ingredient === "string") ingredientText = ingredient;
+      else if (typeof ingredient === "object")
+        ingredientText =
+          ingredient.original ||
+          ingredient.name ||
+          ingredient.originalString ||
+          JSON.stringify(ingredient);
+
       // Improved Regex to handle cases without explicit quantities or units
-      const match = ingredient.match(
+      const match = ingredientText.match(
         /^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i,
       );
 
       let qty = 1;
       let unit = "unid";
-      let name = ingredient.toLowerCase().trim();
+      let name = ingredientText.toLowerCase().trim();
 
       if (match && (match[1] || match[2])) {
         qty = parseFloat(match[1]?.replace(",", ".")) || 1;
@@ -464,7 +561,7 @@ export const generateGroceryListFromPlan = async (planId) => {
         name = match[3]?.toLowerCase().trim() || name;
       } else {
         // Full string is the name if no clear pattern
-        name = ingredient.toLowerCase().trim();
+        name = ingredientText.toLowerCase().trim();
       }
 
       if (!aggregator[name]) {
@@ -596,13 +693,31 @@ export const checkHouseholdExists = async (uid) => {
 // operation server-side under the administrator's credentials.
 export const enrichAllRecipes = async () => {
   try {
-    const { getFunctions, httpsCallable } = await import(
-      "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js",
-    );
-    const functions = getFunctions();
-    const proxy = httpsCallable(functions, "enrichAllRecipes");
-    const resp = await proxy({});
-    return resp.data && resp.data.updated ? resp.data.updated : 0;
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error("Utilizador não autenticado. Faça login primeiro.");
+    }
+
+    const idToken = await currentUser.getIdToken();
+    const ENRICH_URL =
+      "https://us-central1-nannymeal-d966b.cloudfunctions.net/enrichAllRecipesHttp";
+
+    const resp = await fetch(ENRICH_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + idToken,
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`HTTP ${resp.status}: ${text}`);
+    }
+
+    const data = await resp.json();
+    return data.updated ? data.updated : 0;
   } catch (err) {
     console.error("Falha ao chamar enrichAllRecipes:", err);
     throw err;
@@ -665,7 +780,12 @@ export const getAllRecipes = async (userId = null) => {
 export const saveUserRecipe = async (
   userId,
   recipeId,
-  { customName = "", customIngredients = [], customInstructions = "", notes = "" } = {},
+  {
+    customName = "",
+    customIngredients = [],
+    customInstructions = "",
+    notes = "",
+  } = {},
 ) => {
   const docData = {
     userId,
@@ -707,9 +827,11 @@ export const createCustomPlan = async (userId, planData) => {
   }
 
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const currentUser = auth.currentUser;
   const newPlan = {
     ...planData,
     householdId: household.id,
+    members: currentUser ? [currentUser.uid] : [],
     createdAt: serverTimestamp(),
     expiresAt,
     locked: false,
@@ -778,13 +900,23 @@ export const getPlanIngredients = async (planId) => {
 
     plan.meals.forEach((meal) => {
       (meal.ingredients || []).forEach((ingredient) => {
-        const match = ingredient.match(
+        let ingredientText = "";
+        if (!ingredient) return;
+        if (typeof ingredient === "string") ingredientText = ingredient;
+        else if (typeof ingredient === "object")
+          ingredientText =
+            ingredient.original ||
+            ingredient.name ||
+            ingredient.originalString ||
+            JSON.stringify(ingredient);
+
+        const match = ingredientText.match(
           /^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i,
         );
 
         let qty = 1;
         let unit = "unid";
-        let name = ingredient.toLowerCase().trim();
+        let name = ingredientText.toLowerCase().trim();
 
         if (match && (match[1] || match[2])) {
           qty = parseFloat(match[1]?.replace(",", ".")) || 1;

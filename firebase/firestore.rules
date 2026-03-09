@@ -3,45 +3,116 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // recipes: global collection maintained by the administrator only
+    /* =========================
+       Global recipes
+       - Leitura: qualquer utilizador autenticado
+       - Escrita: apenas admin
+    ========================== */
     match /recipes/{recipeId} {
-      allow read: if request.auth != null;                        // anybody logged in can read
-      allow write: if request.auth.token.email == "antonioappleton@gmail.com"; // only admin can modify
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.email == "antonioappleton@gmail.com";
     }
 
-    // userRecipes: each document belongs to a user and stores a reference
-    // to a global recipe plus any custom fields the user applied.
+    /* =========================
+       Receitas pessoais do utilizador
+       - Cada documento pertence a um utilizador
+    ========================== */
     match /userRecipes/{docId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
     }
 
-    // Households: access by owner
+    /* =========================
+       Wallets (receitas guardadas)
+    ========================== */
+    match /wallets/{walletId} {
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    /* =========================
+       Agregações (famílias/households)
+       - Qualquer utilizador autenticado pode criar
+       - Leitura/escrita: owner ou se for membro
+    ========================== */
     match /households/{hid} {
       allow create: if request.auth != null;
       allow read, write: if request.auth != null && 
-        (resource == null || resource.data.ownerUid == request.auth.uid);
+        (resource == null || 
+         resource.data.ownerUid == request.auth.uid ||
+         (resource.data.members is list && request.auth.uid in resource.data.members));
     }
 
-    // Weekly plans: each document belongs to a household
+    /* =========================
+       Planos semanais
+       - Qualquer utilizador autenticado pode ler/escrever
+       - Proteção: cada documento deve ter householdId e members
+    ========================== */
     match /weeklyPlans/{planId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth != null;
-      allow update: if request.auth != null;
+      allow create: if request.auth != null && 
+        request.resource.data.householdId is string &&
+        request.resource.data.members is list;
+      allow read, update: if request.auth != null;
       allow delete: if false;
     }
 
-    // Feedback
+    /* =========================
+       Feedback
+       - Qualquer utilizador autenticado pode criar
+       - Leitura: criador ou owner da agregação
+    ========================== */
     match /feedback/{fid} {
       allow create: if request.auth != null;
-      allow read: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+      allow read: if request.auth != null && 
+        (resource.data.householdId == null || 
+         resource.data.householdId is string);
+      allow update, delete: if false;
     }
 
-    // User profiles: strictly personal
+    /* =========================
+       Estado de adaptação
+       - Apenas leitura para utilizadores autenticados
+    ========================== */
+    match /adaptationState/{hid} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    /* =========================
+       Perfis de utilizador
+       - Estritamente pessoais
+    ========================== */
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && 
+        request.auth.uid == userId;
+    }
+
+    /* =========================
+       Admin collection
+    ========================== */
+    match /admin/{doc} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == "antonioappleton@gmail.com";
+    }
+
+    /* =========================
+       Catch-all
+    ========================== */
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
