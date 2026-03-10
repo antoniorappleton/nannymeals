@@ -1,4 +1,4 @@
-import { auth, doc, getDoc } from "./firebase-init.js";
+import { auth, db, doc, getDoc, setDoc } from "./firebase-init.js";
 import { syncUserProfile, getUserProfile, checkHouseholdExists } from "./db.js";
 import {
   signInWithEmailAndPassword,
@@ -13,35 +13,38 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   signOut,
+  linkWithPopup,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 /**
  * Lógica de Autenticação Centralizada (Refatorada)
+ * Com suporte para linking de contas (Google + Email)
  */
 
-console.log("Módulo de autenticação ativo. [V18]");
+console.log("Módulo de autenticação ativo. [V19]");
 
 // Helper para evitar redirecionamentos redundantes e loops
 const safeReplace = (url) => {
   const currentPath = window.location.pathname.toLowerCase();
   const cleanTarget = url.toLowerCase().replace(".html", "");
-  
+
   // Check if we are already on the target page (supporting both with and without .html)
   if (
-    currentPath.endsWith(`/${cleanTarget}.html`) || 
+    currentPath.endsWith(`/${cleanTarget}.html`) ||
     currentPath.endsWith(`/${cleanTarget}`) ||
     currentPath === `/${cleanTarget}` ||
-    (cleanTarget === 'index' && (currentPath === '/' || currentPath.endsWith('/')))
+    (cleanTarget === "index" &&
+      (currentPath === "/" || currentPath.endsWith("/")))
   ) {
     return;
   }
-  
+
   console.log(`Encaminhando: ${currentPath} -> ${url}`);
   window.location.replace(url);
 };
 
 // Capturar erros globais para diagnóstico
-window.onerror = function(message, source, lineno, colno, error) {
+window.onerror = function (message, source, lineno, colno, error) {
   if (source && source.includes(window.location.hostname)) {
     showError(`Erro: ${message}`);
   }
@@ -98,7 +101,7 @@ if (authForm) {
     try {
       console.log("A tentar autenticar:", email);
       console.log("Auth config:", auth.config);
-      
+
       if (isLogin) {
         console.log("A fazer signInWithEmailAndPassword...");
         await signInWithEmailAndPassword(auth, email, password);
@@ -116,10 +119,10 @@ if (authForm) {
       }
     } catch (error) {
       console.error("Erro de autenticação:", error);
-      
+
       // Tratar erros específicos do Firebase
       let errorMessage = error.message;
-      
+
       if (error.code === "auth/email-already-in-use") {
         errorMessage = "Este email já está registado. Tente fazer login.";
       } else if (error.code === "auth/user-not-found") {
@@ -136,12 +139,14 @@ if (authForm) {
         // Este erro pode ter várias causas - vamos dar uma mensagem mais útil
         console.log("Erro de credencial inválida - detalhes:", error);
         if (isLogin) {
-          errorMessage = "Não foi possível fazer login. Verifique o email e password, ou crie uma nova conta.";
+          errorMessage =
+            "Não foi possível fazer login. Verifique o email e password, ou crie uma nova conta.";
         } else {
-          errorMessage = "Não foi possível criar conta. O email pode já estar em uso ou há um problema com a configuração.";
+          errorMessage =
+            "Não foi possível criar conta. O email pode já estar em uso ou há um problema com a configuração.";
         }
       }
-      
+
       showError(errorMessage);
     }
   });
@@ -150,16 +155,43 @@ if (authForm) {
   if (googleBtn) {
     googleBtn.addEventListener("click", async () => {
       if (window.setGoogleLoading) window.setGoogleLoading(true);
-      
+
       const provider = new GoogleAuthProvider();
       // Adicionar escopo para solicitar email
       provider.addScope("email");
       provider.addScope("profile");
-      
+
       try {
         // Primeiro tenta com popup (mais confiável)
         await signInWithPopup(auth, provider);
       } catch (error) {
+        // Verificar se é erro de conta existente - tentar fazer link
+        if (
+          error.code === "auth/credential-already-in-use" ||
+          error.code === "auth/email-already-in-use"
+        ) {
+          console.log("Conta já existe com outro método. A tentar link...");
+
+          try {
+            // Obter as credenciais do Google do erro
+            const googleCredential =
+              GoogleAuthProvider.credentialFromError(error);
+
+            // Tentar fazer login com email/password primeiro se o utilizador tiver conta
+            const email = error.customData?.email;
+            if (email) {
+              // Pedir para fazer login com password para depois linkar
+              showError(
+                "Já existe uma conta com este email. Faça login com a sua password e depois poderá linkar o Google.",
+              );
+              if (window.setGoogleLoading) window.setGoogleLoading(false);
+              return;
+            }
+          } catch (linkError) {
+            console.error("Erro ao linkar contas:", linkError);
+          }
+        }
+
         console.log("Popup falhou, a tentar redirect:", error);
         // Se popup falhar, usa redirect
         if (error.code !== "auth/popup-closed-by-user") {
@@ -186,9 +218,15 @@ export const resetPassword = async (email) => {
 // Observer de Estado
 onAuthStateChanged(auth, async (user) => {
   const path = window.location.pathname.toLowerCase();
-  const isLoginPage = path === "/" || path.includes("index") || !!document.getElementById("auth-form");
+  const isLoginPage =
+    path === "/" ||
+    path.includes("index") ||
+    !!document.getElementById("auth-form");
   const isOnboardingPage = path.includes("onboarding");
-  const isProtectedPage = path.includes("dashboard") || path.includes("plan") || path.includes("grocery");
+  const isProtectedPage =
+    path.includes("dashboard") ||
+    path.includes("plan") ||
+    path.includes("grocery");
 
   if (user) {
     try {
@@ -216,7 +254,12 @@ onAuthStateChanged(auth, async (user) => {
     }
   } else {
     // Se não há user e não estamos no login, expulsa
-    if (!isCheckingRedirect && !isLoginPage && !isOnboardingPage && !path.includes("assets")) {
+    if (
+      !isCheckingRedirect &&
+      !isLoginPage &&
+      !isOnboardingPage &&
+      !path.includes("assets")
+    ) {
       safeReplace("index.html");
     }
   }
