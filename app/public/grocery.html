@@ -18,9 +18,8 @@
     <link rel="stylesheet" href="css/global.css" />
     <link rel="manifest" href="manifest.json" />
     <script>
-      // EMERGÊNCIA V23
-      if (localStorage.getItem("app_version") !== "v23") {
-        localStorage.setItem("app_version", "v23");
+      if (localStorage.getItem("app_version") !== "v24") {
+        localStorage.setItem("app_version", "v24");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) reg.unregister();
@@ -35,176 +34,192 @@
       }
     </script>
     <style>
-      body {
-        min-height: 100dvh;
-      }
+      body { min-height: 100dvh; }
     </style>
   </head>
 
-  <body
-    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
-  >
+  <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
     <div class="app-container glass-effect">
-
-      <!-- Header -->
-      <header
-        class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10"
-      >
+      <header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10">
         <div class="flex items-center justify-between mb-3">
-          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">
-            Lista de Compras
-          </h1>
-          <button
-            id="btn-logout"
-            class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center"
-          >
-            <span class="material-symbols-outlined">logout</span>
-          </button>
-        </div>
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Lista de Compras</h1>
+          <div class="flex items-center gap-2">
+            <button id="btn-supermarkets" title="Exportar para Supermercados" class="p-2 rounded-full hover:bg-primary/10 transition-colors text-primary min-h-10 min-w-10 flex items-center justify-center">
+              <span class="material-symbols-outlined">store</span>
+            </button>
+            <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center">
+              <span class="material-symbols-outlined">logout</span>
+            </button>
+          </div>
         <div class="flex items-center justify-between">
-          <p
-            class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]"
-            id="current-grocery-header"
-          >
-            A carregar...
-          </p>
-          <div
-            id="cost-badge"
-            class="hidden bg-primary/10 px-3 py-1.5 rounded-full text-xs font-bold text-primary"
-          >
+          <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-grocery-header">A carregar...</p>
+          <div id="cost-badge" class="hidden bg-primary/10 px-3 py-1.5 rounded-full text-xs font-bold text-primary">
             <span id="total-cost-display">0</span>€
           </div>
-        </div>
       </header>
 
-      <main
-        id="grocery-list-container"
-        class="flex-1 overflow-y-auto pb-16"
-      >
+      <main id="grocery-list-container" class="flex-1 overflow-y-auto pb-16">
         <div class="p-4 space-y-4">
-          <!-- Dynamic grocery categories will be injected here -->
-          <div
-            id="loading-state"
-            class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4"
-          >
-            <div
-              class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse"
-            >
-              <span class="material-symbols-outlined text-4xl"
-                >shopping_cart</span
-              >
+          <div id="loading-state" class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+            <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
+              <span class="material-symbols-outlined text-4xl">shopping_cart</span>
             </div>
             <p class="font-bold">A carregar a vossa lista...</p>
           </div>
           <div id="empty-state" class="hidden py-12 text-center space-y-4">
-            <div
-              class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto"
-            >
+            <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
               <span class="material-symbols-outlined text-4xl">shopping_cart</span>
             </div>
-            <p class="text-slate-500 font-medium">
-              Ainda não tens itens na lista. Gera um plano primeiro!
-            </p>
+            <p class="text-slate-500 font-medium">Ainda não tens itens na lista. Gera um plano primeiro!</p>
             <div class="flex items-center justify-center gap-4 flex-wrap">
-              <button
-                onclick="window.location.href = 'plan.html'"
-                class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs"
-              >
-                Ir para o Plano
-              </button>
-              <button
-                id="btn-generate-auto"
-                class="bg-white dark:bg-slate-800 text-primary border border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs"
-              >
-                Gerar Plano
-              </button>
+              <button onclick="window.location.href = 'plan.html'" class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs">Ir para o Plano</button>
+              <button id="btn-generate-auto" class="bg-white dark:bg-slate-800 text-primary border border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs">Gerar Plano</button>
             </div>
-          </div>
         </div>
       </main>
-          <!-- Bottom Navigation Bar will be included dynamically -->
     </div>
+
+    <!-- Supermarket Modal -->
+    <div id="supermarket-modal" class="hidden fixed inset-0 z-50 bg-black">
+      <div class="w-full max-w-lg mx-auto h-full flex flex-col">
+        <div class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 mt-0">
+          <div class="shrink-0 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-slate-800 dark:to-slate-900 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="size-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                  <span class="material-symbols-outlined text-2xl text-slate-900">store</span>
+                </div>
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Supermercados</h2>
+                  <p class="text-xs text-slate-500">Exportar lista de compras</p>
+                </div>
+              <button onclick="closeSupermarketModal()" class="shrink-0 p-2 sm:p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
+                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-xl">close</span>
+              </button>
+            </div>
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+            <p class="text-sm text-slate-500 mb-4">Escolhe o supermercado para adicionar os ingredientes:</p>
+            <button onclick="openSupermarket('continente')" class="w-full flex items-center gap-4 p-4 bg-[#0073A7] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
+              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+              <div class="text-left">
+                <p class="font-black text-lg">Continente</p>
+                <p class="text-xs opacity-80">Abrir no website</p>
+              </div>
+            </button>
+            <button onclick="openSupermarket('pingodoce')" class="w-full flex items-center gap-4 p-4 bg-[#00A04A] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
+              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+              <div class="text-left">
+                <p class="font-black text-lg">Pingo Doce</p>
+                <p class="text-xs opacity-80">Abrir no website</p>
+              </div>
+            </button>
+            <button onclick="openSupermarket('auchan')" class="w-full flex items-center gap-4 p-4 bg-[#E30613] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
+              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+              <div class="text-left">
+                <p class="font-black text-lg">Auchan</p>
+                <p class="text-xs opacity-80">Abrir no website</p>
+              </div>
+            </button>
+            <button onclick="openSupermarket('intermarche')" class="w-full flex items-center gap-4 p-4 bg-[#FF6600] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
+              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+              <div class="text-left">
+                <p class="font-black text-lg">Intermarché</p>
+                <p class="text-xs opacity-80">Abrir no website</p>
+              </div>
+            </button>
+            <button onclick="openSupermarket('supersave')" class="w-full flex items-center gap-4 p-4 bg-[#FF6B35] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
+              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+              <div class="text-left">
+                <p class="font-black text-lg">Super Save</p>
+                <p class="text-xs opacity-80">Comparar preços em todas as lojas</p>
+              </div>
+            </button>
+          </div>
+      </div>
 
     <script type="module">
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
       import { auth } from "./src/firebase-init.js";
       import { logout } from "./src/auth.js";
-      import {
-        getLastPlan,
-        getHousehold,
-        getPlanById,
-        generateGroceryListFromPlan,
-        generateWeeklyPlan,
-      } from "./src/db.js";
+      import { getLastPlan, getHousehold, getPlanById, generateGroceryListFromPlan, generateWeeklyPlan } from "./src/db.js";
+      import { generateSupermarketLink } from "./src/supermarket-links.js";
 
-      // Elements
-      const groceryContainer = document.getElementById(
-        "grocery-list-container",
-      );
+      let currentGroceryList = [];
+      let currentIngredients = [];
+
+      const groceryContainer = document.getElementById("grocery-list-container");
       const loadingState = document.getElementById("loading-state");
       const emptyState = document.getElementById("empty-state");
+      const supermarketModal = document.getElementById("supermarket-modal");
 
       document.getElementById("btn-logout").onclick = () => logout();
+      
+      document.getElementById("btn-supermarkets").onclick = () => {
+        if (currentIngredients.length > 0) {
+          supermarketModal.classList.remove("hidden");
+          document.body.style.overflow = "hidden";
+        } else {
+          alert("Gera um plano primeiro para ver os supermercados!");
+        }
+      };
+
+      window.closeSupermarketModal = () => {
+        supermarketModal.classList.add("hidden");
+        document.body.style.overflow = "";
+      };
+
+      window.openSupermarket = (supermarketId) => {
+        const link = generateSupermarketLink(supermarketId, currentIngredients);
+        if (link && link.webLink) {
+          window.open(link.webLink, '_blank');
+        }
+      };
+
+      supermarketModal.onclick = (e) => {
+        if (e.target === supermarketModal) closeSupermarketModal();
+      };
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
             const plan = await getLastPlan(user.uid);
-            const household = await getHousehold(user.uid);
-
             if (plan) {
               let list = plan.groceryList || [];
-
-              // Fallback: If plan exists but list is empty, try generating it
               if (list.length === 0) {
-                console.log("Grocery list em falta. A gerar na hora...");
                 list = await generateGroceryListFromPlan(plan.id);
-
-                // Re-fetch plan to obtain updated totals persisted by generator
                 try {
                   const updated = await getPlanById(plan.id);
                   if (updated) plan = updated;
-                } catch (err) {
-                  console.warn("Falha ao reobter plano após geração:", err);
-                }
+                } catch (err) { console.warn("Falha ao reobter plano:", err); }
               }
 
               if (list && list.length > 0) {
-                const itemCount = list.reduce(
-                  (acc, cat) => acc + cat.items.length,
-                  0,
-                );
-                document.getElementById("current-grocery-header").textContent =
-                  `${itemCount} ITENS • ESTIMATIVA ATIVA`;
+                const itemCount = list.reduce((acc, cat) => acc + cat.items.length, 0);
+                document.getElementById("current-grocery-header").textContent = `${itemCount} ITENS - ESTIMATIVA ATIVA`;
+                
+                currentGroceryList = list;
+                currentIngredients = list.flatMap(cat => cat.items.map(item => item.name));
 
                 if (plan.totalEstimatedCost) {
                   const costBadge = document.getElementById("cost-badge");
                   if (costBadge) {
                     costBadge.classList.remove("hidden");
-                    const costDisplay = document.getElementById("total-cost-display");
-                    if (costDisplay) {
-                      costDisplay.textContent = plan.totalEstimatedCost;
-                    }
+                    document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost;
                   }
                 }
-
                 renderGroceryList(list);
               } else {
                 loadingState.classList.add("hidden");
                 emptyState.classList.remove("hidden");
-                document.getElementById("current-grocery-header").textContent =
-                  "SEM ITENS ATIVOS";
+                document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS";
               }
             } else {
               loadingState.classList.add("hidden");
               emptyState.classList.remove("hidden");
-              document.getElementById("current-grocery-header").textContent =
-                "SEM ITENS ATIVOS";
+              document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS";
             }
 
-            // Hook up the auto-generate button when user is present
-            const btnGenerateAutoEl =
-              document.getElementById("btn-generate-auto");
+            const btnGenerateAutoEl = document.getElementById("btn-generate-auto");
             if (btnGenerateAutoEl) {
               btnGenerateAutoEl.onclick = async () => {
                 try {
@@ -212,75 +227,35 @@
                   btnGenerateAutoEl.textContent = "Gerando...";
                   const created = await generateWeeklyPlan(user.uid);
                   if (created) {
-                    // Re-fetch to obtain persisted totals
                     const refreshed = await getPlanById(created.id);
-                    const grocery =
-                      refreshed &&
-                      refreshed.groceryList &&
-                      refreshed.groceryList.length > 0
-                        ? refreshed.groceryList
-                        : created.groceryList || [];
-
+                    const grocery = (refreshed && refreshed.groceryList && refreshed.groceryList.length > 0) ? refreshed.groceryList : created.groceryList || [];
                     if (grocery.length > 0) {
+                      currentGroceryList = grocery;
+                      currentIngredients = grocery.flatMap(cat => cat.items.map(item => item.name));
                       renderGroceryList(grocery);
-                      document.getElementById(
-                        "current-grocery-header",
-                      ).textContent =
-                        `${grocery.reduce((acc, cat) => acc + cat.items.length, 0)} ITENS • ESTIMATIVA ATIVA`;
-
-                      const cost =
-                        refreshed?.totalEstimatedCost ||
-                        created.totalEstimatedCost;
+                      document.getElementById("current-grocery-header").textContent = `${grocery.reduce((acc, cat) => acc + cat.items.length, 0)} ITENS - ESTIMATIVA ATIVA`;
+                      const cost = refreshed?.totalEstimatedCost || created.totalEstimatedCost;
                       if (cost) {
                         const costBadge = document.getElementById("cost-badge");
-                        if (costBadge) {
-                          costBadge.classList.remove("hidden");
-                          const costDisplay = document.getElementById("total-cost-display");
-                          if (costDisplay) {
-                            costDisplay.textContent = cost;
-                          }
-                        }
+                        if (costBadge) { costBadge.classList.remove("hidden"); document.getElementById("total-cost-display").textContent = cost; }
                       }
-
                       loadingState.classList.add("hidden");
                       emptyState.classList.add("hidden");
-                    } else {
-                      alert(
-                        "Não foi possível gerar um plano com itens. Tenta novamente mais tarde.",
-                      );
-                    }
-                  } else {
-                    alert(
-                      "Não foi possível gerar um plano. Tenta novamente mais tarde.",
-                    );
-                  }
-                } catch (err) {
-                  console.error("Erro ao gerar plano automático:", err);
-                  alert("Erro ao gerar plano automático.");
-                } finally {
-                  btnGenerateAutoEl.disabled = false;
-                  btnGenerateAutoEl.textContent = "Gerar Plano Automático";
-                }
+                    } else { alert("Nao foi possivel gerar um plano com itens."); }
+                  } else { alert("Nao foi possivel gerar um plano."); }
+                } catch (err) { console.error("Erro ao gerar plano:", err); alert("Erro ao gerar plano."); }
+                finally { btnGenerateAutoEl.disabled = false; btnGenerateAutoEl.textContent = "Gerar Plano"; }
               };
             }
-          } catch (err) {
-            console.error("Erro ao carregar dados:", err);
-            loadingState.classList.add("hidden");
-            emptyState.classList.remove("hidden");
-          }
-        } else {
-          window.location.href = "index.html";
-        }
+          } catch (err) { console.error("Erro ao carregar dados:", err); loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
+        } else { window.location.href = "index.html"; }
       });
 
       function renderGroceryList(categories) {
         loadingState.classList.add("hidden");
         emptyState.classList.add("hidden");
-
-        // Remove previous items
         const previousSections = groceryContainer.querySelectorAll("section[data-category]");
         previousSections.forEach((el) => el.remove());
-
         const container = document.querySelector("#grocery-list-container > div");
         if (!container) return;
 
@@ -288,15 +263,13 @@
           const section = document.createElement("section");
           section.setAttribute("data-category", index);
           section.className = "space-y-2 px-2 sm:px-4";
-
           const header = document.createElement("h3");
           header.className = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 p-3";
           header.textContent = cat.category;
           section.appendChild(header);
 
           const itemsDiv = document.createElement("div");
-          itemsDiv.className =
-            "bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-lg overflow-hidden divide-y divide-slate-50 dark:divide-slate-800";
+          itemsDiv.className = "bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-lg overflow-hidden divide-y divide-slate-50 dark:divide-slate-800";
 
           cat.items.forEach((item) => {
             const itemEl = document.createElement("div");
@@ -304,30 +277,26 @@
             itemEl.setAttribute("data-checked", item.checked ? "true" : "false");
 
             const checkbox = document.createElement("div");
-            checkbox.className =
-              "size-6 rounded-lg border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-data-[checked=true]:border-primary group-data-[checked=true]:bg-primary/10 transition-colors shrink-0";
-            checkbox.innerHTML =
-              '<span class="material-symbols-outlined text-primary text-lg scale-0 group-data-[checked=true]:scale-100 transition-transform">check</span>';
+            checkbox.className = "size-6 rounded-lg border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-data-[checked=true]:border-primary group-data-[checked=true]:bg-primary/10 transition-colors shrink-0";
+            checkbox.innerHTML = '<span class="material-symbols-outlined text-primary text-lg scale-0 group-data-[checked=true]:scale-100 transition-transform">check</span>';
 
             const content = document.createElement("div");
             content.className = "flex-1 min-w-0";
+            let priceDisplay = '';
+            if (item.bestPrice && item.bestPrice.price) { priceDisplay = `<span class="text-[10px] font-bold text-green-600">${item.bestPrice.price.toFixed(2)}€ (${item.bestPrice.store})</span>`; }
+            else if (item.price) { priceDisplay = `<span class="text-[10px] font-bold text-primary">${item.price}€</span>`; }
+            
             content.innerHTML = `
               <p class="font-bold text-sm group-data-[checked=true]:text-slate-400 group-data-[checked=true]:line-through transition-all">${item.name}</p>
               <div class="flex items-center gap-2 mt-1 flex-wrap">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">${item.quantity}</span>
-                ${item.price ? `<span class="text-[10px] font-bold text-primary">${item.price}€</span>` : ''}
+                ${priceDisplay}
                 ${item.calories ? `<span class="text-[9px] text-slate-400">${item.calories} kcal</span>` : ''}
-              </div>
-            `;
+              </div>`;
 
             itemEl.appendChild(checkbox);
             itemEl.appendChild(content);
-
-            itemEl.onclick = () => {
-              const isChecked = itemEl.getAttribute("data-checked") === "true";
-              itemEl.setAttribute("data-checked", !isChecked);
-            };
-
+            itemEl.onclick = () => { itemEl.setAttribute("data-checked", itemEl.getAttribute("data-checked") === "true" ? "false" : "true"); };
             itemsDiv.appendChild(itemEl);
           });
 
@@ -337,18 +306,14 @@
       }
     </script>
   </body>
-    <script>
-      // Dynamic include for bottom navigation
-      fetch('bottom-nav.html')
-        .then(res => res.text())
-        .then(html => {
-          const temp = document.createElement('div');
-          temp.innerHTML = html;
-          document.body.appendChild(temp.firstElementChild);
-          // After nav is loaded, highlight active
-          const script = document.createElement('script');
-          script.src = 'active-screen.js';
-          document.body.appendChild(script);
-        });
-    </script>
+  <script>
+    fetch('bottom-nav.html').then(res => res.text()).then(html => {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      document.body.appendChild(temp.firstElementChild);
+      const script = document.createElement('script');
+      script.src = 'active-screen.js';
+      document.body.appendChild(script);
+    });
+  </script>
 </html>
