@@ -1,196 +1,282 @@
 <!doctype html>
-<html lang="pt">
+<html class="light" lang="pt">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>NannyMeal - Admin Import</title>
-    <link rel="stylesheet" href="css/global.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="assets/images/hero.webp" />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="src/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="assets/images/hero.webp" />
+    <script>
+      // Emergency cache clear
+      if (localStorage.getItem("app_version") !== "v27") {
+        localStorage.setItem("app_version", "v27");
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => { for (let reg of regs) reg.unregister(); });
+        }
+        if ("caches" in window) {
+          caches.keys().then((names) => { for (let name of names) caches.delete(name); });
+        }
+      }
+    </script>
     <style>
-      body { font-family: 'Manrope', sans-serif; }
+      body { min-height: 100dvh; }
     </style>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
-    
-    <!-- Header -->
-    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="size-10 bg-primary rounded-xl flex items-center justify-center">
-            <span class="material-symbols-outlined text-slate-900">restaurant</span>
-          </div>
-          <div>
-            <h1 class="text-lg font-extrabold tracking-tight">Admin Import</h1>
-            <p class="text-xs text-slate-500 font-medium">Spoonacular Recipe Importer</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2" id="user-area">
-          <span class="text-sm text-slate-500" id="user-status">A carregar...</span>
-        </div>
-      </div>
-    </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+  <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+    <div class="app-container glass-effect">
       
-      <!-- Login Card -->
-      <div id="login-card" class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
-        <div class="flex flex-col items-center justify-center gap-4">
-          <div class="size-16 bg-primary/20 rounded-full flex items-center justify-center">
-            <span class="material-symbols-outlined text-3xl text-primary">admin_panel_settings</span>
-          </div>
-          <div class="text-center">
-            <h2 class="text-xl font-bold">Acesso Admin</h2>
-            <p class="text-sm text-slate-500 mt-1">Necessário fazer login para importar receitas</p>
-          </div>
-          <button id="btn-login" class="w-full sm:w-auto bg-primary text-slate-900 px-8 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20">
-            <span class="material-symbols-outlined">login</span>
-            Login com Google
-          </button>
-        </div>
-      </div>
-
-      <!-- Main Form Card (hidden until logged in) -->
-      <div id="main-card" class="hidden space-y-6">
-        
-        <!-- Import Form -->
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="size-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-              <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">cloud_download</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-bold">Importar Receitas</h2>
-              <p class="text-xs text-slate-500"> da API Spoonacular</p>
-            </div>
-          </div>
-
-          <form id="import-form" class="space-y-4">
-            <!-- Query -->
-            <div>
-              <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Query de Busca</label>
-              <input id="q-query" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="pasta, chicken, salad..." />
-            </div>
-
-            <!-- Filters Row 1 -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Dieta</label>
-                <select id="q-diet" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                  <option value="">Todas</option>
-                  <option value="vegetarian">Vegetariano</option>
-                  <option value="vegan">Vegano</option>
-                  <option value="gluten free">Sem Glúten</option>
-                  <option value="ketogenic">Ketogénico</option>
-                  <option value="paleo">Paleo</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Intolerâncias</label>
-                <input id="q-intolerances" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="gluten, dairy..." />
-              </div>
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tipo</label>
-                <select id="q-type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                  <option value="">Todos</option>
-                  <option value="main course">Prato Principal</option>
-                  <option value="side dish">Acompanhamento</option>
-                  <option value="appetizer">Entradas</option>
-                  <option value="dessert">Sobremesa</option>
-                  <option value="salad">Salada</option>
-                  <option value="soup">Sopa</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Filters Row 2 -->
-            <div class="grid grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tempo Máx (min)</label>
-                <input id="q-maxReadyTime" type="number" min="0" value="45" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-              </div>
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Páginas</label>
-                <input id="q-pages" type="number" min="1" max="10" value="1" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-              </div>
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Receitas/Pág</label>
-                <input id="q-number" type="number" min="1" max="50" value="20" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-              </div>
-            </div>
-
-            <!-- Complete Only Checkbox -->
-            <div class="flex items-center gap-3 pt-2">
-              <input type="checkbox" id="q-completeOnly" checked class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" />
-              <label for="q-completeOnly" class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Apenas receitas completas (com imagem, ingredientes e instruções)
-              </label>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-3 pt-2">
-              <button id="btn-run" type="button" class="flex-1 sm:flex-none bg-primary text-slate-900 px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20" disabled>
-                <span class="material-symbols-outlined">play_arrow</span>
-                Importar
+      <!-- Help Modal -->
+      <div id="help-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="help-backdrop"></div>
+        <div class="absolute inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg w-full max-h-[80vh] overflow-auto">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-black tracking-tight">Ajuda - Admin Import</h2>
+              <button id="btn-close-help" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                <span class="material-symbols-outlined text-slate-500">close</span>
               </button>
-              <button id="btn-run-sample" type="button" class="flex-1 sm:flex-none bg-blue-600 text-white px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-blue-600/20" disabled>
-                <span class="material-symbols-outlined">science</span>
-                Teste
-              </button>
-              <button id="btn-migrate" type="button" class="flex-1 sm:flex-none bg-amber-500 text-slate-900 px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-amber-500/20" disabled>
-                <span class="material-symbols-outlined">sync</span>
-                Migrar
-              </button>
-              <button id="btn-logout" type="button" class="ml-auto bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-4 py-3 rounded-xl font-bold flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
-                <span class="material-symbols-outlined">logout</span>
-              </button>
-            </div>
-
-            <div id="validation" class="hidden p-3 rounded-xl text-sm font-medium"></div>
-          </form>
-        </div>
-
-        <!-- Progress Log -->
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="size-10 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
-              <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">terminal</span>
-            </div>
-            <h2 class="text-lg font-bold">Log de Progresso</h2>
-          </div>
-          <div id="log" class="bg-slate-900 text-green-400 p-4 rounded-xl text-xs font-mono max-h-64 overflow-auto"></div>
-        </div>
-
-        <!-- Results -->
-        <div id="result" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="size-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-              <span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
-            </div>
-            <h2 class="text-lg font-bold">Resultado</h2>
-          </div>
-          
-          <div id="summary" class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl text-green-800 dark:text-green-200 font-medium mb-4"></div>
-          
-          <div class="space-y-4">
-            <div>
-              <h3 class="text-sm font-black uppercase text-slate-400 tracking-wider mb-2">IDs Importadas</h3>
-              <pre id="ids" class="bg-slate-100 dark:bg-slate-900 p-4 rounded-xl text-xs overflow-auto max-h-32"></pre>
             </div>
             
-            <div>
-              <h3 class="text-sm font-black uppercase text-slate-400 tracking-wider mb-2">Exemplo (Primeira Receita)</h3>
-              <pre id="example" class="bg-slate-100 dark:bg-slate-900 p-4 rounded-xl text-xs overflow-auto max-h-80"></pre>
+            <div class="space-y-4 text-sm">
+              <!-- Importar -->
+              <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-blue-600">cloud_download</span>
+                  <h3 class="font-black text-blue-700 dark:text-blue-300">Importar Receitas</h3>
+                </div>
+                <p class="text-slate-600 dark:text-slate-400">Pesquise e importe receitas da API Spoonacular. Use a <strong>Query de Busca</strong> para especificar o que procura:</p>
+                <ul class="mt-2 ml-4 list-disc text-slate-600 dark:text-slate-400 space-y-1">
+                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">peixe</code> ou <code class="bg-white dark:bg-slate-800 px-1 rounded">salmon</code> - receitas de peixe</li>
+                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">carne</code> ou <code class="bg-white dark:bg-slate-800 px-1 rounded">chicken</code> - receitas de carne</li>
+                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">sopa</code> - sopas</li>
+                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">bolo</code> ou <code class="bg-white dark:bg-slate-800 px-1 rounded">dessert</code> - sobremesas</li>
+                </ul>
+                <p class="mt-2 text-slate-600 dark:text-slate-400">Pode combinar filtros: <strong>Tipo</strong>, <strong>Dieta</strong>, <strong>Intolerâncias</strong>.</p>
+              </div>
+
+              <!-- Teste -->
+              <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-green-600">science</span>
+                  <h3 class="font-black text-green-700 dark:text-green-300">Teste</h3>
+                </div>
+                <p class="text-slate-600 dark:text-slate-400">Executa uma importação de teste com parâmetros predefinidos (pasta vegetariana, 10 receitas) para verificar se tudo funciona.</p>
+              </div>
+
+              <!-- Migrar -->
+              <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-amber-600">sync</span>
+                  <h3 class="font-black text-amber-700 dark:text-amber-300">Migrar</h3>
+                </div>
+                <p class="text-slate-600 dark:text-slate-400">Atualiza dados de planos de refeições existentes. Necessário apenas uma vez para migrar membros de planos antigos para o novo formato.</p>
+              </div>
+
+              <!-- Preços -->
+              <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-purple-600">payments</span>
+                  <h3 class="font-black text-purple-700 dark:text-purple-300">Conversão de Preços</h3>
+                </div>
+                <p class="text-slate-600 dark:text-slate-400">Os preços da Spoonacular são em centavos USD. A conversão para EUR (com taxa de inflação de 2.3%) é aplicada automaticamente durante a importação.</p>
+                <p class="mt-2 text-xs text-slate-500">Fórmula: <code class="bg-white dark:bg-slate-800 px-1 rounded">preço_eur = (preço_usd / 100) * 0.92 * 1.023</code></p>
+              </div>
             </div>
 
-            <div id="verifications" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            <button id="btn-close-help-bottom" class="w-full mt-6 bg-primary text-slate-900 py-3 rounded-xl font-black hover:scale-[0.98] transition-all">
+              Entendi
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-3">
+            <div class="size-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-slate-900">admin_panel_settings</span>
+            </div>
+            <div>
+              <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Admin Import</h1>
+              <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider">Spoonacular Recipe Importer</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btn-help" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ajuda">
+              <span class="material-symbols-outlined text-slate-500">info</span>
+            </button>
+            <div id="user-area">
+              <span class="text-xs sm:text-sm text-slate-500" id="user-status">A carregar...</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-40">
+        
+        <!-- Login Card -->
+        <div id="login-card" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-premium border border-slate-100 dark:border-slate-800">
+          <div class="flex flex-col items-center justify-center gap-4 text-center">
+            <div class="size-16 bg-primary/20 rounded-full flex items-center justify-center">
+              <span class="material-symbols-outlined text-4xl text-primary">admin_panel_settings</span>
+            </div>
+            <div>
+              <h2 class="text-xl sm:text-2xl font-black tracking-tight">Acesso Admin</h2>
+              <p class="text-sm text-slate-500 mt-1">Necessário fazer login para importar receitas</p>
+            </div>
+            <button id="btn-login" class="w-full sm:w-auto bg-primary text-slate-900 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+              <span class="material-symbols-outlined">login</span>
+              Login com Google
+            </button>
           </div>
         </div>
 
-      </div>
-    </main>
+        <!-- Main Form Card (hidden until logged in) -->
+        <div id="main-card" class="hidden space-y-4 sm:space-y-6">
+          
+          <!-- Import Form -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-3 mb-4 sm:mb-6">
+              <div class="size-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">cloud_download</span>
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Importar Receitas</h2>
+                <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider">da API Spoonacular</p>
+              </div>
+            </div>
+
+            <form id="import-form" class="space-y-4">
+              <!-- Query -->
+              <div>
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Query de Busca</label>
+                <input id="q-query" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="pasta, chicken, salad..." />
+              </div>
+
+              <!-- Filters Row 1 -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Dieta</label>
+                  <select id="q-diet" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                    <option value="">Todas</option>
+                    <option value="vegetarian">Vegetariano</option>
+                    <option value="vegan">Vegano</option>
+                    <option value="gluten free">Sem Glúten</option>
+                    <option value="ketogenic">Ketogénico</option>
+                    <option value="paleo">Paleo</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Intolerâncias</label>
+                  <input id="q-intolerances" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="gluten, dairy..." />
+                </div>
+                <div>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tipo</label>
+                  <select id="q-type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                    <option value="">Todos</option>
+                    <option value="main course">Prato Principal</option>
+                    <option value="side dish">Acompanhamento</option>
+                    <option value="appetizer">Entradas</option>
+                    <option value="dessert">Sobremesa</option>
+                    <option value="salad">Salada</option>
+                    <option value="soup">Sopa</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Filters Row 2 -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tempo Máx (min)</label>
+                  <input id="q-maxReadyTime" type="number" min="0" value="45" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                </div>
+                <div>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Páginas</label>
+                  <input id="q-pages" type="number" min="1" max="10" value="1" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                </div>
+                <div>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Receitas/Pág</label>
+                  <input id="q-number" type="number" min="1" max="50" value="20" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                </div>
+                <div class="flex items-center pt-6">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="q-completeOnly" checked class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Completas</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex flex-wrap gap-2 sm:gap-3 pt-2">
+                <button id="btn-run" type="button" class="flex-1 sm:flex-none bg-primary text-slate-900 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20 text-sm sm:text-base" disabled>
+                  <span class="material-symbols-outlined">play_arrow</span>
+                  Importar
+                </button>
+                <button id="btn-run-sample" type="button" class="flex-1 sm:flex-none bg-blue-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-blue-600/20 text-sm sm:text-base" disabled>
+                  <span class="material-symbols-outlined">science</span>
+                  Teste
+                </button>
+                <button id="btn-migrate" type="button" class="flex-1 sm:flex-none bg-amber-500 text-slate-900 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-amber-500/20 text-sm sm:text-base" disabled>
+                  <span class="material-symbols-outlined">sync</span>
+                  Migrar
+                </button>
+                <button id="btn-logout" type="button" class="ml-auto bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-4 py-3 sm:py-4 rounded-2xl font-bold flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                  <span class="material-symbols-outlined">logout</span>
+                </button>
+              </div>
+
+              <div id="validation" class="hidden p-3 rounded-xl text-sm font-medium"></div>
+            </form>
+          </div>
+
+          <!-- Progress Log -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="size-10 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">terminal</span>
+              </div>
+              <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Log de Progresso</h2>
+            </div>
+            <div id="log" class="bg-slate-900 text-green-400 p-4 rounded-xl text-xs font-mono max-h-40 sm:max-h-64 overflow-auto"></div>
+          </div>
+
+          <!-- Results -->
+          <div id="result" class="hidden bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="size-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+              </div>
+              <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Resultado</h2>
+            </div>
+            
+            <div id="summary" class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl text-green-800 dark:text-green-200 font-medium mb-4"></div>
+            
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider mb-2">IDs Importadas</h3>
+                <pre id="ids" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs overflow-auto max-h-28 sm:max-h-32"></pre>
+              </div>
+              
+              <div>
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Exemplo (Primeira Receita)</h3>
+                <pre id="example" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs overflow-auto max-h-60 sm:max-h-80"></pre>
+              </div>
+
+              <div id="verifications" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+      <!-- Bottom Navigation Bar will be included dynamically -->
+    </div>
 
     <script type="module">
       import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js";
@@ -252,7 +338,7 @@
           
           // Add logout button
           userArea.innerHTML = `
-            <span class="text-sm text-slate-500">${u.email}</span>
+            <span class="text-xs sm:text-sm text-slate-500">${u.email}</span>
             <button id="btn-logout-new" class="ml-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
               <span class="material-symbols-outlined text-slate-500">logout</span>
             </button>
@@ -323,22 +409,17 @@
       const PROXY_URL = "https://us-central1-nannymeal-d966b.cloudfunctions.net/importRecipesHttp";
       const callImport = async (payload) => {
         log("A importar receitas...");
-        try {
-          if (!currentUser) throw new Error("Utilizador não autenticado");
-          const idToken = await currentUser.getIdToken();
-          const resp = await fetch(PROXY_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: "Bearer " + idToken },
-            body: JSON.stringify(payload),
-          });
-          if (!resp.ok) throw new Error("HTTP " + resp.status);
-          const data = await resp.json();
-          log("Importação concluída!");
-          return data;
-        } catch (err) {
-          log("Erro: " + err.message);
-          throw err;
-        }
+        if (!currentUser) throw new Error("Utilizador não autenticado");
+        const idToken = await currentUser.getIdToken();
+        const resp = await fetch(PROXY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + idToken },
+          body: JSON.stringify(payload),
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        log("Importação concluída!");
+        return data;
       };
 
       btnRun.addEventListener("click", async () => {
@@ -424,7 +505,36 @@
       btnLogout?.addEventListener("click", async () => {
         try { await signOut(auth); } catch (err) { log("Logout falhou: " + err.message); }
       });
+
+      // Help Modal
+      const helpModal = document.getElementById("help-modal");
+      const btnHelp = document.getElementById("btn-help");
+      const btnCloseHelp = document.getElementById("btn-close-help");
+      const btnCloseHelpBottom = document.getElementById("btn-close-help-bottom");
+      const helpBackdrop = document.getElementById("help-backdrop");
+
+      const openHelp = () => helpModal.classList.remove("hidden");
+      const closeHelp = () => helpModal.classList.add("hidden");
+
+      btnHelp?.addEventListener("click", openHelp);
+      btnCloseHelp?.addEventListener("click", closeHelp);
+      btnCloseHelpBottom?.addEventListener("click", closeHelp);
+      helpBackdrop?.addEventListener("click", closeHelp);
     </script>
   </body>
+  <script>
+    // Dynamic include for bottom navigation
+    fetch("bottom-nav.html")
+      .then((res) => res.text())
+      .then((html) => {
+        const temp = document.createElement("div");
+        temp.innerHTML = html;
+        document.body.appendChild(temp.firstElementChild);
+        // After nav is loaded, highlight active
+        const script = document.createElement("script");
+        script.src = "active-screen.js";
+        document.body.appendChild(script);
+      });
+  </script>
 </html>
 

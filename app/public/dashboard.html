@@ -338,7 +338,6 @@
       }
 
       // Spoonacular Enrichment Trigger (Admin only)
-      import { enrichAllRecipes } from "./src/db.js";
       // the button is added dynamically after auth state is known
       onAuthStateChanged(auth, (u) => {
         if (u && u.email === "antonioappleton@gmail.com") {
@@ -346,16 +345,10 @@
           btnSync.className =
             "fixed bottom-24 right-4 size-12 bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center z-50 animate-bounce";
           btnSync.innerHTML =
-            '<span class="material-symbols-outlined">sync</span>';
-          btnSync.onclick = async () => {
-            btnSync.classList.remove("animate-bounce");
-            btnSync.innerHTML =
-              '<span class="material-symbols-outlined animate-spin">sync</span>';
-            const count = await enrichAllRecipes();
-            alert(
-              `${count.updated || count} receitas enriquecidas com sucesso!`,
-            );
-            location.reload();
+            '<span class="material-symbols-outlined">admin_panel_settings</span>';
+          btnSync.title = "Admin Import";
+          btnSync.onclick = () => {
+            window.location.href = "admin-import.html";
           };
           document.body.appendChild(btnSync);
         }

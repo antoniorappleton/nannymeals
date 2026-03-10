@@ -200,7 +200,12 @@ const doEnrichAllRecipes = async () => {
         `/recipes/complexSearch?query=${encodeURIComponent(data.name)}&addRecipeInformation=true&number=1`
       );
       const details = (searchData.results && searchData.results[0]) || null;
-      if (details) {
+if (details) {
+        // Convert USD to EUR with 2.3% inflation rate (EUR/USD = 0.92, inflation = 1.023)
+        const usdToEur = 0.92 * 1.023;
+        const priceEur = details.pricePerServing ? (details.pricePerServing / 100) * usdToEur : null;
+        const totalCostEur = details.pricePerServing && details.servings ? (details.pricePerServing * details.servings / 100) * usdToEur : null;
+        
         const enriched = {
           calories: Math.round(
             details.nutrition?.nutrients?.find((n: any) => n.name === "Calories")?.amount ||
@@ -211,8 +216,8 @@ const doEnrichAllRecipes = async () => {
                 details.nutrition.nutrients.find((n: any) => n.name === "Protein").amount
               )}g`
             : "20g",
-          pricePerServing: (details.pricePerServing / 100).toFixed(2),
-          totalCost: ((details.pricePerServing * (details.servings || 1)) / 100).toFixed(2),
+          pricePerServing: priceEur ? priceEur.toFixed(2) : null,
+          totalCost: totalCostEur ? totalCostEur.toFixed(2) : null,
           servings: details.servings || 1,
           image: details.image,
           spoonacularId: details.id,
