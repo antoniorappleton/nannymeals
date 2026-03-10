@@ -1,5 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -15,7 +19,7 @@ import {
   limit,
   getDocs,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js";
 
@@ -25,13 +29,20 @@ const firebaseConfig = {
   projectId: "nannymeal-d966b",
   storageBucket: "nannymeal-d966b.firebasestorage.app",
   messagingSenderId: "572933668964",
-  appId: "1:572933668964:web:d429db7ac475310d0a9f71"
+  appId: "1:572933668964:web:d429db7ac475310d0a9f71",
 };
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-// Configurar o domínio de autenticação explicitamente
+
+// Configurar idioma para Português
 auth.languageCode = "pt-PT";
+
+// Configurar persistence para manter sessão
+setPersistence(auth, browserLocalPersistence)
+  .then(() => console.log("Auth persistence configured"))
+  .catch((err) => console.warn("Auth persistence error:", err));
+
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 
@@ -50,5 +61,5 @@ export {
   limit,
   getDocs,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
 };

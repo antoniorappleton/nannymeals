@@ -12,8 +12,14 @@ const recipes = [
       "Caril em pó",
       "Arroz basmati",
     ],
-    instructions:
-      "Corte o frango em cubos, salteie, adicione o caril e o leite de coco. Sirva com arroz.",
+    instructionSteps: [
+      "Corte o frango em cubos pequenos.",
+      "Aqueça uma frigideira com um fio de azeite.",
+      "Salteie o frango até ficar dourado.",
+      "Adicione o caril em pó e misture bem.",
+      "Junte o leite de coco e deixe cozinhar por 5 minutos.",
+      "Sirva com arroz basmati quente.",
+    ],
   },
   {
     name: "Massa com Pesto e Tomate Cereja",
@@ -25,8 +31,13 @@ const recipes = [
       "Tomate cereja",
       "Queijo Parmesão",
     ],
-    instructions:
-      "Coza a massa. Misture o pesto e os tomates cortados ao meio. Finalize com queijo.",
+    instructionSteps: [
+      "Coza a massa em água a ferver com sal.",
+      "Corte os tomates cereja ao meio.",
+      "Escorra a massa e misture com o molho pesto.",
+      "Adicione os tomates cereja.",
+      "Finalize com queijo parmesão ralado.",
+    ],
   },
   {
     name: "Salmão no Forno com Ervas",
@@ -38,8 +49,13 @@ const recipes = [
       "Brócolos",
       "Ervas aromáticas",
     ],
-    instructions:
-      "Tempere o salmão e os legumes. Leve ao forno a 200°C por 20 minutos.",
+    instructionSteps: [
+      "Pré-aqueça o forno a 200°C.",
+      "Corte a batata doce em rodelas e os brócolos em floretes.",
+      "Coloque o salmão num tabuleiro com os legumes.",
+      "Tempere com ervas aromáticas, sal e azeite.",
+      "Leve ao forno por 20 minutos.",
+    ],
   },
   {
     name: "Risotto de Cogumelos",
@@ -52,24 +68,41 @@ const recipes = [
       "Cebola",
       "Caldo de legumes",
     ],
-    instructions:
-      "Refogue a cebola e os cogumelos. Adicione o arroz e o caldo aos poucos, mexendo sempre.",
+    instructionSteps: [
+      "Refogue a cebola picada em azeite.",
+      "Adicione os cogumelos fatiados e deixe cozinhar.",
+      "Junte o arroz e regue com vinho branco.",
+      "Adicione o caldo de legumes aos poucos, mexendo sempre.",
+      "Continue até o arroz ficar cremoso.",
+      "Finalize com queijo parmesão.",
+    ],
   },
   {
     name: "Tacos de Feijão Preto",
     prepTime: 20,
     tags: ["fast", "vegetarian", "kid-friendly"],
     ingredients: ["Tortillas", "Feijão preto", "Abacate", "Lima", "Coentros"],
-    instructions:
-      "Aqueça o feijão com especiarias. Recheie as tortillas com feijão, abacate e lima.",
+    instructionSteps: [
+      "Aqueça o feijão preto numa frigideira com temperos.",
+      "Corte o abacate em fatias.",
+      "Aqueça as tortillas no micro-ondas ou frigideira.",
+      "Recheie as tortillas com feijão e abacate.",
+      "Finalize com sumo de lima e coentros picados.",
+    ],
   },
   {
     name: "Omolete de Espinafres e Feta",
     prepTime: 10,
     tags: ["fast", "vegetarian", "healthy"],
     ingredients: ["Ovos", "Espinafres frescos", "Queijo Feta"],
-    instructions:
-      "Bata os ovos, adicione os espinafres e o queijo. Cozinhe em lume brando.",
+    instructionSteps: [
+      "Bata os ovos numa tigele.",
+      "Pique os espinafres grosseiramente.",
+      "Misture os espinafres e o queijo feta aos ovos.",
+      "Aqueça uma frigideira com manteiga.",
+      "Deite a mistura e cozinhe em lume brando.",
+      "Vire quando estiver quase cozinhado.",
+    ],
   },
   {
     name: "Bacalhau à Brás",
@@ -82,8 +115,15 @@ const recipes = [
       "Cebola",
       "Azeitonas",
     ],
-    instructions:
-      "Refogue a cebola e o bacalhau. Adicione a batata e os ovos batidos. Envolva bem.",
+    instructionSteps: [
+      "Refogue a cebola picada em azeite.",
+      "Adicione o bacalhau desfiado.",
+      "Deixe cozinhar por alguns minutos.",
+      "Junte a batata palha.",
+      "Bata os ovos e adicione ao preparado.",
+      "Envolva bem até os ovos ficarem cozidos.",
+      "Finalize com azeitonas.",
+    ],
   },
   {
     name: "Hambúrguer de Grão e Cenoura",
@@ -95,23 +135,41 @@ const recipes = [
       "Pão de hambúrguer",
       "Alface",
     ],
-    instructions:
-      "Triture o grão com a cenoura, forme os hambúrgueres e grelhe.",
+    instructionSteps: [
+      "Triture o grão-de-bico num processador.",
+      "Misture com a cenoura ralada.",
+      "Tempere com sal e especiarias.",
+      "Forme hambúrgueres com as mãos.",
+      "Grelhe numa frigideira ou churrasqueira.",
+      "Sirva no pão com alface.",
+    ],
   },
   {
     name: "Strogonoff de Cogumelos",
     prepTime: 25,
     tags: ["fast", "vegetarian"],
     ingredients: ["Cogumelos Paris", "Natas vegetais", "Arroz branco"],
-    instructions: "Salteie os cogumelos, adicione as natas e sirva com arroz.",
+    instructionSteps: [
+      "Corte os cogumelos em lâminas.",
+      "Salteie os cogumelos numa frigideira.",
+      "Adicione as natas vegetais.",
+      "Deixe cozinhar em lume médio.",
+      "Sirva com arroz branco.",
+    ],
   },
   {
     name: "Dourada Grelhada com Legumes",
     prepTime: 30,
     tags: ["standard", "pescatarian", "healthy"],
     ingredients: ["Dourada fresca", "Curgete", "Beringela", "Pimento"],
-    instructions:
-      "Grelhe a dourada e os legumes fatiados com um fio de azeite.",
+    instructionSteps: [
+      "Lave e limpe a dourada.",
+      "Corte os legumes em fatias.",
+      "Tempere tudo com sal, alho e azeite.",
+      "Grelhe a dourada de ambos os lados.",
+      "Grelhe os legumes até ficarem macios.",
+      "Sirva imediatamente.",
+    ],
   },
 ];
 

@@ -22,7 +22,6 @@
     class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
   >
     <div class="app-container glass-effect">
-
       <!-- Header -->
       <header
         class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10"
@@ -126,14 +125,23 @@
       >
         <!-- Modal Container - Aligned to top with scroll -->
         <div class="w-full max-w-lg mx-auto mt-4 mb-4 h-[calc(100vh-2rem)]">
-          <div class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700">
-            
+          <div
+            class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700"
+          >
             <!-- Header - Always visible -->
-            <div class="shrink-0 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-slate-800 dark:to-slate-900 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
+            <div
+              class="shrink-0 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-slate-800 dark:to-slate-900 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700"
+            >
               <div class="flex items-start justify-between gap-3">
                 <div class="flex-1 min-w-0">
-                  <h2 id="modal-recipe-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight"></h2>
-                  <div class="flex flex-wrap gap-2 mt-2" id="modal-tags-container">
+                  <h2
+                    id="modal-recipe-name"
+                    class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight"
+                  ></h2>
+                  <div
+                    class="flex flex-wrap gap-2 mt-2"
+                    id="modal-tags-container"
+                  >
                     <!-- Tags will be inserted here -->
                   </div>
                 </div>
@@ -141,33 +149,66 @@
                   onclick="closeRecipeModal()"
                   class="shrink-0 p-2 sm:p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
                 >
-                  <span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-xl">close</span>
+                  <span
+                    class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-xl"
+                    >close</span
+                  >
                 </button>
               </div>
-              
+
               <!-- Meta info row -->
               <div class="flex flex-wrap gap-3 mt-4">
-                <div class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
-                  <span class="material-symbols-outlined text-primary text-lg">schedule</span>
-                  <span class="text-sm font-bold text-slate-700 dark:text-slate-200" id="modal-prep-time">--</span>
+                <div
+                  class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm"
+                >
+                  <span class="material-symbols-outlined text-primary text-lg"
+                    >schedule</span
+                  >
+                  <span
+                    class="text-sm font-bold text-slate-700 dark:text-slate-200"
+                    id="modal-prep-time"
+                    >--</span
+                  >
                 </div>
-                <div id="modal-price-container" class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm hidden">
-                  <span class="material-symbols-outlined text-green-600 text-lg">euro</span>
-                  <span class="text-sm font-bold text-green-600" id="modal-price">--</span>
+                <div
+                  id="modal-price-container"
+                  class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm hidden"
+                >
+                  <span class="material-symbols-outlined text-green-600 text-lg"
+                    >euro</span
+                  >
+                  <span
+                    class="text-sm font-bold text-green-600"
+                    id="modal-price"
+                    >--</span
+                  >
                 </div>
-                <div id="modal-calories-container" class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm hidden">
-                  <span class="material-symbols-outlined text-orange-500 text-lg">local_fire_department</span>
-                  <span class="text-sm font-bold text-orange-500" id="modal-calories">--</span>
+                <div
+                  id="modal-calories-container"
+                  class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm hidden"
+                >
+                  <span
+                    class="material-symbols-outlined text-orange-500 text-lg"
+                    >local_fire_department</span
+                  >
+                  <span
+                    class="text-sm font-bold text-orange-500"
+                    id="modal-calories"
+                    >--</span
+                  >
                 </div>
               </div>
             </div>
 
             <!-- Scrollable Content -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-              
               <!-- Ingredients Section -->
-              <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700">
-                <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <div
+                class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700"
+              >
+                <h3
+                  class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2"
+                >
                   <span class="material-symbols-outlined">shopping_basket</span>
                   Ingredientes
                 </h3>
@@ -177,19 +218,31 @@
               </div>
 
               <!-- Instructions Section -->
-              <div id="instructions-section" class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 hidden">
-                <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <div
+                id="instructions-section"
+                class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 hidden"
+              >
+                <h3
+                  class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2"
+                >
                   <span class="material-symbols-outlined">menu_book</span>
                   Modo de Preparação
                 </h3>
-                <p id="modal-instructions" class="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                <ol
+                  id="modal-instructions"
+                  class="list-decimal list-inside space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                >
                   --
-                </p>
+                </ol>
               </div>
 
               <!-- Nutrition Info (if available) -->
               <div id="nutrition-section" class="hidden">
-                <h3 class="font-bold text-sm uppercase tracking-widest text-slate-500 mb-3">Informação Nutricional</h3>
+                <h3
+                  class="font-bold text-sm uppercase tracking-widest text-slate-500 mb-3"
+                >
+                  Informação Nutricional
+                </h3>
                 <div id="modal-nutrition" class="grid grid-cols-4 gap-2">
                   <!-- Nutrition cards will be inserted here -->
                 </div>
@@ -197,7 +250,9 @@
             </div>
 
             <!-- Action Buttons - Fixed at bottom -->
-            <div class="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4">
+            <div
+              class="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4"
+            >
               <div class="grid grid-cols-2 gap-2">
                 <button
                   onclick="addRecipeToNewPlan()"
@@ -219,7 +274,9 @@
                   onclick="saveCurrentRecipe()"
                   class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-600 transition-all flex items-center justify-center gap-1"
                 >
-                  <span class="material-symbols-outlined text-lg">bookmark</span>
+                  <span class="material-symbols-outlined text-lg"
+                    >bookmark</span
+                  >
                   Guardar
                 </button>
                 <button
@@ -387,7 +444,9 @@
         }
 
         // Calories (if available from Spoonacular)
-        const caloriesContainer = document.getElementById("modal-calories-container");
+        const caloriesContainer = document.getElementById(
+          "modal-calories-container",
+        );
         const caloriesEl = document.getElementById("modal-calories");
         if (selectedRecipe.calories) {
           caloriesContainer.classList.remove("hidden");
@@ -399,13 +458,13 @@
         // Ingredients - now with quantities if available
         const ingredientsList = document.getElementById("modal-ingredients");
         const ingredients = selectedRecipe.ingredients || [];
-        
+
         // Handle both string array and object array (Spoonacular format)
         ingredientsList.innerHTML = ingredients
           .map((ing) => {
             let name = "";
             let amount = "";
-            
+
             if (typeof ing === "string") {
               name = ing;
             } else if (typeof ing === "object") {
@@ -413,7 +472,7 @@
               name = ing.name || ing.original || ing.originalString || "";
               amount = ing.amount ? `${ing.amount} ${ing.unit || ""}` : "";
             }
-            
+
             return `
               <li class="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
                 <span class="flex items-center gap-2">
@@ -430,10 +489,18 @@
         const instructionsSection = document.getElementById(
           "instructions-section",
         );
-        if (selectedRecipe.instructions) {
+        const instructionsList = document.getElementById("modal-instructions");
+
+        // Check for instructionSteps (new array format) first, then fall back to instructions (string)
+        const steps =
+          selectedRecipe.instructionSteps ||
+          (selectedRecipe.instructions ? [selectedRecipe.instructions] : null);
+
+        if (steps && steps.length > 0) {
           instructionsSection.classList.remove("hidden");
-          document.getElementById("modal-instructions").textContent =
-            selectedRecipe.instructions;
+          instructionsList.innerHTML = steps
+            .map((step, index) => `<li class="py-1">${step}</li>`)
+            .join("");
         } else {
           instructionsSection.classList.add("hidden");
         }
@@ -441,15 +508,21 @@
         // Nutrition (if available)
         const nutritionSection = document.getElementById("nutrition-section");
         const nutrition = selectedRecipe.nutrition;
-        if (nutrition && (nutrition.calories || nutrition.protein || nutrition.carbs || nutrition.fat)) {
+        if (
+          nutrition &&
+          (nutrition.calories ||
+            nutrition.protein ||
+            nutrition.carbs ||
+            nutrition.fat)
+        ) {
           nutritionSection.classList.remove("hidden");
           const nutritionEl = document.getElementById("modal-nutrition");
           const nutrients = nutrition.nutrients || [];
           const getNutrient = (name) => {
-            const n = nutrients.find(x => x.name === name);
+            const n = nutrients.find((x) => x.name === name);
             return n ? Math.round(n.amount) : "--";
           };
-          
+
           nutritionEl.innerHTML = `
             <div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl text-center">
               <p class="text-xs font-bold text-orange-600 uppercase">Cal</p>
@@ -473,7 +546,7 @@
         }
 
         // Scroll to top
-        const modalContent = recipeModal.querySelector('.max-w-lg');
+        const modalContent = recipeModal.querySelector(".max-w-lg");
         if (modalContent) {
           modalContent.scrollTop = 0;
         }
@@ -491,11 +564,14 @@
       window.goToGroceryList = () => {
         if (selectedRecipe) {
           // Add recipe to current plan's grocery list
-          sessionStorage.setItem("pendingRecipeToGrocery", JSON.stringify({
-            recipeId: selectedRecipe.id,
-            recipeName: selectedRecipe.name,
-            ingredients: selectedRecipe.ingredients || []
-          }));
+          sessionStorage.setItem(
+            "pendingRecipeToGrocery",
+            JSON.stringify({
+              recipeId: selectedRecipe.id,
+              recipeName: selectedRecipe.name,
+              ingredients: selectedRecipe.ingredients || [],
+            }),
+          );
         }
         window.location.href = "grocery.html";
       };
@@ -542,18 +618,18 @@
       console.log("Catálogo de Receitas carregado [V1]");
     </script>
   </body>
-    <script>
-      // Dynamic include for bottom navigation
-      fetch('bottom-nav.html')
-        .then(res => res.text())
-        .then(html => {
-          const temp = document.createElement('div');
-          temp.innerHTML = html;
-          document.body.appendChild(temp.firstElementChild);
-          // After nav is loaded, highlight active
-          const script = document.createElement('script');
-          script.src = 'active-screen.js';
-          document.body.appendChild(script);
-        });
-    </script>
+  <script>
+    // Dynamic include for bottom navigation
+    fetch("bottom-nav.html")
+      .then((res) => res.text())
+      .then((html) => {
+        const temp = document.createElement("div");
+        temp.innerHTML = html;
+        document.body.appendChild(temp.firstElementChild);
+        // After nav is loaded, highlight active
+        const script = document.createElement("script");
+        script.src = "active-screen.js";
+        document.body.appendChild(script);
+      });
+  </script>
 </html>

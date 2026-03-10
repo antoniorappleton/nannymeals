@@ -157,7 +157,7 @@
             class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-[0.98]"
             type="button"
           >
-            <svg class="w-5 h-5" viewbox="0 0 24 24">
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -193,13 +193,13 @@
         </p>
       </div>
     </div>
-    <script type="module" src="src/auth.js?v=25"></script> REPLACE
+    <script type="module" src="src/auth.js?v=26"></script>
     <script>
       // Script de emergência para limpar cache se detectar versão antiga nos logs
-      // VERSÃO V25: Correção de bugs e melhorias
-      if (localStorage.getItem("app_version") !== "v25") {
-        console.log("URGENTE: Limpando ambientes para v25...");
-        localStorage.setItem("app_version", "v25");
+
+      if (localStorage.getItem("app_version") !== "v26") {
+        console.log("URGENTE: Limpando ambientes para v26...");
+        localStorage.setItem("app_version", "v26");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) {
@@ -217,17 +217,6 @@
       }
     </script>
     <script type="module">
-      // Service Worker DESATIVADO temporariamente para estabilidade
-      /*
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('Service Worker registrado:', reg.scope))
-          .catch(err => console.log('Erro ao registrar Service Worker:', err));
-      });
-    }
-    */
-
       const setupPasswordToggle = (btnId, inputId) => {
         const btn = document.getElementById(btnId);
         const input = document.getElementById(inputId);
@@ -252,6 +241,7 @@
       const authBtn = document.getElementById("btn-submit");
       const authFooterText = document.getElementById("auth-footer-text");
       const forgotLink = document.getElementById("forgot-password");
+
       if (forgotLink) {
         forgotLink.onclick = async (e) => {
           e.preventDefault();
@@ -260,7 +250,7 @@
           );
           if (email) {
             try {
-const { resetPassword } = await import("./src/auth.js?v=25");
+              const { resetPassword } = await import("./src/auth.js?v=26");
               await resetPassword(email);
               alert(
                 "Email de recuperação enviado! Verifique a sua caixa de entrada.",
@@ -271,10 +261,10 @@ const { resetPassword } = await import("./src/auth.js?v=25");
           }
         };
       }
+
       const confirmPassContainer = document.getElementById(
         "confirm-password-container",
       );
-
       let isLoginMode = true;
 
       if (toggleAuthBtn) {
@@ -299,11 +289,9 @@ const { resetPassword } = await import("./src/auth.js?v=25");
             document.getElementById("confirm-password").required = true;
           }
 
-          // Guardar estado no window para o auth.js
           window.isLoginMode = isLoginMode;
         });
       }
-      // Inicializar estado global
       window.isLoginMode = true;
 
       // Estado visual do botão Google

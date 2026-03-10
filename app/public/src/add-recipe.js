@@ -147,7 +147,7 @@ recipeForm.onsubmit = async (e) => {
       .map(i => i.value.trim())
       .filter(Boolean);
       
-    const instructions = Array.from(stepsList.querySelectorAll("input"))
+    const instructionSteps = Array.from(stepsList.querySelectorAll("input"))
       .map(i => i.value.trim())
       .filter(Boolean);
 
@@ -156,7 +156,7 @@ recipeForm.onsubmit = async (e) => {
       prepTime: parseInt(document.getElementById("recipe-time").value) || 30,
       difficulty: document.getElementById("recipe-difficulty").value,
       ingredients,
-      instructions: instructions.join("\n"),
+      instructionSteps,
       image: recipeImageBase64,
       ownerUid: currentUser.uid,
       source: "user",
@@ -173,3 +173,4 @@ recipeForm.onsubmit = async (e) => {
     alert("Erro ao guardar receita. Verifique a ligação.");
   }
 };
+
