@@ -1108,15 +1108,13 @@ export const updateMeal = async (planId, mealIndex, mealUpdates) => {
 };
 
 /**
- * Elimina um plano (soft delete - marca como deletado)
+ * Elimina um plano definitivamente do Firestore
  */
 export const deletePlan = async (planId) => {
   try {
     const planRef = doc(db, "weeklyPlans", planId);
-    await updateDoc(planRef, {
-      status: "deleted",
-      deletedAt: serverTimestamp(),
-    });
+    // Hard delete - elimina definitivamente o documento
+    await deleteDoc(planRef);
     return true;
   } catch (error) {
     console.error("Erro ao eliminar plano:", error);

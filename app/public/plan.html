@@ -969,11 +969,17 @@
 
           try {
             allPlans = await getAllPlans(user.uid);
-            if (allPlans.length > 0) {
+            
+            // Filter only active plans
+            const activePlans = allPlans.filter(p => p.status === 'active');
+            
+            if (activePlans.length > 0) {
               currentPlanIndex = 0;
-              renderPlan(allPlans[0]);
+              // Use activePlans instead of allPlans
+              allPlans = activePlans;
+              renderPlan(activePlans[0]);
             } else {
-              // Se não houver planos, mostrar opção de criar
+              // Se não houver planos ativos, mostrar opção de criar
               renderPlan(null);
             }
           } catch (error) {
