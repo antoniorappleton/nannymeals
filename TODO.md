@@ -1,14 +1,23 @@
-# TODO - Admin Import Redesign
+# TODO - Alterações Perfil e Modal de Planos
 
-## Task
-Make the floating button open admin-import.html with app-like layout, responsive for PC and mobile
+## [ ] 1. Criar novo perfil.html
+- Mostrar perfil da família (adultos, crianças, preferências, alergias)
+- Mostrar planos ativos (com opção de remover)
+- Mostrar estatísticas de feedback (refeições mais comidas, etc.)
 
-## Steps
+## [ ] 2. Modificar plan.html - Adicionar Modal de Geração de Planos
+- Modal que mostra contexto do perfil familiar ao gerar planos
+- Vincular ao botão de criar/gerar novo plano
 
-- [x] 1. Update dashboard.html - change floating button to navigate to admin-import.html
-- [x] 2. Restyle admin-import.html - use app-container, glass-effect header, responsive layout
-- [x] 3. Add bottom navigation to admin-import.html
-- [x] 4. Fix JavaScript syntax error
+## [ ] 3. Atualizar bottom-nav.html
+- Mudar link de "Perfil" de onboarding.html para perfil.html
 
-## Status: Completed ✓
+## [ ] 4. Adicionar funções DB (se necessário)
+- Funções para buscar estatísticas de feedback
+- Funções para gerir planos ativos
+
+## [ ] 5. Testar e Validar
+- Verificar navegação
+- Verificar modal de geração de planos
+- Verificar dados do perfil
 

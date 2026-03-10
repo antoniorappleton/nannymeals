@@ -173,14 +173,17 @@ const doEnrichAllRecipes = async () => {
             const searchData = await fetchSpoonacular(`/recipes/complexSearch?query=${encodeURIComponent(data.name)}&addRecipeInformation=true&number=1`);
             const details = (searchData.results && searchData.results[0]) || null;
             if (details) {
+                const usdToEur = 0.92 * 1.023;
+                const priceEur = details.pricePerServing ? (details.pricePerServing / 100) * usdToEur : null;
+                const totalCostEur = details.pricePerServing && details.servings ? (details.pricePerServing * details.servings / 100) * usdToEur : null;
                 const enriched = {
                     calories: Math.round(((_c = (_b = (_a = details.nutrition) === null || _a === void 0 ? void 0 : _a.nutrients) === null || _b === void 0 ? void 0 : _b.find((n) => n.name === "Calories")) === null || _c === void 0 ? void 0 : _c.amount) ||
                         (details.healthScore > 0 ? details.healthScore * 5 + 200 : 350)),
                     protein: ((_e = (_d = details.nutrition) === null || _d === void 0 ? void 0 : _d.nutrients) === null || _e === void 0 ? void 0 : _e.find((n) => n.name === "Protein"))
                         ? `${Math.round(details.nutrition.nutrients.find((n) => n.name === "Protein").amount)}g`
                         : "20g",
-                    pricePerServing: (details.pricePerServing / 100).toFixed(2),
-                    totalCost: ((details.pricePerServing * (details.servings || 1)) / 100).toFixed(2),
+                    pricePerServing: priceEur ? priceEur.toFixed(2) : null,
+                    totalCost: totalCostEur ? totalCostEur.toFixed(2) : null,
                     servings: details.servings || 1,
                     image: details.image,
                     spoonacularId: details.id,

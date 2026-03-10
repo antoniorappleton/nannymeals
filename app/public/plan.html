@@ -145,6 +145,112 @@
       </main>
     </div>
 
+    <!-- Generate Plan Modal - Shows profile context when generating plans -->
+    <div id="generate-plan-modal" class="hidden fixed inset-0 z-50 bg-black">
+      <div class="w-full max-w-lg mx-auto h-full flex flex-col">
+        <div class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 mt-0">
+          <!-- Header -->
+          <div class="shrink-0 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-slate-800 dark:to-slate-900 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="size-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                  <span class="material-symbols-outlined text-2xl text-slate-900">auto_awesome</span>
+                </div>
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Novo Plano</h2>
+                  <p class="text-xs text-slate-500">Baseado no perfil da família</p>
+                </div>
+              </div>
+              <button onclick="closeGenerateModal()" class="shrink-0 p-2 sm:p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
+                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-xl">close</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Scrollable Content - Profile Context -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+            <!-- Family Composition Summary -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700">
+              <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined">family_restroom</span>
+                Composição da Família
+              </h3>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-slate-400">adult</span>
+                    <span class="text-sm font-medium">Adultos</span>
+                  </div>
+                  <span id="modal-adults-count" class="text-lg font-black text-primary">--</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-slate-400">child_care</span>
+                    <span class="text-sm font-medium">Crianças</span>
+                  </div>
+                  <span id="modal-children-count" class="text-lg font-black text-primary">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700">
+              <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined">settings</span>
+                Preferências
+              </h3>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span class="text-sm text-slate-500">Estilo Alimentar</span>
+                  <span id="modal-diet-style" class="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span class="text-sm text-slate-500">Orçamento</span>
+                  <span id="modal-budget" class="text-sm font-bold text-slate-700 dark:text-slate-200">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                  <span class="text-sm text-slate-500">Dias de cozinha</span>
+                  <span id="modal-cooking-days" class="text-lg font-black text-primary">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Allergies Warning -->
+            <div id="modal-allergies-warning" class="hidden bg-red-50 dark:bg-red-900/20 rounded-2xl p-4 border border-red-200 dark:border-red-800">
+              <h3 class="font-bold text-sm uppercase tracking-widest text-red-500 mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined">warning</span>
+                Alergias a Considerar
+              </h3>
+              <div id="modal-allergies-list" class="flex flex-wrap gap-2">
+                <!-- Dynamic allergies -->
+              </div>
+            </div>
+
+            <!-- Quick Tips -->
+            <div class="bg-primary/5 dark:bg-primary/10 rounded-2xl p-4 border border-primary/20">
+              <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined">lightbulb</span>
+                Dicas Inteligentes
+              </h3>
+              <p id="modal-tip" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                A gerar sugestões personalizadas...
+              </p>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4">
+            <button id="btn-confirm-generate" class="w-full bg-primary text-slate-900 font-black py-5 rounded-2xl shadow-premium flex items-center justify-center gap-2 hover:scale-[0.98] active:scale-[0.95] transition-all">
+              <span class="material-symbols-outlined text-xl">auto_awesome</span>
+              Gerar Plano Inteligente
+            </button>
+            <button onclick="closeGenerateModal()" class="w-full mt-2 bg-transparent text-slate-400 font-bold py-3 uppercase tracking-widest text-xs hover:text-slate-600 transition-colors">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Recipe Detail Modal - OUTSIDE app-container for fullscreen -->
     <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black">
         <!-- Modal Container - Full screen with scroll -->
@@ -407,6 +513,8 @@
       const weekDates = document.getElementById("week-dates");
       const adaptationText = document.getElementById("adaptation-text");
       const recipeModal = document.getElementById("recipe-modal");
+      const generateModal = document.getElementById("generate-plan-modal");
+      let currentHousehold = null;
 
       const days = [
         "Segunda-feira",
@@ -651,6 +759,81 @@
       recipeModal.onclick = (e) => {
         if (e.target === recipeModal) closeRecipeModal();
       };
+
+      // Generate Plan Modal Functions
+      const openGenerateModal = async (user) => {
+        try {
+          currentHousehold = await getHousehold(user.uid);
+          if (!currentHousehold) {
+            alert("É necessário configurar o perfil primeiro.");
+            window.location.href = "onboarding.html";
+            return;
+          }
+
+          // Populate modal with household data
+          document.getElementById("modal-adults-count").textContent = currentHousehold.adults || 2;
+          document.getElementById("modal-children-count").textContent = currentHousehold.children?.length || 0;
+          
+          const dietStyle = currentHousehold.dietStyle || currentHousehold.dietaryPreferences?.[0] || 'Sem restrições';
+          document.getElementById("modal-diet-style").textContent = dietStyle;
+          
+          const budgetMap = { low: 'Baixo', medium: 'Médio', high: 'Elevado' };
+          document.getElementById("modal-budget").textContent = budgetMap[currentHousehold.budgetLevel] || 'Médio';
+          
+          document.getElementById("modal-cooking-days").textContent = currentHousehold.cookingDaysPerWeek || currentHousehold.dinnersPerWeek || 5;
+
+          // Allergies
+          const allergies = currentHousehold.allergies || [];
+          const allergiesWarning = document.getElementById("modal-allergies-warning");
+          const allergiesList = document.getElementById("modal-allergies-list");
+          if (allergies.length > 0) {
+            allergiesWarning.classList.remove("hidden");
+            allergiesList.innerHTML = allergies.map(a => 
+              `<span class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-bold px-3 py-1.5 rounded-full">${a}</span>`
+            ).join('');
+          } else {
+            allergiesWarning.classList.add("hidden");
+          }
+
+          // Smart tip
+          const tipElement = document.getElementById("modal-tip");
+          const tips = [
+            "Vamos sugerir receitas que já gostaram anteriormente!",
+            "Priorizamos receitas rápidas para os dias de semana.",
+            "As sugestões consideram as restrições alimentares registadas.",
+            "Variedade garantiada com pratos diferentes a cada dia!"
+          ];
+          tipElement.textContent = tips[Math.floor(Math.random() * tips.length)];
+
+          generateModal.classList.remove("hidden");
+          document.body.style.overflow = "hidden";
+          document.documentElement.style.overscrollBehavior = "none";
+        } catch (error) {
+          console.error("Erro ao carregar perfil:", error);
+          alert("Erro ao carregar perfil familiar.");
+        }
+      };
+
+      window.closeGenerateModal = () => {
+        generateModal.classList.add("hidden");
+        document.body.style.overflow = "";
+        document.documentElement.style.overscrollBehavior = "";
+      };
+
+      generateModal.onclick = (e) => {
+        if (e.target === generateModal) window.closeGenerateModal();
+      };
+
+      // Handle confirm generate button
+      document.getElementById("btn-confirm-generate")?.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (user && currentHousehold) {
+          window.closeGenerateModal();
+          mealsContainer.innerHTML = "<p class='text-center py-10 animate-pulse font-bold'>A planear nova ementa...</p>";
+          await generateWeeklyPlan(user.uid);
+          location.reload();
+        }
+      });
 
       const renderPlan = (plan) => {
         if (!plan || !plan.meals) {
