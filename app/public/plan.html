@@ -143,14 +143,14 @@
           </div>
         </div>
       </main>
-      <!-- Bottom Navigation Bar will be included dynamically -->
+    </div>
 
-      <!-- Recipe Detail Modal - Full Screen with Scroll -->
-      <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black">
+    <!-- Recipe Detail Modal - OUTSIDE app-container for fullscreen -->
+    <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black">
         <!-- Modal Container - Full screen with scroll -->
         <div class="w-full max-w-lg mx-auto h-full flex flex-col">
           <div
-            class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700"
+            class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 mt-0"
           >
             <!-- Header - Always visible -->
             <div
@@ -582,12 +582,10 @@
 
           recipeModal.classList.remove("hidden");
 
-          // Bloquear scroll do body quando modal abre - solução iOS
+          // Bloquear scroll do body quando modal abre
           document.body.style.overflow = "hidden";
-          document.body.style.position = "fixed";
-          document.body.style.width = "100%";
-
-          // Adicionar overscroll-behavior none para evitar scroll pull-to-refresh
+          
+          // Impedir pull-to-refresh no iOS
           document.documentElement.style.overscrollBehavior = "none";
         } catch (err) {
           console.error("Erro ao abrir modal:", err);
@@ -643,8 +641,6 @@
 
         // Desbloquear scroll do body quando modal fecha
         document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.width = "";
         document.documentElement.style.overscrollBehavior = "";
       };
 
