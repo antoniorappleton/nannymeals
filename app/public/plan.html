@@ -511,7 +511,45 @@
 
       const mealsContainer = document.getElementById("meals-container");
       const weekDates = document.getElementById("week-dates");
+      const currentWeekHeader = document.getElementById("current-week-header");
       const adaptationText = document.getElementById("adaptation-text");
+
+      // Calculate current week dates (Monday to Sunday)
+      const getCurrentWeekDates = () => {
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // Day of week (0 = Sunday, 1 = Monday, etc.)
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + mondayOffset);
+        monday.setHours(0, 0, 0, 0);
+        
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        
+        return { monday, sunday };
+      };
+
+      // Format date as "2 MAR"
+      const formatDate = (date) => {
+        const day = date.getDate();
+        const month = date.toLocaleDateString('pt-PT', { month: 'short' }).toUpperCase();
+        return `${day} ${month}`;
+      };
+
+      // Update week header with current dates
+      const updateWeekHeader = () => {
+        const { monday, sunday } = getCurrentWeekDates();
+        const startDate = formatDate(monday);
+        const endDate = formatDate(sunday);
+        
+        currentWeekHeader.textContent = `${startDate} – ${endDate} • EMENTA ATIVA`;
+        weekDates.textContent = `${startDate} – ${endDate}`;
+      };
+
+      // Initialize week header on load
+      updateWeekHeader();
+      
       const recipeModal = document.getElementById("recipe-modal");
       const generateModal = document.getElementById("generate-plan-modal");
       let currentHousehold = null;
