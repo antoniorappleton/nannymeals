@@ -16,8 +16,22 @@
     <script src="src/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/global.css" />
     <link rel="manifest" href="manifest.json" />
+    <script>
+      // EMERGÊNCIA V24
+      if (localStorage.getItem("app_version") !== "v24") {
+        localStorage.setItem("app_version", "v24");
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => {});
+        }
+        if ("caches" in window) {
+          caches.keys().then((names) => {
+            for (let name of names) caches.delete(name);
+            setTimeout(() => window.location.reload(true), 500);
+          });
+        }
+      }
+    </script>
   </head>
-
   <body
     class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
   >
@@ -121,7 +135,7 @@
       <!-- Recipe Detail Modal - Improved -->
       <div
         id="recipe-modal"
-        class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-md"
+        class="hidden fixed inset-0 z-50 bg-black overflow-y-auto"
       >
         <!-- Modal Container - Aligned to top with scroll -->
         <div class="w-full max-w-lg mx-auto mt-4 mb-4 h-[calc(100vh-2rem)]">
@@ -552,12 +566,26 @@
         }
 
         recipeModal.classList.remove("hidden");
+
+        // Bloquear scroll do body quando modal abre - solução iOS
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.width = "100%";
+
+        // Adicionar overscroll-behavior none para evitar scroll pull-to-refresh
+        document.documentElement.style.overscrollBehavior = "none";
       };
 
       // Close modal function
       window.closeRecipeModal = () => {
         recipeModal.classList.add("hidden");
         selectedRecipe = null;
+
+        // Desbloquear scroll do body quando modal fecha
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.width = "";
+        document.documentElement.style.overscrollBehavior = "";
       };
 
       // Go to grocery list

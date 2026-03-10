@@ -1,19 +1,18 @@
-# TODO - Organizar Passos das Receitas em Pontos Numerados
+# Tarefas de Correção do Modal de Receitas
 
-## [x] 1. Atualizar seed-recipes.js
-- Converter instructions de string para array de passos
+## Objetivo
+Corrigir o problema de scroll quando o modal de receita abre - o ecrã fica "bloqueado" e não permite scroll até ao fundo.
 
-## [x] 2. Atualizar add-recipe.js
-- Guardar instructionSteps como array em vez de string
+## Tarefas
 
-## [x] 3. Atualizar recipes-catalog.html
-- Mostrar passos como lista numerada no modal
+- [x] Editar plan.html - Adicionar gestão de scroll no body quando modal abre/fecha
+- [x] Editar recipes-catalog.html - Adicionar gestão de scroll no body quando modal abre/fecha
 
-## [x] 4. Atualizar plan.html
-- Aplicar同样的 alterações do modal de receitas
+## Detalhes da Correção
 
-## [x] 5. Firebase functions
-- Suporte para instructionSteps via fallback no frontend
+A correção consiste em:
+1. Adicionar `document.body.style.overflow = 'hidden'` quando o modal abre
+2. Remover `document.body.style.overflow = ''` quando o modal fecha
 
-## [x] 6. Concluído
+Isto vai garantir que o utilizador só pode fazer scroll dentro do modal quando está aberto.
 

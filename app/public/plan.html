@@ -17,9 +17,9 @@
     <link rel="stylesheet" href="css/global.css" />
     <link rel="manifest" href="manifest.json" />
     <script>
-      // EMERGÊNCIA V23
-      if (localStorage.getItem("app_version") !== "v23") {
-        localStorage.setItem("app_version", "v23");
+      // EMERGÊNCIA V24
+      if (localStorage.getItem("app_version") !== "v24") {
+        localStorage.setItem("app_version", "v24");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) reg.unregister();
@@ -146,12 +146,9 @@
       <!-- Bottom Navigation Bar will be included dynamically -->
 
       <!-- Recipe Detail Modal - Full Screen with Scroll -->
-      <div
-        id="recipe-modal"
-        class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-md"
-      >
-        <!-- Modal Container - Aligned to top with scroll -->
-        <div class="w-full max-w-lg mx-auto mt-4 mb-4 h-[calc(100vh-2rem)]">
+      <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black">
+        <!-- Modal Container - Full screen with scroll -->
+        <div class="w-full max-w-lg mx-auto h-full flex flex-col">
           <div
             class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700"
           >
@@ -163,7 +160,6 @@
               <div id="modal-image-container" class="mb-4 hidden">
                 <img
                   id="modal-recipe-image"
-                  src=""
                   alt="Recipe"
                   class="w-full h-40 object-cover rounded-2xl shadow-lg"
                 />
@@ -585,6 +581,14 @@
           }
 
           recipeModal.classList.remove("hidden");
+
+          // Bloquear scroll do body quando modal abre - solução iOS
+          document.body.style.overflow = "hidden";
+          document.body.style.position = "fixed";
+          document.body.style.width = "100%";
+
+          // Adicionar overscroll-behavior none para evitar scroll pull-to-refresh
+          document.documentElement.style.overscrollBehavior = "none";
         } catch (err) {
           console.error("Erro ao abrir modal:", err);
           alert("Erro ao carregar detalhes da receita.");
@@ -636,6 +640,12 @@
       const closeRecipeModal = () => {
         recipeModal.classList.add("hidden");
         currentMealData = null;
+
+        // Desbloquear scroll do body quando modal fecha
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.width = "";
+        document.documentElement.style.overscrollBehavior = "";
       };
 
       // Expose closeRecipeModal to global scope for HTML onclick handlers
