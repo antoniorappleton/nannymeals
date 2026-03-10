@@ -1,4 +1,4 @@
-import {
+ import {
   db,
   auth,
   doc,
@@ -503,8 +503,260 @@ export const getMealRecommendations = async (householdId, count) => {
 };
 
 /**
- * Gerador de lista de compras agregada
+ * Converte fração para decimal
+ * @param {string} fraction - ex: "1/2", "1 1/2", "1/4"
+ * @returns {number} valor decimal
  */
+const parseFraction = (fraction) => {
+  if (!fraction) return 0;
+  
+  // Handle mixed numbers like "1 1/2"
+  const mixedMatch = fraction.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if (mixedMatch) {
+    return parseInt(mixedMatch[1]) + (parseInt(mixedMatch[2]) / parseInt(mixedMatch[3]));
+  }
+  
+  // Handle simple fractions like "1/2", "3/4"
+  const simpleMatch = fraction.match(/^(\d+)\/(\d+)$/);
+  if (simpleMatch) {
+    return parseInt(simpleMatch[1]) / parseInt(simpleMatch[2]);
+  }
+  
+  // Handle decimal or integer
+  return parseFloat(fraction.replace(',', '.')) || 0;
+};
+
+/**
+ * Normaliza e converte unidades para formato padrão
+ * @param {string} unit - unidade original
+ * @returns {object} - { baseUnit: string, factor: number }
+ */
+const normalizeUnit = (unit) => {
+  if (!unit) return { baseUnit: 'unid', factor: 1 };
+  
+  const unitLower = unit.toLowerCase().trim();
+  
+  // Weight units
+  if (unitLower === 'kg' || unitLower === 'kilograma' || unitLower === 'kilogramas') {
+    return { baseUnit: 'kg', factor: 1 };
+  }
+  if (unitLower === 'g' || unitLower === 'grama' || unitLower === 'gramas') {
+    return { baseUnit: 'g', factor: 1 };
+  }
+  if (unitLower === 'mg' || unitLower === 'miligrama') {
+    return { baseUnit: 'mg', factor: 1 };
+  }
+  if (unitLower === 'lb' || unitLower === 'libra' || unitLower === 'libras') {
+    return { baseUnit: 'g', factor: 453.592 }; // Convert to grams
+  }
+  if (unitLower === 'oz' || unitLower === 'ounce' || unitLower === 'onça') {
+    return { baseUnit: 'g', factor: 28.3495 }; // Convert to grams
+  }
+  
+  // Volume units
+  if (unitLower === 'l' || unitLower === 'litro' || unitLower === 'litros') {
+    return { baseUnit: 'l', factor: 1 };
+  }
+  if (unitLower === 'ml' || unitLower === 'mililitro' || unitLower === 'mililitros') {
+    return { baseUnit: 'ml', factor: 1 };
+  }
+  if (unitLower === 'cl' || unitLower === 'centilitro') {
+    return { baseUnit: 'ml', factor: 10 };
+  }
+  if (unitLower === 'dl' || unitLower === 'decilitro') {
+    return { baseUnit: 'ml', factor: 100 };
+  }
+  
+  // Spoon measures
+  if (unitLower === 'colher' || unitLower === 'colheres' || unitLower === 'tbsp' || unitLower === 'tablespoon') {
+    return { baseUnit: 'colher', factor: 1 };
+  }
+  if (unitLower === 'chá' || unitLower === 'cha' || unitLower === 'teaspoon' || unitLower === 'tsp') {
+    return { baseUnit: 'chá', factor: 1 };
+  }
+  if (unitLower === 'sopa' || unitLower === 'sopas') {
+    return { baseUnit: 'sopa', factor: 1 };
+  }
+  
+  // Cup measures
+  if (unitLower === 'cup' || unitLower === 'cups' || unitLower === 'xícara' || unitLower === 'xicara') {
+    return { baseUnit: 'cup', factor: 1 };
+  }
+  
+  // Count units
+  if (unitLower === 'unid' || unitLower === 'unidades' || unitLower === 'unit' || unitLower === 'units') {
+    return { baseUnit: 'unid', factor: 1 };
+  }
+  if (unitLower === 'dente' || unitLower === 'dentes') {
+    return { baseUnit: 'dente', factor: 1 };
+  }
+  if (unitLower === 'fatia' || unitLower === 'fatias' || unitLower === 'slice') {
+    return { baseUnit: 'fatia', factor: 1 };
+  }
+  if (unitLower === 'filé' || unitLower === 'file' || unitLower === 'filets') {
+    return { baseUnit: 'filé', factor: 1 };
+  }
+  if (unitLower === 'un' || unitLower === 'pcs' || unitLower === 'pc') {
+    return { baseUnit: 'unid', factor: 1 };
+  }
+  
+  return { baseUnit: unitLower, factor: 1 };
+};
+
+/**
+ * Converte quantidade para a melhor unidade de display
+ * @param {number} qty - quantidade
+ * @param {string} baseUnit - unidade base
+ * @returns {string} - quantidade formatada
+ */
+const formatQuantity = (qty, baseUnit) => {
+  if (!qty || qty <= 0) return '1 Unid.';
+  
+  // Weight conversions
+  if (baseUnit === 'g' || baseUnit === 'mg') {
+    if (baseUnit === 'mg' && qty >= 1000) {
+      return `${(qty / 1000).toFixed(2)} g`;
+    }
+    if (baseUnit === 'g' && qty >= 1000) {
+      return `${(qty / 1000).toFixed(2)} kg`;
+    }
+    return `${Math.round(qty)} g`;
+  }
+  
+  // Volume conversions
+  if (baseUnit === 'ml') {
+    if (qty >= 1000) {
+      return `${(qty / 1000).toFixed(2)} l`;
+    }
+    return `${Math.round(qty)} ml`;
+  }
+  
+  // Pretty display for other units
+  if (baseUnit === 'unid' || baseUnit === 'dente' || baseUnit === 'fatia' || baseUnit === 'filé') {
+    const cleanQty = Math.round(qty * 100) / 100;
+    if (cleanQty === 1) return `1 ${baseUnit === 'unid' ? 'Unid.' : baseUnit}`;
+    return `${cleanQty} ${baseUnit}`;
+  }
+  
+  if (baseUnit === 'colher' || baseUnit === 'chá' || baseUnit === 'sopa') {
+    const cleanQty = Math.round(qty * 100) / 100;
+    return `${cleanQty} ${baseUnit}`;
+  }
+  
+  if (baseUnit === 'cup') {
+    const cleanQty = Math.round(qty * 100) / 100;
+    return `${cleanQty} cup${cleanQty > 1 ? 's' : ''}`;
+  }
+  
+  const cleanQty = Math.round(qty * 100) / 100;
+  return `${cleanQty} ${baseUnit}`;
+};
+
+/**
+ * Normaliza o nome do ingrediente para chave de agregação
+ * @param {string} name - nome do ingrediente
+ * @returns {string} - nome normalizado
+ */
+const normalizeIngredientName = (name) => {
+  if (!name) return '';
+  
+  return name
+    .toLowerCase()
+    .trim()
+    // Remove common prefixes/adjectives
+    .replace(/^(fresh |fresco |fresca |dry |seco |seca )/i, '')
+    .replace(/^(small |medium |large |pequeno |médio |grande )/i, '')
+    .replace(/^(boneless |skinless |sem pele |sem osso )/i, '')
+    // Remove everything in parentheses
+    .replace(/\s*\([^)]*\)\s*/g, ' ')
+    // Normalize common variations
+    .replace(/cebola[s]? (?:francesa|galega)?/i, 'cebola')
+    .replace(/alho[s]? franc[e]?s/i, 'alho')
+    .replace(/tomate[s]? cereja/i, 'tomate cereja')
+    .replace(/batata[s]? doce[s]?/i, 'batata doce')
+    .replace(/batata[s]?[/ ]?frita[s]?/i, 'batata frita')
+    .replace(/pão[ -]?es?hambúrguer/i, 'pão hambúrguer')
+    .replace(/pão[ -]?de[ -]?hambúrguer/i, 'pão hambúrguer')
+    .replace(/filé[ -]?de[ -]?peixe/i, 'filé de peixe')
+    .trim();
+};
+
+/**
+ * Categoriza ingrediente baseado no nome
+ * @param {string} name - nome do ingrediente
+ * @returns {string} - categoria
+ */
+const categorizeIngredient = (name) => {
+  if (!name) return 'Geral';
+  
+  const n = name.toLowerCase();
+  
+  // Meat
+  if (n.includes('frango') || n.includes('carne') || n.includes('bife') || 
+      n.includes('peru') || n.includes('panado') || n.includes('porco') ||
+      n.includes('fiambre') || n.includes('chouriço') || n.includes('linguiça') ||
+      n.includes('costeleta') || n.includes('nata') || n.includes('bacon')) {
+    return 'Talho';
+  }
+  
+  // Fish & Seafood
+  if (n.includes('peixe') || n.includes('salmão') || n.includes('bacalhau') || 
+      n.includes('dourada') || n.includes('marisco') || n.includes('camarão') ||
+      n.includes('lula') || n.includes('polvo') || n.includes('atum') ||
+      n.includes('pescada') || n.includes('robalo')) {
+    return 'Peixaria';
+  }
+  
+  // Fruits & Vegetables
+  if (n.includes('tomate') || n.includes('alface') || n.includes('cenoura') || 
+      n.includes('fruta') || n.includes('brócolos') || n.includes('batata') || 
+      n.includes('cebola') || n.includes('alho') || n.includes('pimento') ||
+      n.includes('abacate') || n.includes('banana') || n.includes('maçã') ||
+      n.includes('laranja') || n.includes('abóbora') || n.includes('courgette') ||
+      n.includes('espinafre') || n.includes('rúcula') || n.includes('nabo') ||
+      n.includes('beterraba') || n.includes('pepino') || n.includes('ervilha') ||
+      n.includes('feijão') || n.includes('grão') || n.includes('lentilha')) {
+    return 'Hortifrutis';
+  }
+  
+  // Dairy & Fresh
+  if (n.includes('leite') || n.includes('iogurte') || n.includes('queijo') || 
+      n.includes('ovos') || n.includes('natas') || n.includes('manteiga') || 
+      n.includes('creme') || n.includes('iogurte')) {
+    return 'Laticínios / Frescos';
+  }
+  
+  // Pantry
+  if (n.includes('arroz') || n.includes('massa') || n.includes('azeite') || 
+      n.includes('óleo') || n.includes('sal') || n.includes('pau') || 
+      n.includes('conserva') || n.includes('farinha') || n.includes('açúcar') ||
+      n.includes('acucar') || n.includes('fermento') || n.includes('maionese') ||
+      n.includes('ketchup') || n.includes('mostarda') || n.includes('molho')) {
+    return 'Despensa';
+  }
+  
+  // Bakery
+  if (n.includes('pão') || n.includes('tosta') || n.includes('bolacha') || 
+      n.includes('croissant') || n.includes('baguete') || n.includes('papel') ||
+      n.includes('tortilha')) {
+    return 'Padaria';
+  }
+  
+  // Beverages
+  if (n.includes('sumo') || n.includes('suco') || n.includes('refrigerante') || 
+      n.includes('café') || n.includes('cafe') || n.includes('chá') || n.includes('cha') ||
+      n.includes('água') || n.includes('agua')) {
+    return 'Bebidas';
+  }
+  
+  // Frozen
+  if (n.includes('congelado') || n.includes('gelado') || n.includes('pizza') ||
+      n.includes('lasanha') || n.includes('prato') || n.includes('砧')) {
+    return 'Congelados';
+  }
+  
+  return 'Geral';
+};
 export const generateGroceryListFromPlan = async (planId) => {
   console.log("generateGroceryListFromPlan: A iniciar para ID:", planId);
   const planRef = doc(db, "weeklyPlans", planId);
@@ -529,13 +781,10 @@ export const generateGroceryListFromPlan = async (planId) => {
 
   meals.forEach((meal) => {
     if (meal.pricePerServing) {
-      // Assuming 1 serving per recipe for simplicity in this calculation,
-      // but in a real app we'd multiply by family size.
       totalEstimatedCost += parseFloat(meal.pricePerServing);
     }
 
     (meal.ingredients || []).forEach((ingredient) => {
-      // Normalize ingredient text whether it's a string or an object
       let ingredientText = "";
       if (!ingredient) return;
       if (typeof ingredient === "string") ingredientText = ingredient;
@@ -546,9 +795,9 @@ export const generateGroceryListFromPlan = async (planId) => {
           ingredient.originalString ||
           JSON.stringify(ingredient);
 
-      // Improved Regex to handle cases without explicit quantities or units
+      // Enhanced regex to handle fractions and more units
       const match = ingredientText.match(
-        /^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i,
+        /^([\d.,/]+(?:\s+\d+\/\d+)?)?\s*(g|kg|ml|l|unid|colher|chá|sopa|cup|tbsp|tsp|oz|lb|dente|fatia|filé|un|pcs)?s?\s*(.*)$/i,
       );
 
       let qty = 1;
@@ -556,100 +805,52 @@ export const generateGroceryListFromPlan = async (planId) => {
       let name = ingredientText.toLowerCase().trim();
 
       if (match && (match[1] || match[2])) {
-        qty = parseFloat(match[1]?.replace(",", ".")) || 1;
+        // Use parseFraction for better quantity parsing
+        qty = parseFraction(match[1]?.replace(",", ".")) || 1;
         unit = (match[2] || "unid").toLowerCase();
         name = match[3]?.toLowerCase().trim() || name;
       } else {
-        // Full string is the name if no clear pattern
         name = ingredientText.toLowerCase().trim();
       }
 
-      if (!aggregator[name]) {
-        aggregator[name] = {
-          name: name.charAt(0).toUpperCase() + name.slice(1),
+      // Normalize ingredient name for better aggregation
+      const normalizedName = normalizeIngredientName(name);
+      const displayName = normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1);
+      
+      // Get normalized unit info
+      const unitInfo = normalizeUnit(unit);
+      
+      if (!aggregator[normalizedName]) {
+        aggregator[normalizedName] = {
+          name: displayName,
           qty: 0,
-          unit,
-          category: "Geral",
+          baseUnit: unitInfo.baseUnit,
+          conversionFactor: unitInfo.factor,
+          rawQty: 0,
+          rawUnit: unit,
+          category: categorizeIngredient(normalizedName),
         };
       }
 
-      // Simple unit conversion (g to kg) for aggregation if possible
-      if (aggregator[name].unit === unit) {
-        aggregator[name].qty += qty;
-      } else {
-        // Fallback: just append if units mismatch
-        aggregator[name].qty += qty;
-      }
-
-      // Categorization
-      const n = name;
-      if (
-        n.includes("frango") ||
-        n.includes("carne") ||
-        n.includes("bife") ||
-        n.includes("peru") ||
-        n.includes("panado")
-      )
-        aggregator[name].category = "Talho";
-      else if (
-        n.includes("peixe") ||
-        n.includes("salmão") ||
-        n.includes("bacalhau") ||
-        n.includes("dourada") ||
-        n.includes("marisco")
-      )
-        aggregator[name].category = "Peixaria";
-      else if (
-        n.includes("tomate") ||
-        n.includes("alface") ||
-        n.includes("cenoura") ||
-        n.includes("fruta") ||
-        n.includes("brócolos") ||
-        n.includes("batata") ||
-        n.includes("cebola") ||
-        n.includes("alho")
-      )
-        aggregator[name].category = "Hortifrutis";
-      else if (
-        n.includes("leite") ||
-        n.includes("iogurte") ||
-        n.includes("queijo") ||
-        n.includes("ovos") ||
-        n.includes("natas") ||
-        n.includes("manteiga")
-      )
-        aggregator[name].category = "Laticínios / Frescos";
-      else if (
-        n.includes("arroz") ||
-        n.includes("massa") ||
-        n.includes("azeite") ||
-        n.includes("óleo") ||
-        n.includes("sal") ||
-        n.includes("pau") ||
-        n.includes("conserva")
-      )
-        aggregator[name].category = "Despensa";
-      else if (
-        n.includes("pão") ||
-        n.includes("tosta") ||
-        n.includes("bolacha")
-      )
-        aggregator[name].category = "Padaria";
+      // Convert to base unit and add
+      const convertedQty = qty * unitInfo.factor;
+      aggregator[normalizedName].rawQty += qty;
+      aggregator[normalizedName].qty += convertedQty;
     });
   });
 
-  // Convert map to categorized array
+  // Convert map to categorized array with better formatting
   const categoriesMap = {};
   Object.values(aggregator).forEach((item) => {
     if (!categoriesMap[item.category]) categoriesMap[item.category] = [];
 
-    // Format quantity nicely: 1.5 kg, 500 g, etc.
-    let displayQty = `${item.qty} ${item.unit}`;
-    if (item.unit === "unid" && item.qty === 1) displayQty = "1 Unid.";
+    // Use formatQuantity for nice display
+    const displayQty = formatQuantity(item.qty, item.baseUnit);
 
     categoriesMap[item.category].push({
       name: item.name,
       quantity: displayQty,
+      rawQuantity: item.rawQty > 0 ? `${item.rawQty} ${item.rawUnit}` : null,
       checked: false,
     });
   });
