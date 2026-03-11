@@ -310,12 +310,23 @@
         const aggregatedIngredients = {};
         selectedMeals.forEach((meal) => {
           (meal.ingredients || []).forEach((ingredient) => {
-            const match = ingredient.match(
+            // Handle both string and object ingredients
+            let ingredientText = "";
+            if (!ingredient) return;
+            if (typeof ingredient === "string") ingredientText = ingredient;
+            else if (typeof ingredient === "object")
+              ingredientText =
+                ingredient.original ||
+                ingredient.name ||
+                ingredient.originalString ||
+                JSON.stringify(ingredient);
+
+            const match = ingredientText.match(
               /^([\d.,/]+)?\s*(g|kg|ml|l|unid|colher|chá|sopa)?\s*(.*)$/i,
             );
             let qty = 1;
             let unit = "unid";
-            let name = ingredient.toLowerCase().trim();
+            let name = ingredientText.toLowerCase().trim();
 
             if (match && (match[1] || match[2])) {
               qty = parseFloat(match[1]?.replace(",", ".")) || 1;

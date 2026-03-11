@@ -102,7 +102,7 @@
           <p class="text-slate-500 text-sm mb-4">Esta acao e irreversivel.</p>
           <div class="flex gap-2">
             <button id="btn-cancel-delete" class="flex-1 bg-slate-100 font-bold py-3 rounded-2xl">Cancelar</button>
-            <button id="btn-confirm-delete" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl">Eliminar</button>
+            <button id="btn-confirm-delete" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl" onclick="console.log('Botão Eliminar clicado diretamente!')">Eliminar</button>
           </div>
       </div>
   </div>
@@ -125,7 +125,34 @@
     document.getElementById("btn-close-help").onclick = () => helpModal.classList.add("hidden");
     helpModal.onclick = (e) => { if(e.target === helpModal) helpModal.classList.add("hidden"); };
     document.getElementById("btn-cancel-delete").onclick = () => { deleteModal.classList.add("hidden"); planToDelete = null; };
-    document.getElementById("btn-confirm-delete").onclick = async () => { if(planToDelete){ await deletePlan(planToDelete); deleteModal.classList.add("hidden"); planToDelete = null; await loadPlans(); }};
+    document.getElementById("btn-confirm-delete").onclick = async () => {
+      console.log("btn-confirm-delete: Clique detectado, planToDelete:", planToDelete);
+      if(planToDelete) {
+        try {
+          console.log("btn-confirm-delete: A chamar deletePlan para:", planToDelete);
+          document.getElementById("btn-confirm-delete").disabled = true;
+          document.getElementById("btn-confirm-delete").textContent = "A eliminar...";
+          const result = await deletePlan(planToDelete);
+          console.log("btn-confirm-delete: Resultado de deletePlan:", result);
+          if (result) {
+            deleteModal.classList.add("hidden");
+            planToDelete = null;
+            await loadPlans();
+            alert("Plano eliminado com sucesso!");
+          } else {
+            alert("Erro ao eliminar plano. Tenta novamente.");
+          }
+        } catch (error) {
+          console.error("btn-confirm-delete: Erro ao eliminar plano:", error);
+          alert("Erro ao eliminar plano: " + error.message);
+        } finally {
+          document.getElementById("btn-confirm-delete").disabled = false;
+          document.getElementById("btn-confirm-delete").textContent = "Eliminar";
+        }
+      } else {
+        console.log("btn-confirm-delete: planToDelete é null ou undefined!");
+      }
+    };
     deleteModal.onclick = (e) => { if(e.target === deleteModal){ deleteModal.classList.add("hidden"); planToDelete = null; }};
 
     const loadHousehold = async (userId) => {
@@ -142,13 +169,24 @@
 
     const loadPlans = async () => {
       if(!currentUser) return;
+      console.log("loadPlans: A carregar planos para utilizador:", currentUser.uid);
       const allPlans = await getAllPlans(currentUser.uid);
+      console.log("loadPlans: Planos obtidos:", allPlans);
       const active = allPlans.filter(p => p.status === "active");
+      console.log("loadPlans: Planos ativos:", active);
       document.getElementById("plans-count").textContent = active.length;
       const list = document.getElementById("active-plans-list");
       if(active.length === 0){ list.innerHTML = "<p class='text-slate-400 text-sm text-center py-2'>Sem planos</p>"; return; }
       list.innerHTML = active.map(p => `<div class="flex justify-between p-3 bg-slate-50 rounded-xl"><div><p class="font-bold text-sm">${p.name||"Plano"}</p><p class="text-xs text-slate-400">${p.meals?.length||0} refeicoes</p></div><div class="flex gap-1"><button data-id="${p.id}" class="btn-del p-2 rounded-full bg-red-100 text-red-500"><span class="material-symbols-outlined text-lg">delete</span></button></div>`).join("");
-      document.querySelectorAll(".btn-del").forEach(b => b.onclick = () => { planToDelete = b.getAttribute("data-id"); deleteModal.classList.remove("hidden"); });
+      console.log("loadPlans: Botões criados, a adicionar event listeners");
+      document.querySelectorAll(".btn-del").forEach(b => {
+        console.log("loadPlans: A adicionar listener ao botão:", b.getAttribute("data-id"));
+        b.onclick = () => { 
+          console.log("loadPlans: Clique no botão eliminar, planToDelete:", b.getAttribute("data-id"));
+          planToDelete = b.getAttribute("data-id"); 
+          deleteModal.classList.remove("hidden"); 
+        };
+      });
     };
 
     const loadFeedbackStats = async () => {

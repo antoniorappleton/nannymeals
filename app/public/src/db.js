@@ -1317,13 +1317,32 @@ export const updateMeal = async (planId, mealIndex, mealUpdates) => {
  */
 export const deletePlan = async (planId) => {
   try {
+    console.log("deletePlan: A eliminar plano com ID:", planId);
+    
+    if (!planId) {
+      throw new Error("ID do plano não fornecido");
+    }
+    
     const planRef = doc(db, "weeklyPlans", planId);
+    
+    // Verificar se o documento existe antes de eliminar
+    const planSnap = await getDoc(planRef);
+    if (!planSnap.exists()) {
+      console.warn("deletePlan: Plano não encontrado:", planId);
+      throw new Error("Plano não encontrado");
+    }
+    
+    console.log("deletePlan: Plano encontrado, a eliminar...");
+    
     // Hard delete - elimina definitivamente o documento
     await deleteDoc(planRef);
+    
+    console.log("deletePlan: Plano eliminado com sucesso");
     return true;
   } catch (error) {
-    console.error("Erro ao eliminar plano:", error);
-    return false;
+    console.error("deletePlan: Erro ao eliminar plano:", error);
+    // Lançar o erro para que possa ser tratado corretamente no UI
+    throw error;
   }
 };
 

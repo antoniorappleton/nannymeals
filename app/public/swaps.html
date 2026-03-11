@@ -23,6 +23,9 @@
       /* Swipe card styles */
       .swipe-card {
         transition: transform 0.3s ease, opacity 0.3s ease;
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
       }
       .swipe-card.swiping {
         transform: scale(0.95);
