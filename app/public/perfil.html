@@ -58,8 +58,7 @@
             <span id="plans-count" class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">0</span>
           </div>
           <div id="active-plans-list" class="space-y-2"></div>
-          <button id="btn-new-plan" class="w-full mt-4 bg-primary text-slate-900 font-bold py-3 rounded-2xl">Criar Plano</button>
-        </section>
+        </section> REPLACE
         <section class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border">
           <h3 class="font-extrabold mb-3">Estatisticas</h3>
           <div class="grid grid-cols-3 gap-2 text-center">
@@ -67,9 +66,8 @@
             <div class="bg-blue-50 p-2 rounded-xl"><p id="stat-success-rate" class="text-xl font-black text-blue-600">--%</p><p class="text-[10px]">Sucesso</p></div>
             <div class="bg-orange-50 p-2 rounded-xl"><p id="stat-avg-waste" class="text-xl font-black text-orange-500">--%</p><p class="text-[10px]">Desperdicio</p></div>
         </section>
-        <section class="grid grid-cols-2 gap-3">
-          <a href="onboarding.html" class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl text-center"><span class="material-symbols-outlined text-2xl">settings</span><p class="text-xs font-bold mt-1">Preferencias</p></a>
-          <button id="btn-logout-bottom" class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl text-center"><span class="material-symbols-outlined text-2xl">logout</span><p class="text-xs font-bold mt-1">Sair</p></button>
+        <section class="flex justify-center">
+          <button id="btn-logout-bottom" class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl text-center w-full max-w-xs"><span class="material-symbols-outlined text-2xl">logout</span><p class="text-xs font-bold mt-1">Sair</p></button>
         </section>
       </div>
     </main>
@@ -123,7 +121,6 @@
 
     document.getElementById("btn-logout-bottom").onclick = () => logout();
     document.getElementById("btn-edit-profile").onclick = () => window.location.href = "onboarding.html";
-    document.getElementById("btn-new-plan").onclick = () => window.location.href = "plan.html";
     document.getElementById("btn-help").onclick = () => helpModal.classList.remove("hidden");
     document.getElementById("btn-close-help").onclick = () => helpModal.classList.add("hidden");
     helpModal.onclick = (e) => { if(e.target === helpModal) helpModal.classList.add("hidden"); };

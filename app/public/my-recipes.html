@@ -1,4 +1,4 @@
-<!doctype html>
+ x<!doctype html>
 <html class="light" lang="pt">
   <head>
     <meta charset="utf-8" />
@@ -51,12 +51,45 @@
 
         const container = document.getElementById("recipes-container");
 
-        function renderList(recipes) {
-          if (recipes.length === 0) {
+        function renderList(recipes, savedRecipe = null) {
+          let html = '';
+          
+          // Se há uma receita guardada, mostrar primeiro
+          if (savedRecipe) {
+            const prepTime = savedRecipe.prepTime || '--';
+            const calories = savedRecipe.nutrition?.calories?.amount || savedRecipe.calories || null;
+            
+            html += `
+              <div class="bg-primary/10 border-2 border-primary rounded-2xl p-4 mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-primary">check_circle</span>
+                  <span class="text-xs font-bold text-primary uppercase">Receita guardada</span>
+                </div>
+                <h3 class="font-bold text-lg leading-tight line-clamp-2">${savedRecipe.name || 'Sem título'}</h3>
+                <div class="flex flex-wrap gap-3 mt-2 text-xs text-slate-600">
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">schedule</span>
+                    ${prepTime} min
+                  </span>
+                  ${calories ? `<span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">local_fire_department</span>
+                    ${calories} kcal
+                  </span>` : ''}
+                </div>
+                <div class="flex flex-wrap gap-1 mt-2">
+                  ${(savedRecipe.tags || []).slice(0, 3).map(tag => 
+                    `<span class="text-[10px] font-bold bg-primary/20 text-primary px-2 py-1 rounded-full">${tag}</span>`
+                  ).join('')}
+                </div>
+            `;
+          }
+          
+          if (recipes.length === 0 && !savedRecipe) {
             container.innerHTML = '<p class="text-slate-400">Não existem receitas guardadas ainda.</p>';
             return;
           }
-          container.innerHTML = recipes
+          
+          html += recipes
             .map(
               (r) => `
               <div onclick="editRecipe('${r.id}')" class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800 p-4 flex justify-between items-center cursor-pointer">
@@ -71,6 +104,8 @@
             `,
             )
             .join("");
+            
+          container.innerHTML = html;
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -81,7 +116,21 @@
 
           try {
             const list = await getUserRecipes(user.uid);
-            renderList(list);
+            
+            // Verificar se há uma receita guardada no sessionStorage
+            const savedRecipeJson = sessionStorage.getItem('savedRecipe');
+            let savedRecipe = null;
+            if (savedRecipeJson) {
+              try {
+                savedRecipe = JSON.parse(savedRecipeJson);
+                // Limpar o sessionStorage após ler
+                sessionStorage.removeItem('savedRecipe');
+              } catch (e) {
+                console.error("Erro ao ler receita guardada:", e);
+              }
+            }
+            
+            renderList(list, savedRecipe);
             attachDeleteHandlers();
           } catch (err) {
             console.error("Erro ao carregar receitas pessoais:", err);

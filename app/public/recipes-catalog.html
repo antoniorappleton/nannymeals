@@ -364,13 +364,16 @@
         window.location.href = `create-custom-plan.html?addRecipe=${selectedRecipe.id}`;
       };
 
-      window.saveCurrentRecipe = async () => {
+window.saveCurrentRecipe = async () => {
         if (!selectedRecipe) return;
         const user = auth.currentUser;
         if (!user) { alert("É necessário fazer login para guardar receitas."); return; }
         try {
           await saveUserRecipe(user.uid, selectedRecipe.id);
-          alert("Receita adicionada à sua coleção pessoal!");
+          // Guardar dados da receita no sessionStorage para exibir em my-recipes
+          sessionStorage.setItem('savedRecipe', JSON.stringify(selectedRecipe));
+          // Redirecionar para my-recipes.html
+          window.location.href = "my-recipes.html";
         } catch (err) { console.error("Erro ao guardar receita:", err); alert("Falha ao guardar a receita."); }
       };
 

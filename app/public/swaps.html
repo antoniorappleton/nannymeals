@@ -20,6 +20,21 @@
       body {
         min-height: 100dvh;
       }
+      /* Swipe card styles */
+      .swipe-card {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+      }
+      .swipe-card.swiping {
+        transform: scale(0.95);
+        opacity: 0.8;
+      }
+      .swipe-hint {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
     </style>
   </head>
 
@@ -39,175 +54,117 @@
             <span class="material-symbols-outlined">arrow_back</span>
           </button>
           <h1 class="text-lg font-bold">Troca Inteligente</h1>
-          <button
-            class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-primary"
-          >
-            <span class="material-symbols-outlined">more_horiz</span>
-          </button>
-        </div>
+          <div class="size-10"></div>
       </header>
 
       <main class="flex-1 overflow-y-auto px-4 py-8 space-y-8 pb-28">
         <!-- Header Section -->
         <div class="space-y-1">
           <h2 class="text-3xl font-extrabold tracking-tight leading-tight">
-            Melhoramos a sua semana!
+            Escolha a sua troca!
           </h2>
           <p class="text-slate-500 font-medium text-sm">
-            Encontrámos uma opção melhor com base no feedback da sua família.
+            Deslize para a direita para ver mais sugestões.
           </p>
         </div>
 
-        <!-- The Swap Flow -->
+        <!-- Swipe Counter -->
+        <div class="flex justify-center">
+          <div id="swipe-counter" class="bg-primary/20 text-primary px-4 py-1.5 rounded-full text-xs font-bold">
+            1 de 3
+          </div>
+
+        <!-- The Swap Flow - Swipeable Cards -->
         <div class="space-y-4 relative">
           <!-- Old Choice Card -->
           <div
-            class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 shadow-premium group"
+            class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 shadow-premium"
           >
             <div class="flex gap-4 items-center">
               <div
                 id="old-meal-img"
                 class="size-20 rounded-2xl bg-cover bg-center shrink-0 grayscale opacity-50"
-                style="
-                  background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBPCFRIxTNEJgvU83hO7F2_r2NMj9TLmElgwxFKj3u10MxvyyDoOZkS3Diihb1D2vp2ARFC78b2cm2EiX-nx68bI4jUpyZYkVOah9ruEeDtP_gYviQAbOJ1zfBU3E1S6ttyTcRFgA05qYPprCMUzcrCD5F_dJWOeRHuSWk5Kk8BfMBBPMPJtoO0R8r4ajnuhA28rYH3cKJ0PobsjeltdByetQbSCz8lk6bvR-oztza4jXQBNdbfSTtWOLQuUVgIlWX4-cfk2ghmNeWY&quot;);
-                "
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPCFRIxTNEJgvU83hO7F2_r2NMj9TLmElgwxFKj3u10MxvyyDoOZkS3Diihb1D2vp2ARFC78b2cm2EiX-nx68bI4jUpyZYkVOah9ruEeDtP_gYviQAbOJ1zfBU3E1S6ttyTcRFgA05qYPprCMUzcrCD5F_dJWOeRHuSWk5Kk8BfMBBPMPJtoO0R8r4ajnuhA28rYH3cKJ0PobsjeltdByetQbSCz8lk6bvR-oztza4jXQBNdbfSTtWOLQuUVgIlWX4-cfk2ghmNeWY');"
               ></div>
               <div class="flex-1">
                 <div class="flex items-center gap-1.5 mb-1">
-                  <span
-                    class="material-symbols-outlined text-[14px] text-red-500"
-                    >heart_broken</span
-                  >
-                  <span
-                    class="text-[10px] font-black uppercase tracking-widest text-slate-400"
-                    >A Substituir</span
-                  >
+                  <span class="material-symbols-outlined text-[14px] text-red-500">heart_broken</span>
+                  <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">A Substituir</span>
                 </div>
-                <h3
-                  id="old-meal-name"
-                  class="font-bold text-slate-500 line-through"
-                >
-                  Chicken Stir Fry
-                </h3>
-                <p
-                  class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1"
-                >
-                  Impopular com as crianças
-                </p>
+                <h3 id="old-meal-name" class="font-bold text-slate-500 line-through">Chicken Stir Fry</h3>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Impopular com as crianças</p>
               </div>
-            </div>
-            <div class="absolute top-0 right-0 p-4 opacity-5">
-              <span class="material-symbols-outlined text-5xl">delete</span>
-            </div>
           </div>
 
           <!-- Transition Arrow -->
           <div class="flex justify-center -my-3 relative z-10">
-            <div
-              class="bg-primary text-slate-900 size-12 rounded-full flex items-center justify-center shadow-premium border-4 border-background-light dark:border-background-dark"
-            >
-              <span class="material-symbols-outlined font-bold text-2xl"
-                >arrow_downward</span
-              >
+            <div class="bg-primary text-slate-900 size-12 rounded-full flex items-center justify-center shadow-premium border-4 border-background-light dark:border-background-dark">
+              <span class="material-symbols-outlined font-bold text-2xl">arrow_downward</span>
             </div>
-          </div>
 
-          <!-- New Suggestion Card -->
-          <div
-            class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-primary p-5 shadow-premium ring-8 ring-primary/5"
-          >
-            <div class="flex gap-4 items-start">
-              <div
-                id="new-meal-img"
-                class="size-24 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
-                style="
-                  background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u&quot;);
-                "
-              ></div>
-              <div class="flex-1">
-                <div class="flex flex-wrap gap-2 mb-3">
-                  <span
-                    class="px-2 py-0.5 bg-primary text-slate-900 text-[10px] font-black rounded-lg uppercase tracking-wider"
-                    >Aprovado por Crianças</span
-                  >
-                  <span
-                    class="px-2 py-0.5 bg-primary/20 text-primary dark:text-primary/80 text-[10px] font-black rounded-lg uppercase tracking-wider"
-                    >Rápido</span
-                  >
+          <!-- New Suggestion Card - Swipeable -->
+          <div id="swipe-container" class="relative">
+            <div
+              id="new-meal-card"
+              class="swipe-card relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-primary p-5 shadow-premium ring-8 ring-primary/5 cursor-grab active:cursor-grabbing"
+            >
+              <div class="flex gap-4 items-start">
+                <div
+                  id="new-meal-img"
+                  class="size-24 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
+                  style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u');"
+                ></div>
+                <div class="flex-1">
+                  <div class="flex flex-wrap gap-2 mb-3" id="new-meal-tags">
+                    <span class="px-2 py-0.5 bg-primary text-slate-900 text-[10px] font-black rounded-lg uppercase tracking-wider">Aprovado por Crianças</span>
+                    <span class="px-2 py-0.5 bg-primary/20 text-primary dark:text-primary/80 text-[10px] font-black rounded-lg uppercase tracking-wider">Rápido</span>
+                  </div>
+                  <h3 id="new-meal-name" class="font-extrabold text-lg leading-tight">Massa com Vegetais Escondidos</h3>
+                  <p id="new-meal-info" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Pronto em 15 Minutos • 4 Pessoas</p>
                 </div>
-                <h3
-                  id="new-meal-name"
-                  class="font-extrabold text-lg leading-tight"
-                >
-                  Massa com Vegetais Escondidos
-                </h3>
-                <p
-                  class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1"
-                >
-                  Pronto em 15 Minutos • 4 Pessoas
-                </p>
-              </div>
             </div>
+            
+            <!-- Swipe Hints -->
+            <div class="swipe-hint flex justify-between items-center mt-4 px-2">
+              <div class="flex items-center gap-2 text-slate-400 text-xs">
+                <span class="material-symbols-outlined text-lg">chevron_left</span>
+                <span>Anterior</span>
+              </div>
+              <div class="flex items-center gap-2 text-primary text-xs font-bold">
+                <span>Deslize</span>
+                <span class="material-symbols-outlined text-lg">swipe</span>
+                <span>Próxima</span>
+              </div>
+              <div class="flex items-center gap-2 text-slate-400 text-xs">
+                <span>Próxima</span>
+                <span class="material-symbols-outlined text-lg">chevron_right</span>
+              </div>
           </div>
-        </div>
 
         <!-- Analysis Section -->
-        <section
-          class="bg-primary/10 dark:bg-primary/5 rounded-3xl p-6 border border-primary/20 space-y-4"
-        >
+        <section id="analysis-section" class="bg-primary/10 dark:bg-primary/5 rounded-3xl p-6 border border-primary/20 space-y-4">
           <div class="flex items-center gap-3">
-            <div
-              class="size-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg"
-            >
-              <span class="material-symbols-outlined text-slate-900 text-xl"
-                >psychology</span
-              >
+            <div class="size-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+              <span class="material-symbols-outlined text-slate-900 text-xl">psychology</span>
             </div>
-            <h4 class="font-extrabold text-primary dark:text-primary/90">
-              Lógica Inteligente
-            </h4>
+            <h4 class="font-extrabold text-primary dark:text-primary/90">Lógica Inteligente</h4>
           </div>
-          <p
-            class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 italic font-medium"
-          >
-            "Como o
-            <span class="text-slate-900 dark:text-white font-bold"
-              >Chicken Stir Fry</span
-            >
-            foi marcado como
-            <span class="text-slate-900 dark:text-white font-bold"
-              >difícil de preparar</span
-            >
-            e
-            <span class="text-slate-900 dark:text-white font-bold"
-              >impopular</span
-            >, sugerimos este clássico."
+          <p id="analysis-text" class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 italic font-medium">
+            "Como o <span class="text-slate-900 dark:text-white font-bold">Chicken Stir Fry</span> foi marcado como <span class="text-slate-900 dark:text-white font-bold">difícil de preparar</span> e <span class="text-slate-900 dark:text-white font-bold">impopular</span>, sugerimos este clássico."
           </p>
-          <div
-            class="mt-4 pt-6 border-t border-primary/10 grid grid-cols-2 gap-4"
-          >
+          <div class="mt-4 pt-6 border-t border-primary/10 grid grid-cols-2 gap-4">
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-primary">timer</span>
               <div class="leading-tight">
                 <p class="text-xs font-black">20m Poupados</p>
-                <p
-                  class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
-                >
-                  Menos prep
-                </p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Menos prep</p>
               </div>
-            </div>
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-primary">eco</span>
               <div class="leading-tight">
                 <p class="text-xs font-black">Lixo Zero</p>
-                <p
-                  class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
-                >
-                  Usa stock
-                </p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Usa stock</p>
               </div>
-            </div>
           </div>
         </section>
 
@@ -227,63 +184,6 @@
           </button>
         </div>
       </main>
-      <!-- Bottom Navigation Bar will be included dynamically -->
-
-      <!-- Bottom Navigation -->
-      <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
-        <nav
-          class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]"
-        >
-          <a
-            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
-            href="dashboard.html"
-          >
-            <span class="material-symbols-outlined text-lg sm:text-xl"
-              >home</span
-            >
-            <span
-              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
-              >Home</span
-            >
-          </a>
-          <a
-            class="flex flex-col items-center justify-center gap-1 text-primary min-h-16 flex-1 touch-target"
-            href="plan.html"
-          >
-            <span class="material-symbols-outlined font-bold text-lg sm:text-xl"
-              >calendar_today</span
-            >
-            <span
-              class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest"
-              >Plano</span
-            >
-          </a>
-          <a
-            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
-            href="grocery.html"
-          >
-            <span class="material-symbols-outlined text-lg sm:text-xl"
-              >shopping_basket</span
-            >
-            <span
-              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
-              >Lista</span
-            >
-          </a>
-          <a
-            class="flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target"
-            href="onboarding.html"
-          >
-            <span class="material-symbols-outlined text-lg sm:text-xl"
-              >person</span
-            >
-            <span
-              class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest"
-              >Perfil</span
-            >
-          </a>
-        </nav>
-      </div>
     </div>
 
     <script type="module">
@@ -301,23 +201,137 @@
 
       let currentPlan = null;
       let oldMeal = null;
-      let replacementRecipe = null;
+      let recommendations = [];
+      let currentIndex = 0;
 
       const oldMealName = document.getElementById("old-meal-name");
       const oldMealImg = document.getElementById("old-meal-img");
       const newMealName = document.getElementById("new-meal-name");
       const newMealImg = document.getElementById("new-meal-img");
+      const newMealInfo = document.getElementById("new-meal-info");
+      const newMealTags = document.getElementById("new-meal-tags");
+      const newMealCard = document.getElementById("new-meal-card");
+      const swipeCounter = document.getElementById("swipe-counter");
+      const analysisSection = document.getElementById("analysis-section");
+      const analysisText = document.getElementById("analysis-text");
       const btnConfirm = document.getElementById("btn-confirm-swap");
+
+      // Update the card with the current recommendation
+      function updateCard(index) {
+        if (!recommendations[index]) return;
+        
+        const recipe = recommendations[index];
+        newMealName.textContent = recipe.name;
+        
+        // Update info
+        const prepTime = recipe.prepTime || '--';
+        const servings = recipe.servings || 4;
+        newMealInfo.textContent = `Pronto em ${prepTime} Minutos • ${servings} Pessoas`;
+        
+        // Update image
+        if (recipe.image) {
+          newMealImg.style.backgroundImage = `url('${recipe.image}')`;
+        } else {
+          newMealImg.style.backgroundImage = "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u')";
+        }
+        
+        // Update tags
+        let tagsHtml = '';
+        if (recipe.tags && recipe.tags.length > 0) {
+          const displayTags = recipe.tags.slice(0, 3);
+          displayTags.forEach(tag => {
+            tagsHtml += `<span class="px-2 py-0.5 bg-primary/20 text-primary dark:text-primary/80 text-[10px] font-black rounded-lg uppercase tracking-wider">${tag}</span>`;
+          });
+        }
+        newMealTags.innerHTML = tagsHtml || '<span class="px-2 py-0.5 bg-primary text-slate-900 text-[10px] font-black rounded-lg uppercase tracking-wider">Sugestão</span>';
+        
+        // Update counter
+        swipeCounter.textContent = `${index + 1} de ${recommendations.length}`;
+        
+        // Update analysis text
+        const timeSaved = oldMeal.prepTime ? oldMeal.prepTime - (recipe.prepTime || 0) : 15;
+        analysisText.innerHTML = `"Substituímos <span class="text-slate-900 dark:text-white font-bold">${oldMeal.recipeName}</span> por <span class="text-slate-900 dark:text-white font-bold">${recipe.name}</span> - uma opção mais rápida e apreciada pela família."`;
+      }
+
+      // Swipe handling
+      let touchStartX = 0;
+      let touchEndX = 0;
+      let isDragging = false;
+
+      newMealCard.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        isDragging = true;
+        newMealCard.classList.add('swiping');
+      }, { passive: true });
+
+      newMealCard.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const currentX = e.changedTouches[0].screenX;
+        const diff = currentX - touchStartX;
+        newMealCard.style.transform = `translateX(${diff}px) rotate(${diff * 0.05}deg)`;
+      }, { passive: true });
+
+      newMealCard.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+
+      // Mouse drag support for desktop
+      newMealCard.addEventListener('mousedown', (e) => {
+        touchStartX = e.screenX;
+        isDragging = true;
+        newMealCard.classList.add('swiping');
+      });
+
+      newMealCard.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const diff = e.screenX - touchStartX;
+        newMealCard.style.transform = `translateX(${diff}px) rotate(${diff * 0.05}deg)`;
+      });
+
+      newMealCard.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        touchEndX = e.screenX;
+        handleSwipe();
+      });
+
+      newMealCard.addEventListener('mouseleave', () => {
+        if (isDragging) {
+          isDragging = false;
+          newMealCard.style.transform = '';
+          newMealCard.classList.remove('swiping');
+        }
+      });
+
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchEndX - touchStartX;
+        
+        newMealCard.classList.remove('swiping');
+        newMealCard.style.transform = '';
+        
+        if (diff > swipeThreshold) {
+          // Swipe right - previous
+          if (currentIndex > 0) {
+            currentIndex--;
+            updateCard(currentIndex);
+          }
+        } else if (diff < -swipeThreshold) {
+          // Swipe left - next
+          if (currentIndex < recommendations.length - 1) {
+            currentIndex++;
+            updateCard(currentIndex);
+          }
+        }
+      }
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
-            console.log(
-              "[SWAPS] Carregando plano:",
-              planId,
-              "Índice:",
-              mealIndex,
-            );
+            console.log("[SWAPS] Carregando plano:", planId, "Índice:", mealIndex);
 
             if (!planId) {
               throw new Error("ID do plano não encontrado na URL");
@@ -338,41 +352,28 @@
             oldMealName.textContent = oldMeal.recipeName;
             console.log("[SWAPS] Refeição atual:", oldMeal);
 
-            // Fetch recommendations for a replacement (filtered for variety)
-            console.log(
-              "[SWAPS] A buscar recomendações para household:",
-              currentPlan.householdId,
-            );
-            const recommendations = await getMealRecommendations(
-              currentPlan.householdId,
-              3,
-            );
+            // Fetch more recommendations for swipe
+            console.log("[SWAPS] A buscar recomendações para household:", currentPlan.householdId);
+            recommendations = await getMealRecommendations(currentPlan.householdId, 10);
             console.log("[SWAPS] Recomendações obtidas:", recommendations);
 
             if (!recommendations || recommendations.length === 0) {
-              throw new Error(
-                "Não foi possível obter recomendações de substituição",
-              );
+              throw new Error("Não foi possível obter recomendações de substituição");
             }
 
             // Filter out the current recipe
-            replacementRecipe =
-              recommendations.find((r) => r.id !== oldMeal.recipeId) ||
-              recommendations[0];
-
-            console.log("[SWAPS] Refeição de substituição:", replacementRecipe);
-
-            if (!replacementRecipe) {
-              throw new Error(
-                "Não foi encontrada uma refeição de substituição",
-              );
+            recommendations = recommendations.filter(r => r.id !== oldMeal.recipeId);
+            
+            // If filtered list is empty, use original
+            if (recommendations.length === 0) {
+              recommendations = await getMealRecommendations(currentPlan.householdId, 3);
             }
 
-            if (replacementRecipe) {
-              newMealName.textContent = replacementRecipe.name;
-              if (replacementRecipe.image) {
-                newMealImg.style.backgroundImage = `url('${replacementRecipe.image}')`;
-              }
+            console.log("[SWAPS] Recomendações filtradas:", recommendations);
+
+            if (recommendations.length > 0) {
+              currentIndex = 0;
+              updateCard(0);
             }
 
             // Habilitar botão
@@ -381,7 +382,6 @@
           } catch (error) {
             console.error("[SWAPS] Erro ao carregar página:", error);
             alert("Erro ao carregar sugestão de troca: " + error.message);
-            // Redirecionar de volta
             setTimeout(() => history.back(), 1500);
           }
         } else {
@@ -390,14 +390,14 @@
       });
 
       btnConfirm.onclick = async () => {
-        if (currentPlan && replacementRecipe) {
+        if (currentPlan && recommendations[currentIndex]) {
           btnConfirm.disabled = true;
           btnConfirm.textContent = "A trocar...";
           try {
             await swapMealImproved(
               currentPlan.id,
               mealIndex,
-              replacementRecipe.id,
+              recommendations[currentIndex].id,
               "Troca manual por sugestão inteligente",
             );
             alert("Refeição trocada com sucesso!");
@@ -410,22 +410,8 @@
           }
         }
       };
-      // Version V21
-      console.log("Swaps carregado [V21]");
+      
+      console.log("Swaps carregado [V22 - com swipe]");
     </script>
   </body>
-    <script>
-      // Dynamic include for bottom navigation
-      fetch('bottom-nav.html')
-        .then(res => res.text())
-        .then(html => {
-          const temp = document.createElement('div');
-          temp.innerHTML = html;
-          document.body.appendChild(temp.firstElementChild);
-          // After nav is loaded, highlight active
-          const script = document.createElement('script');
-          script.src = 'active-screen.js';
-          document.body.appendChild(script);
-        });
-    </script>
 </html>
