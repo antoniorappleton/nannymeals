@@ -422,7 +422,8 @@ const doImportRecipes = async (filters, pagesIn, numberIn, completeOnly = true) 
             sourceUrl: details.sourceUrl || null,
             spoonacularSourceUrl: details.spoonacularSourceUrl || details.spoonacularSource || null,
             importSource: "spoonacular",
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+            createdAtTimestamp: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         };
         normalized.searchText = `${normalized.name} ${(normalized.tags || []).join(" ")} ${(normalized.dishTypes || []).join(" ")}`;

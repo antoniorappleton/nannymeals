@@ -934,9 +934,13 @@ export const initDB = () => {
  */
 export const getAllRecipes = async (userId = null) => {
   try {
+    // Sempre sincronizar receitas para garantir que têm os dados atualizados
+    console.log("A sincronizar receitas...");
+    await seedRecipes();
+    
     let rSnap = await getDocs(collection(db, "recipes"));
 
-    // Se não existem receitas, semear a base de dados
+    // Se não existem receitas após sincronização, semear
     if (rSnap.empty) {
       console.log("Base de dados de receitas vazia. A semear...");
       await seedRecipes();

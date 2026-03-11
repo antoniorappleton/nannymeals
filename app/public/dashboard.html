@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>NannyMeal - Waste & Savings Dashboard</title>
+    <title>NannyMeal - Dashboard</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
@@ -18,9 +18,9 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="assets/images/hero.webp" />
     <script>
-      // EMERGÊNCIA V23
-      if (localStorage.getItem("app_version") !== "v23") {
-        localStorage.setItem("app_version", "v23");
+      // EMERGÊNCIA V24
+      if (localStorage.getItem("app_version") !== "v24") {
+        localStorage.setItem("app_version", "v24");
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) reg.unregister();
@@ -51,7 +51,7 @@
       >
         <div class="flex items-center justify-between mb-2">
           <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">
-            Estatísticas
+            Dashboard
           </h1>
           <button
             id="btn-logout"
@@ -69,234 +69,101 @@
       </header>
 
       <main
-        class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 pb-40"
+        class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-6 pb-40"
       >
-        <!-- Quick Actions -->
-        <section class="grid grid-cols-2 gap-2 sm:gap-3">
-          <a
-            href="create-custom-plan.html"
-            class="bg-primary text-slate-900 rounded-2xl p-3 sm:p-4 shadow-premium flex flex-col items-center justify-center gap-2 hover:scale-105 transition-all min-h-24 sm:min-h-28"
-          >
-            <span
-              class="material-symbols-outlined text-2xl sm:text-3xl font-bold"
-              >add</span
-            >
-            <span
-              class="text-xs sm:text-sm font-bold uppercase tracking-widest text-center"
-              >Novo Plano</span
-            >
-          </a>
-          <a
-            href="recipes-catalog.html"
-            class="bg-slate-900 dark:bg-slate-800 text-primary rounded-2xl p-3 sm:p-4 shadow-premium flex flex-col items-center justify-center gap-2 hover:scale-105 transition-all min-h-24 sm:min-h-28"
-          >
-            <span
-              class="material-symbols-outlined text-2xl sm:text-3xl font-bold"
-              >restaurant</span
-            >
-            <span
-              class="text-xs sm:text-sm font-bold uppercase tracking-widest text-center"
-              >Receitas</span
-            >
-          </a>
-        </section>
-
-        <!-- Stats Cards -->
-        <section class="grid grid-cols-2 gap-2 sm:gap-3">
-          <div
-            class="col-span-2 bg-slate-900 text-white rounded-3xl p-4 sm:p-6 shadow-premium relative overflow-hidden group"
-          >
-            <div class="relative z-10 flex items-center justify-between">
-              <div>
-                <p
-                  class="text-[9px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mb-1"
-                >
-                  Crie as suas Próprias
-                </p>
-                <h3 class="text-xl sm:text-2xl font-black tracking-tight">
-                  Novas Receitas
-                </h3>
-              </div>
-              <a
-                href="add-recipe.html"
-                class="size-12 sm:size-14 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-lg group-active:scale-90 transition-all min-h-12 min-w-12"
-              >
-                <span class="material-symbols-outlined text-2xl sm:text-3xl"
-                  >add</span
-                >
-              </a>
-            </div>
-            <div
-              class="absolute -right-6 -bottom-6 size-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"
-            ></div>
-          </div>
-
-          <div
-            class="bg-primary/10 dark:bg-primary/10 border border-primary/20 flex flex-col gap-2 rounded-3xl p-3 sm:p-4 aspect-square items-center justify-center text-center shadow-premium"
-          >
-            <span
-              class="material-symbols-outlined text-primary text-2xl sm:text-3xl"
-              >payments</span
-            >
-            <div>
-              <p
-                class="text-primary text-base sm:text-lg font-black leading-none"
-                id="stats-saved"
-              >
-                124€
-              </p>
-              <p
-                class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1"
-              >
-                Poupado
-              </p>
-            </div>
-          </div>
-          <div
-            class="bg-primary/5 dark:bg-primary/5 border border-slate-100 dark:border-slate-800 flex flex-col gap-2 rounded-3xl p-3 sm:p-4 aspect-square items-center justify-center text-center shadow-premium"
-          >
-            <span
-              class="material-symbols-outlined text-primary text-2xl sm:text-3xl"
-              >delete_sweep</span
-            >
-            <div>
-              <p
-                class="text-base sm:text-lg font-black leading-none"
-                id="stats-reduced"
-              >
-                3.2kg
-              </p>
-              <p
-                class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1"
-              >
-                Lixo
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Middle Section: Waste Insight -->
+        <!-- Recipe Insights Section -->
         <section
-          class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800 space-y-4 sm:space-y-6"
+          class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800 space-y-4"
         >
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="bg-primary/10 p-2 rounded-xl shrink-0">
               <span
                 class="material-symbols-outlined text-primary text-lg sm:text-xl"
-                >lightbulb</span
+                >restaurant</span
               >
             </div>
             <h3 class="text-base sm:text-lg font-extrabold tracking-tight">
-              Insights Inteligentes
+              As Minhas Receitas
             </h3>
           </div>
-          <div class="flex items-start gap-4">
+          
+          <!-- Recipe Count Stats -->
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
             <div
-              id="insight-image"
-              class="size-16 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
-              style="
-                background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDH2CxyKXnAhv9vKQ6xcO6DUCEvLBu9QAn-LbF6NIT9FfFDkbUUE_KHeNsVU8zU7K1Nwvqk-tRie98a_fgSQdSMU3Tmu0Ckph3EHpk7Ctpt1EFvwRm_A75tILyPzX8J3BqP-Yx1i37AFmoO6T9VqYs2hJRWII9552GX6O1d4MfRDLRAMxkYDAslx2fuUz00m3q47biBAeWbax1Tt3uhCU-3tiwReNm70-zY08YLmbVKQKcycXi0bj7gLLHIh0svpWWj9fAoBldNzGj_&quot;);
-              "
-            ></div>
-            <div class="flex-1 space-y-1">
-              <p class="font-extrabold text-base" id="insight-title">
-                Demasiados Espinafres
-              </p>
-              <p
-                class="text-slate-500 text-sm leading-relaxed"
-                id="insight-desc"
+              class="bg-primary/10 dark:bg-primary/10 border border-primary/20 flex flex-col gap-2 rounded-2xl p-4 aspect-square items-center justify-center text-center shadow-premium"
+            >
+              <span
+                class="material-symbols-outlined text-primary text-3xl sm:text-4xl"
+                >menu_book</span
               >
-                Teve consistentemente 200g de sobras todas as semanas este mês.
-                Considere reduzir a encomenda.
-              </p>
+              <div>
+                <p
+                  class="text-primary text-2xl sm:text-3xl font-black leading-none"
+                  id="recipe-count"
+                >
+                  --
+                </p>
+                <p
+                  class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1"
+                >
+                  Receitas Totais
+                </p>
+              </div>
+            </div>
+            <div
+              class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col gap-2 rounded-2xl p-4 aspect-square items-center justify-center text-center shadow-premium"
+            >
+              <span
+                class="material-symbols-outlined text-slate-400 text-3xl sm:text-4xl"
+                >bookmark</span
+              >
+              <div>
+                <p
+                  class="text-slate-700 dark:text-slate-200 text-2xl sm:text-3xl font-black leading-none"
+                  id="saved-recipes-count"
+                >
+                  --
+                </p>
+                <p
+                  class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1"
+                >
+                  Guardadas
+                </p>
+              </div>
             </div>
           </div>
-          <button
-            class="w-full bg-primary text-slate-900 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[0.98] active:scale-[0.95] transition-all shadow-premium"
-          >
-            <span class="material-symbols-outlined text-[20px]"
-              >shopping_cart_checkout</span
-            >
-            Ajustar Próxima Lista
-          </button>
         </section>
 
-        <!-- Bottom Section: Waste Trend Graph -->
-        <section class="space-y-4">
-          <div class="flex items-center justify-between px-2">
-            <h3 class="text-lg font-extrabold tracking-tight">
-              Tendência de Desperdício
-            </h3>
-            <span
-              class="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-full"
-              >Últimas 4 Semanas</span
-            >
-          </div>
-          <div
-            class="bg-white dark:bg-slate-900 rounded-3xl p-8 h-48 flex items-end justify-between gap-4 border border-slate-100 dark:border-slate-800 shadow-premium"
-          >
-            <div
-              class="flex flex-col items-center flex-1 gap-3 h-full justify-end"
-            >
-              <div
-                class="w-full bg-primary/10 rounded-xl relative"
-                style="height: 80%"
-              >
-                <div
-                  class="absolute bottom-0 w-full bg-primary/30 rounded-xl"
-                  style="height: 60%"
-                ></div>
+        <!-- Recent Feedback Section -->
+        <section
+          class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800 space-y-4"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <div class="bg-primary/10 p-2 rounded-xl shrink-0">
+                <span
+                  class="material-symbols-outlined text-primary text-lg sm:text-xl"
+                  >rate_review</span
+                >
               </div>
-              <span class="text-[10px] font-black text-slate-400">S1</span>
-            </div>
-            <div
-              class="flex flex-col items-center flex-1 gap-3 h-full justify-end"
-            >
-              <div
-                class="w-full bg-primary/10 rounded-xl relative"
-                style="height: 65%"
-              >
-                <div
-                  class="absolute bottom-0 w-full bg-primary/30 rounded-xl"
-                  style="height: 45%"
-                ></div>
-              </div>
-              <span class="text-[10px] font-black text-slate-400">S2</span>
-            </div>
-            <div
-              class="flex flex-col items-center flex-1 gap-3 h-full justify-end"
-            >
-              <div
-                class="w-full bg-primary/10 rounded-xl relative"
-                style="height: 50%"
-              >
-                <div
-                  class="absolute bottom-0 w-full bg-primary/30 rounded-xl"
-                  style="height: 30%"
-                ></div>
-              </div>
-              <span class="text-[10px] font-black text-slate-400">S3</span>
-            </div>
-            <div
-              class="flex flex-col items-center flex-1 gap-3 h-full justify-end"
-            >
-              <div
-                class="w-full bg-primary/20 rounded-xl relative"
-                style="height: 35%"
-              >
-                <div
-                  class="absolute bottom-0 w-full bg-primary rounded-xl shadow-premium"
-                  style="height: 15%"
-                ></div>
-              </div>
-              <span class="text-[10px] font-black text-primary">S4</span>
+              <h3 class="text-base sm:text-lg font-extrabold tracking-tight">
+                Feedback Recente
+              </h3>
             </div>
           </div>
-          <p
-            class="text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-6 italic"
-          >
-            "Está no caminho para reduzir o desperdício em 12% este mês!"
-          </p>
+          
+          <!-- Feedback List Container -->
+          <div id="feedback-list" class="space-y-3">
+            <div class="flex flex-col items-center justify-center py-8 text-slate-400 gap-3">
+              <div class="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl"
+                  >sentiment_neutral</span
+                >
+              </div>
+              <p class="font-medium text-sm">Sem feedback ainda</p>
+              <p class="text-xs text-slate-500">O teu feedback aparece aqui</p>
+            </div>
+          </div>
         </section>
       </main>
       <!-- Bottom Navigation Bar will be included dynamically -->
@@ -305,57 +172,129 @@
     <script type="module">
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
       import { auth } from "./src/firebase-init.js";
-      import { getHouseholdStats } from "./src/db.js";
+      import { getAllRecipes, getUserRecipes, getHousehold, getAllPlans } from "./src/db.js";
       import { logout } from "./src/auth.js";
 
       document.getElementById("btn-logout").onclick = () => logout();
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          // Fetch real or mock stats
-          const stats = await getHouseholdStats(user.uid);
-          if (stats) renderStats(stats);
+          // Load recipe counts
+          await loadRecipeStats(user.uid);
+          // Load recent feedback
+          await loadRecentFeedback(user.uid);
         }
       });
 
-      function renderStats(stats) {
-        const elSaved = document.getElementById("stats-saved");
-        const elReduced = document.getElementById("stats-reduced");
-        const elHappy = document.getElementById("stats-happy");
+      async function loadRecipeStats(userId) {
+        try {
+          // Get total recipes count
+          const allRecipes = await getAllRecipes(userId);
+          const recipeCountEl = document.getElementById("recipe-count");
+          if (recipeCountEl) {
+            recipeCountEl.textContent = allRecipes.length || 0;
+          }
 
-        if (elSaved) elSaved.textContent = (stats.monthlySavings || 0) + "€";
-        if (elReduced) elReduced.textContent = (stats.wasteReduced || 0) + "kg";
-        if (elHappy) elHappy.textContent = (stats.satisfactionRate || 0) + "%";
-
-        const insight = stats.insights[0];
-        if (insight) {
-          document.getElementById("insight-title").textContent = insight.title;
-          document.getElementById("insight-desc").textContent =
-            insight.description;
-          document.getElementById("insight-image").style.backgroundImage =
-            `url('${insight.image}')`;
+          // Get saved recipes count
+          const savedRecipes = await getUserRecipes(userId);
+          const savedCountEl = document.getElementById("saved-recipes-count");
+          if (savedCountEl) {
+            savedCountEl.textContent = savedRecipes.length || 0;
+          }
+        } catch (error) {
+          console.error("Error loading recipe stats:", error);
         }
       }
 
-      // Spoonacular Enrichment Trigger (Admin only)
-      // the button is added dynamically after auth state is known
-      onAuthStateChanged(auth, (u) => {
-        if (u && u.email === "antonioappleton@gmail.com") {
-          const btnSync = document.createElement("button");
-          btnSync.className =
-            "fixed bottom-24 right-4 size-12 bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center z-50 animate-bounce";
-          btnSync.innerHTML =
-            '<span class="material-symbols-outlined">admin_panel_settings</span>';
-          btnSync.title = "Admin Import";
-          btnSync.onclick = () => {
-            window.location.href = "admin-import.html";
-          };
-          document.body.appendChild(btnSync);
-        }
-      });
+      async function loadRecentFeedback(userId) {
+        try {
+          const household = await getHousehold(userId);
+          if (!household) return;
 
-      // Version V20
-      console.log("Dashboard carregado [V20]");
+          const plans = await getAllPlans(userId);
+          const feedbackList = [];
+          
+          // Gather feedback from all plans
+          for (const plan of plans) {
+            if (plan.meals) {
+              plan.meals.forEach((meal, index) => {
+                if (meal.feedback) {
+                  feedbackList.push({
+                    recipeName: meal.recipeName,
+                    feedback: meal.feedback,
+                    planId: plan.id,
+                    mealIndex: index
+                  });
+                }
+              });
+            }
+          }
+
+          // Sort by timestamp (most recent first)
+          feedbackList.sort((a, b) => {
+            const timeA = a.feedback.timestamp ? new Date(a.feedback.timestamp).getTime() : 0;
+            const timeB = b.feedback.timestamp ? new Date(b.feedback.timestamp).getTime() : 0;
+            return timeB - timeA;
+          });
+
+          // Take only the last 5 feedbacks
+          const recentFeedback = feedbackList.slice(0, 5);
+
+          const feedbackContainer = document.getElementById("feedback-list");
+          if (!feedbackContainer) return;
+
+          if (recentFeedback.length === 0) {
+            feedbackContainer.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-8 text-slate-400 gap-3">
+                <div class="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-2xl">sentiment_neutral</span>
+                </div>
+                <p class="font-medium text-sm">Sem feedback ainda</p>
+                <p class="text-xs text-slate-500">O teu feedback aparece aqui</p>
+              </div>
+            `;
+            return;
+          }
+
+          feedbackContainer.innerHTML = recentFeedback.map(item => {
+            const kidsIcon = item.feedback.kidsLiked 
+              ? '<span class="material-symbols-outlined text-green-500">sentiment_very_satisfied</span>' 
+              : '<span class="material-symbols-outlined text-red-400">sentiment_dissatisfied</span>';
+            
+            const easeIcon = item.feedback.easyToCook === true
+              ? '<span class="material-symbols-outlined text-primary">bolt</span>'
+              : '<span class="material-symbols-outlined text-amber-500">restaurant</span>';
+            
+            const wasteIcon = item.feedback.wasteLevel > 0
+              ? '<span class="material-symbols-outlined text-orange-400">delete_sweep</span>'
+              : '<span class="material-symbols-outlined text-green-500">check_circle</span>';
+
+            return `
+              <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <p class="font-bold text-sm truncate flex-1">${item.recipeName}</p>
+                </div>
+                <div class="flex items-center gap-4 text-xs">
+                  <div class="flex items-center gap-1" title="Crianças">
+                    ${kidsIcon}
+                  </div>
+                  <div class="flex items-center gap-1" title="Fácil">
+                    ${easeIcon}
+                  </div>
+                  <div class="flex items-center gap-1" title="Desperdício">
+                    ${wasteIcon}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("");
+        } catch (error) {
+          console.error("Error loading feedback:", error);
+        }
+      }
+
+      // Version V24
+      console.log("Dashboard carregado [V24]");
     </script>
   </body>
   <script>
@@ -373,3 +312,4 @@
       });
   </script>
 </html>
+
