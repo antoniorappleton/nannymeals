@@ -39,7 +39,7 @@ function setupEventListeners() {
   // Dynamic lists
   document
     .getElementById("btn-add-ingredient")
-    .addEventListener("click", addIngredientField);
+    .addEventListener("click", () => addIngredientField());
   document
     .getElementById("btn-add-step")
     .addEventListener("click", addStepField);
@@ -92,7 +92,7 @@ async function parsePdf(file) {
     let fullText = "";
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
+      const textContent = await page.getPageTextContent();
       fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
     }
     document.getElementById("recipe-text-paste").value = fullText;
@@ -123,7 +123,7 @@ function parseRecipeFromText() {
 }
 
 function parseYammiRecipe(text) {
-  // Yämmi format parser
+  // Enhanced Yämmi format parser
   const parsed = {
     name: "",
     time: "",
@@ -132,57 +132,86 @@ function parseYammiRecipe(text) {
     description: "",
     author: "",
     ingredients: [],
-    nutrition: {},
     steps: [],
   };
 
-// Title: first substantial line
-  const lines = text.split('\\n').map(l => l.trim()).filter(l => l);
-  const titleLine = lines.find(l => l.length > 10 && !/[0-9]{2,}/.test(l));
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l);
+
+  // Title: first substantial line
+  const titleLine = lines.find((l) => l.length > 10 && !/[0-9]{2,}/.test(l));
   parsed.name = titleLine || lines[0] || "Receita sem título";
 
-// Time: various formats
+  // Time
   const timeMatch = text.match(/([0-9]+).*?min/);
   parsed.time = timeMatch ? timeMatch[1] : "";
 
-// Difficulty
+  // Difficulty
   if (text.includes("Fácil")) parsed.difficulty = "easy";
-  else if (text.includes("Média") || text.includes("Médio")) parsed.difficulty = "medium";
-  else if (text.includes("Difícil") || text.includes("Chef")) parsed.difficulty = "hard";
+  else if (text.includes("Média") || text.includes("Médio"))
+    parsed.difficulty = "medium";
+  else if (text.includes("Difícil") || text.includes("Chef"))
+    parsed.difficulty = "hard";
 
-// Portions
+  // Portions
   const portionsMatch = text.match(/([0-9]+)\s*(porções?|pessoas?)/i);
   parsed.portions = portionsMatch ? parseInt(portionsMatch[1]) : 4;
 
-  // Description/Author
+  // Description
   const descMatch = text.match(/Descrição:?\s*([\s\S]*?)(?=\n[0-9])/i);
   parsed.description = descMatch ? descMatch[1].trim() : "";
 
-  // Ingredients: numbered list after "Ingredientes"
+  // Ingredients section
   const ingSection = text.match(
     /Ingredientes:?\s*([\s\S]*?)(?=Passos|Modo de|Preparação)/i,
   );
   if (ingSection) {
-    const lines = ingSection[1]
+    const ingLines = ingSection[1]
       .split("\n")
-      .filter((l) => l.trim() && !l.match(/^[0-9]+$/));
-    parsed.ingredients = lines
-      .map((line) => ({
-        name: line.replace(/^[•\-\d\.\s]+/i, "").trim(),
+      .map((l) => l.trim())
+      .filter((l) => l && !l.match(/^[0-9]+$/));
+    parsed.ingredients = ingLines.slice(0, 20).map((line) => {
+      // Parse qty unit name: e.g., "2 dentes alho" or "1 colher sopa azeite"
+      const match = line.match(
+        /^([0-9]+(?:\.[0-9]+)?)\s*([a-zàáâãéíóôõúç]*)\s*(.*)$/i,
+      );
+      if (match) {
+        return {
+          quantity: match[1],
+          unit: match[2] || "",
+          name: match[3].trim(),
+        };
+      }
+      return {
         quantity: "",
         unit: "",
-      }))
-      .slice(0, 20); // Limit
+        name: line.replace(/^[•\-\d\.\s]+/i, "").trim(),
+      };
+    });
   }
 
-  // Steps: numbered after "Passos"
+  // Steps section - improved numbered grouping
   const stepsSection = text.match(/Passos?:?\s*([\s\S]*)$/i);
   if (stepsSection) {
-    const lines = stepsSection[1]
+    const stepLines = stepsSection[1]
       .split("\n")
-      .map((l) => l.replace(/^[0-9\.\)\s]+/, "").trim())
+      .map((l) => l.trim())
       .filter(Boolean);
-    parsed.steps = lines.slice(0, 15);
+    let currentStep = "";
+    parsed.steps = [];
+    stepLines.forEach((line) => {
+      if (/^[1-9][0-9]*[.)]\s/i.test(line)) {
+        // New numbered step
+        if (currentStep) parsed.steps.push(currentStep.trim());
+        currentStep = line;
+      } else {
+        currentStep += " " + line;
+      }
+    });
+    if (currentStep) parsed.steps.push(currentStep.trim());
+    parsed.steps = parsed.steps.slice(0, 15);
   }
 
   return parsed;
@@ -193,9 +222,9 @@ function populateForm(data) {
   document.getElementById("recipe-time").value = data.time;
   document.getElementById("recipe-difficulty").value = data.difficulty;
 
-  // Clear & repopulate lists
+  // Clear & repopulate
   document.getElementById("ingredients-list").innerHTML = "";
-  data.ingredients.forEach((ing) => addIngredientField(ing.name));
+  data.ingredients.forEach((ing) => addIngredientField(ing));
 
   document.getElementById("steps-list").innerHTML = "";
   data.steps.forEach((step) => addStepField(step));
@@ -206,29 +235,34 @@ function showParseFeedback(data) {
   const stats = document.getElementById("parse-stats");
   const warnings = document.getElementById("parse-warnings");
 
+  const parsedIngs = data.ingredients.filter(
+    (ing) => ing.quantity && ing.name,
+  ).length;
   stats.innerHTML = `
     <div>📝 Título: ${data.name ? "OK" : "❌"}</div>
     <div>⏱️ Tempo: ${data.time ? "OK" : "⚠️"}</div>
-    <div>🥘 ${data.ingredients.length} ingredientes</div>
+    <div>🥘 ${data.ingredients.length} ingredientes (${parsedIngs} parseados)</div>
     <div>📋 ${data.steps.length} passos</div>
   `;
 
   warnings.textContent =
-    data.ingredients.length < 3
-      ? "Aviso: Poucos ingredientes detectados - verifique o texto."
+    parsedIngs < data.ingredients.length / 2
+      ? "Aviso: Alguns ingredientes não foram totalmente parseados (qty/unit)."
       : "";
 
   feedback.classList.remove("hidden");
   showLoading("parse-feedback", false);
 }
 
-function addIngredientField(name = "") {
+function addIngredientField(ing = { quantity: "", unit: "", name: "" }) {
   const list = document.getElementById("ingredients-list");
   const id = Date.now();
   const html = `
-    <div class="group flex gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
-      <input type="text" placeholder="ex: 2 dentes alho" value="${name}" class="flex-1 bg-transparent border-none focus:ring-0 p-0 font-medium" data-ing-id="${id}" />
-      <button type="button" class="size-8 text-slate-400 hover:text-red-500 group-hover:text-red-400" onclick="removeIngredient(${id})">
+    <div class="group flex gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all items-end">
+      <input type="text" placeholder="2" value="${ing.quantity}" class="flex-1 bg-transparent border-none focus:ring-0 p-2 w-16 font-mono text-sm" data-ing-qty="${id}" />
+      <input type="text" placeholder="dentes" value="${ing.unit}" class="flex-1 bg-transparent border-none focus:ring-0 p-2 w-20 text-sm" data-ing-unit="${id}" />
+      <input type="text" placeholder="alho" value="${ing.name}" class="flex-2 bg-transparent border-none focus:ring-0 p-2 font-medium" data-ing-name="${id}" data-ing-id="${id}" />
+      <button type="button" class="size-8 text-slate-400 hover:text-red-500 group-hover:text-red-400 self-start" onclick="removeIngredient(${id})">
         <span class="material-symbols-outlined text-sm">delete</span>
       </button>
     </div>
@@ -241,7 +275,7 @@ function addStepField(text = "") {
   const id = Date.now();
   const html = `
     <div class="group p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
-      <textarea rows="2" placeholder="1. Pique a cebola finamente..." class="w-full bg-transparent border-none focus:ring-0 p-0 resize-vertical">${text}</textarea>
+      <textarea rows="2" placeholder="1. Pique a cebola finamente..." class="w-full bg-transparent border-none focus:ring-0 p-0 resize-vertical font-medium">${text}</textarea>
       <button type="button" class="mt-2 text-slate-400 hover:text-red-500 group-hover:text-red-400 self-end" onclick="removeStep(${id})">
         <span class="material-symbols-outlined text-sm">delete</span>
       </button>
@@ -251,12 +285,15 @@ function addStepField(text = "") {
 }
 
 window.removeIngredient = function (id) {
-  const input = document.querySelector(`[data-ing-id="\${id}"]`);
-  if (input) input.closest("div").remove();
+  const row = document.querySelector(`[data-ing-id="${id}"]`);
+  if (row) row.closest("div").remove();
 };
 
-window.removeStep = function (event, id) {
-  event.target.closest("div").remove();
+window.removeStep = function (id) {
+  const row =
+    document.querySelector(`[data-ing-id="${id}"]`) ||
+    document.querySelector(`textarea`);
+  if (row) row.closest("div").remove();
 };
 
 let imageFile = null;
@@ -303,7 +340,6 @@ async function handleSubmit(e) {
 
     const recipeId = await saveUserRecipe(formData);
 
-    // Show in my-recipes
     sessionStorage.setItem(
       "savedRecipe",
       JSON.stringify({
@@ -321,19 +357,28 @@ async function handleSubmit(e) {
 }
 
 function collectFormData() {
+  const ingredients = [];
+  document.querySelectorAll("[data-ing-id]").forEach((el) => {
+    const id = el.dataset.ingId;
+    const qty = document.querySelector(`[data-ing-qty="${id}"]`)?.value || "";
+    const unit = document.querySelector(`[data-ing-unit="${id}"]`)?.value || "";
+    const name = el.value;
+    if (name.trim()) {
+      ingredients.push({ quantity: qty, unit, name: name.trim() });
+    }
+  });
+
   return {
     name: document.getElementById("recipe-name").value,
     prepTime: document.getElementById("recipe-time").value,
     difficulty: document.getElementById("recipe-difficulty").value,
-    portions: 4, // Default, extend if field added
-    ingredients: Array.from(document.querySelectorAll("[data-ing-id]"))
-      .map((input) => input.value)
-      .filter(Boolean),
+    portions: 4,
+    ingredients,
     instructions: Array.from(document.querySelectorAll("#steps-list textarea"))
       .map((textarea) => textarea.value)
       .filter(Boolean),
     imageUrl: "",
-    nutrition: {}, // From parser if available
+    nutrition: {},
     tags: [],
   };
 }
@@ -351,14 +396,15 @@ function showLoading(selector, show = true) {
     typeof selector === "string" ? document.getElementById(selector) : selector;
   if (show) {
     el.classList.add("loading");
-    el.innerHTML += '<div class="spinner"></div>';
   } else {
     el.classList.remove("loading");
+    // Remove spinner if exists
+    const spinner = el.querySelector(".spinner");
+    if (spinner) spinner.remove();
   }
 }
 
 function showToast(message, type = "success") {
-  // Simple toast
   const toast = document.createElement("div");
   toast.className = `fixed top-20 right-4 p-4 rounded-2xl shadow-xl z-50 ${type === "success" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`;
   toast.textContent = message;
@@ -367,10 +413,9 @@ function showToast(message, type = "success") {
 }
 
 async function loadTailwindConfig() {
-  // Placeholder for tailwind
   console.log("Tailwind configured");
 }
 
-// Global removes
+// Global window functions
 window.removeIngredient = removeIngredient;
 window.removeStep = removeStep;
