@@ -1,176 +1,376 @@
 import { auth, db } from "./firebase-init.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
+const storage = getStorage();
+import { saveUserRecipe, getHousehold } from "./db.js";
 
-// State
-let currentUser = null;
-let recipeImageBase64 = null;
+// PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
 
-// Elements
-const ingredientsList = document.getElementById("ingredients-list");
-const stepsList = document.getElementById("steps-list");
-const btnAddIngredient = document.getElementById("btn-add-ingredient");
-const btnAddStep = document.getElementById("btn-add-step");
-const recipeForm = document.getElementById("recipe-form");
-const imageInput = document.getElementById("image-input");
-const imagePreview = document.getElementById("image-preview");
-const imageUpload = document.getElementById("image-upload");
-const uploadPlaceholder = document.getElementById("upload-placeholder");
-const pdfInput = document.getElementById("pdf-input");
-const pdfDropzone = document.getElementById("pdf-dropzone");
+// Initialize app
+document.addEventListener("DOMContentLoaded", initAddRecipe);
 
-// Auth
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = user;
-  } else {
-    window.location.href = "index.html";
-  }
-});
+async function initAddRecipe() {
+  setupEventListeners();
+  await loadTailwindConfig();
+}
 
-/**
- * Dynamic Lists Handling
- */
-const createListItem = (placeholder, isStep = false) => {
-  const div = document.createElement("div");
-  div.className = "flex gap-3 animate-in fade-in slide-in-from-left-4";
-  div.innerHTML = `
-    <input type="${isStep ? 'text' : 'text'}" placeholder="${placeholder}" class="flex-1 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-xl p-3 text-sm font-bold shadow-sm focus:ring-primary focus:border-primary" />
-    <button type="button" class="size-11 bg-slate-50 dark:bg-slate-800 text-slate-300 hover:text-red-500 rounded-xl flex items-center justify-center transition-all">
-      <span class="material-symbols-outlined text-xl">remove</span>
-    </button>
-  `;
-  
-  div.querySelector("button").onclick = () => div.remove();
-  return div;
-};
+function setupEventListeners() {
+  // PDF dropzone
+  const dropzone = document.getElementById("pdf-dropzone");
+  const pdfInput = document.getElementById("pdf-input");
 
-btnAddIngredient.onclick = () => ingredientsList.appendChild(createListItem("Ex: 200g de Frango"));
-btnAddStep.onclick = () => stepsList.appendChild(createListItem("Ex: Cortar o frango em cubos...", true));
+  dropzone.addEventListener("click", () => pdfInput.click());
+  dropzone.addEventListener("dragover", handleDragOver);
+  dropzone.addEventListener("drop", handlePdfDrop);
+  pdfInput.addEventListener("change", handlePdfSelect);
 
-// Initial items
-btnAddIngredient.onclick();
-btnAddStep.onclick();
+  // Text paste & parse
+  const textarea = document.getElementById("recipe-text-paste");
+  const parseBtn = document.getElementById("btn-parse-text");
+  textarea.addEventListener("input", debounce(parseTextDebounced, 500));
+  parseBtn.addEventListener("click", parseRecipeFromText);
 
-/**
- * Image Handling
- */
-imageUpload.onclick = () => imageInput.click();
-imageInput.onchange = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      recipeImageBase64 = event.target.result;
-      imagePreview.src = recipeImageBase64;
-      imagePreview.classList.remove("hidden");
-      uploadPlaceholder.classList.add("hidden");
-    };
-    reader.readAsDataURL(file);
-  }
-};
+  // Dynamic lists
+  document
+    .getElementById("btn-add-ingredient")
+    .addEventListener("click", addIngredientField);
+  document
+    .getElementById("btn-add-step")
+    .addEventListener("click", addStepField);
 
-/**
- * PDF Parsing Logic
- */
-pdfDropzone.onclick = () => pdfInput.click();
-pdfInput.onchange = async (e) => {
-  const file = e.target.files[0];
-  if (file && file.type === "application/pdf") {
-    try {
-      pdfDropzone.innerHTML = `
-        <div class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full mb-2"></div>
-        <p class="font-black text-xs uppercase tracking-widest text-primary">A ler PDF...</p>
-      `;
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = "";
-      
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        fullText += textContent.items.map(item => item.str).join(" ") + "\n";
-      }
+  // Image upload
+  const imageInput = document.getElementById("image-input");
+  const uploadArea = document.getElementById("image-upload");
+  imageInput.addEventListener("change", handleImageUpload);
+  uploadArea.addEventListener("click", () => imageInput.click());
 
-      console.log("PDF TEXT EXTRACTED:", fullText);
-      parseRecipeFromText(fullText);
-      
-      pdfDropzone.innerHTML = `
-        <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
-        <p class="font-black text-slate-700 dark:text-slate-300">Importação Concluída!</p>
-      `;
-    } catch (err) {
-      console.error("PDF Error:", err);
-      alert("Erro ao ler PDF. Tente introduzir manualmente.");
-    }
-  }
-};
+  // Form submit
+  document
+    .getElementById("recipe-form")
+    .addEventListener("submit", handleSubmit);
 
-const parseRecipeFromText = (text) => {
-  // Simple heuristic parsing for demonstration
-  // Real implemention might use regex or LLM (not available client-side)
-  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 5);
-  
-  // Attempt to find a title
-  if (lines[0]) document.getElementById("recipe-name").value = lines[0].slice(0, 50);
-  
-  // Look for ingredient patterns
-  const maybeIngredients = lines.filter(l => 
-    l.match(/^\d+/) || l.includes("g de") || l.includes("kg") || l.includes("ml")
-  );
-  
-  if (maybeIngredients.length > 0) {
-    ingredientsList.innerHTML = "";
-    maybeIngredients.forEach(ing => {
-      const item = createListItem("Ingrediente");
-      item.querySelector("input").value = ing;
-      ingredientsList.appendChild(item);
-    });
-  }
-};
+  // Auth check
+  auth.onAuthStateChanged((user) => {
+    if (!user) window.location.href = "index.html";
+  });
+}
 
-/**
- * Form Submission
- */
-recipeForm.onsubmit = async (e) => {
+function handleDragOver(e) {
   e.preventDefault();
-  if (!currentUser) return;
+  e.currentTarget.classList.add("bg-primary/20");
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove("bg-primary/20");
+}
+
+async function handlePdfDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove("bg-primary/20");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === "application/pdf") {
+    await parsePdf(file);
+  }
+}
+
+async function handlePdfSelect(e) {
+  const file = e.target.files[0];
+  if (file) await parsePdf(file);
+}
+
+async function parsePdf(file) {
+  try {
+    showLoading("pdf-dropzone", true);
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+    let fullText = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
+    }
+    document.getElementById("recipe-text-paste").value = fullText;
+    parseRecipeFromText();
+  } catch (error) {
+    console.error("PDF parse error:", error);
+    showToast("Erro ao ler PDF", "error");
+  } finally {
+    showLoading("pdf-dropzone", false);
+  }
+}
+
+function parseTextDebounced() {
+  parseRecipeFromText();
+}
+
+function parseRecipeFromText() {
+  const text = document.getElementById("recipe-text-paste").value;
+  if (!text.trim()) return;
+
+  showLoading("parse-feedback", true);
+  setTimeout(() => {
+    // Simulate async parse
+    const parsed = parseYammiRecipe(text);
+    populateForm(parsed);
+    showParseFeedback(parsed);
+  }, 800);
+}
+
+function parseYammiRecipe(text) {
+  // Yämmi format parser
+  const parsed = {
+    name: "",
+    time: "",
+    difficulty: "medium",
+    portions: 4,
+    description: "",
+    author: "",
+    ingredients: [],
+    nutrition: {},
+    steps: [],
+  };
+
+// Title: first substantial line
+  const lines = text.split('\\n').map(l => l.trim()).filter(l => l);
+  const titleLine = lines.find(l => l.length > 10 && !/[0-9]{2,}/.test(l));
+  parsed.name = titleLine || lines[0] || "Receita sem título";
+
+// Time: various formats
+  const timeMatch = text.match(/([0-9]+).*?min/);
+  parsed.time = timeMatch ? timeMatch[1] : "";
+
+// Difficulty
+  if (text.includes("Fácil")) parsed.difficulty = "easy";
+  else if (text.includes("Média") || text.includes("Médio")) parsed.difficulty = "medium";
+  else if (text.includes("Difícil") || text.includes("Chef")) parsed.difficulty = "hard";
+
+// Portions
+  const portionsMatch = text.match(/([0-9]+)\s*(porções?|pessoas?)/i);
+  parsed.portions = portionsMatch ? parseInt(portionsMatch[1]) : 4;
+
+  // Description/Author
+  const descMatch = text.match(/Descrição:?\s*([\s\S]*?)(?=\n[0-9])/i);
+  parsed.description = descMatch ? descMatch[1].trim() : "";
+
+  // Ingredients: numbered list after "Ingredientes"
+  const ingSection = text.match(
+    /Ingredientes:?\s*([\s\S]*?)(?=Passos|Modo de|Preparação)/i,
+  );
+  if (ingSection) {
+    const lines = ingSection[1]
+      .split("\n")
+      .filter((l) => l.trim() && !l.match(/^[0-9]+$/));
+    parsed.ingredients = lines
+      .map((line) => ({
+        name: line.replace(/^[•\-\d\.\s]+/i, "").trim(),
+        quantity: "",
+        unit: "",
+      }))
+      .slice(0, 20); // Limit
+  }
+
+  // Steps: numbered after "Passos"
+  const stepsSection = text.match(/Passos?:?\s*([\s\S]*)$/i);
+  if (stepsSection) {
+    const lines = stepsSection[1]
+      .split("\n")
+      .map((l) => l.replace(/^[0-9\.\)\s]+/, "").trim())
+      .filter(Boolean);
+    parsed.steps = lines.slice(0, 15);
+  }
+
+  return parsed;
+}
+
+function populateForm(data) {
+  document.getElementById("recipe-name").value = data.name;
+  document.getElementById("recipe-time").value = data.time;
+  document.getElementById("recipe-difficulty").value = data.difficulty;
+
+  // Clear & repopulate lists
+  document.getElementById("ingredients-list").innerHTML = "";
+  data.ingredients.forEach((ing) => addIngredientField(ing.name));
+
+  document.getElementById("steps-list").innerHTML = "";
+  data.steps.forEach((step) => addStepField(step));
+}
+
+function showParseFeedback(data) {
+  const feedback = document.getElementById("parse-feedback");
+  const stats = document.getElementById("parse-stats");
+  const warnings = document.getElementById("parse-warnings");
+
+  stats.innerHTML = `
+    <div>📝 Título: ${data.name ? "OK" : "❌"}</div>
+    <div>⏱️ Tempo: ${data.time ? "OK" : "⚠️"}</div>
+    <div>🥘 ${data.ingredients.length} ingredientes</div>
+    <div>📋 ${data.steps.length} passos</div>
+  `;
+
+  warnings.textContent =
+    data.ingredients.length < 3
+      ? "Aviso: Poucos ingredientes detectados - verifique o texto."
+      : "";
+
+  feedback.classList.remove("hidden");
+  showLoading("parse-feedback", false);
+}
+
+function addIngredientField(name = "") {
+  const list = document.getElementById("ingredients-list");
+  const id = Date.now();
+  const html = `
+    <div class="group flex gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+      <input type="text" placeholder="ex: 2 dentes alho" value="${name}" class="flex-1 bg-transparent border-none focus:ring-0 p-0 font-medium" data-ing-id="${id}" />
+      <button type="button" class="size-8 text-slate-400 hover:text-red-500 group-hover:text-red-400" onclick="removeIngredient(${id})">
+        <span class="material-symbols-outlined text-sm">delete</span>
+      </button>
+    </div>
+  `;
+  list.insertAdjacentHTML("beforeend", html);
+}
+
+function addStepField(text = "") {
+  const list = document.getElementById("steps-list");
+  const id = Date.now();
+  const html = `
+    <div class="group p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+      <textarea rows="2" placeholder="1. Pique a cebola finamente..." class="w-full bg-transparent border-none focus:ring-0 p-0 resize-vertical">${text}</textarea>
+      <button type="button" class="mt-2 text-slate-400 hover:text-red-500 group-hover:text-red-400 self-end" onclick="removeStep(${id})">
+        <span class="material-symbols-outlined text-sm">delete</span>
+      </button>
+    </div>
+  `;
+  list.insertAdjacentHTML("beforeend", html);
+}
+
+window.removeIngredient = function (id) {
+  const input = document.querySelector(`[data-ing-id="\${id}"]`);
+  if (input) input.closest("div").remove();
+};
+
+window.removeStep = function (event, id) {
+  event.target.closest("div").remove();
+};
+
+let imageFile = null;
+async function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith("image/")) return;
+
+  imageFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById("image-preview");
+    preview.src = e.target.result;
+    preview.classList.remove("hidden");
+    document.getElementById("upload-placeholder").style.display = "none";
+  };
+  reader.readAsDataURL(file);
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  const user = auth.currentUser;
+  if (!user) {
+    showToast("Faça login primeiro", "error");
+    return;
+  }
+
+  showLoading("recipe-form", true);
 
   try {
-    const btn = recipeForm.querySelector('button[type="submit"]');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = "A guardar magicamente...";
+    const formData = collectFormData();
+    formData.userId = user.uid;
+    formData.householdId = (await getHousehold(user.uid))?.id || "personal";
+    formData.source = "user";
+    formData.createdAt = new Date();
 
-    const ingredients = Array.from(ingredientsList.querySelectorAll("input"))
-      .map(i => i.value.trim())
-      .filter(Boolean);
-      
-    const instructionSteps = Array.from(stepsList.querySelectorAll("input"))
-      .map(i => i.value.trim())
-      .filter(Boolean);
+    if (imageFile) {
+      const imageRef = ref(
+        storage,
+        `recipes/${user.uid}/${Date.now()}_${imageFile.name}`,
+      );
+      await uploadBytes(imageRef, imageFile);
+      formData.imageUrl = await getDownloadURL(imageRef);
+    }
 
-    const recipeData = {
-      name: document.getElementById("recipe-name").value,
-      prepTime: parseInt(document.getElementById("recipe-time").value) || 30,
-      difficulty: document.getElementById("recipe-difficulty").value,
-      ingredients,
-      instructionSteps,
-      image: recipeImageBase64,
-      ownerUid: currentUser.uid,
-      source: "user",
-      createdAt: serverTimestamp(),
-      tags: ["user-submitted"]
-    };
+    const recipeId = await saveUserRecipe(formData);
 
-    await addDoc(collection(db, "recipes"), recipeData);
-    
-    alert("Receita guardada com sucesso! Já podes usá-la nos teus planos.");
-    window.location.href = "dashboard.html";
-  } catch (err) {
-    console.error("Save error:", err);
-    alert("Erro ao guardar receita. Verifique a ligação.");
+    // Show in my-recipes
+    sessionStorage.setItem(
+      "savedRecipe",
+      JSON.stringify({
+        id: recipeId,
+        ...formData,
+      }),
+    );
+    window.location.href = "my-recipes.html";
+  } catch (error) {
+    console.error("Save error:", error);
+    showToast("Erro ao guardar: " + error.message, "error");
+  } finally {
+    showLoading("recipe-form", false);
   }
-};
+}
 
+function collectFormData() {
+  return {
+    name: document.getElementById("recipe-name").value,
+    prepTime: document.getElementById("recipe-time").value,
+    difficulty: document.getElementById("recipe-difficulty").value,
+    portions: 4, // Default, extend if field added
+    ingredients: Array.from(document.querySelectorAll("[data-ing-id]"))
+      .map((input) => input.value)
+      .filter(Boolean),
+    instructions: Array.from(document.querySelectorAll("#steps-list textarea"))
+      .map((textarea) => textarea.value)
+      .filter(Boolean),
+    imageUrl: "",
+    nutrition: {}, // From parser if available
+    tags: [],
+  };
+}
+
+function debounce(fn, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), delay);
+  };
+}
+
+function showLoading(selector, show = true) {
+  const el =
+    typeof selector === "string" ? document.getElementById(selector) : selector;
+  if (show) {
+    el.classList.add("loading");
+    el.innerHTML += '<div class="spinner"></div>';
+  } else {
+    el.classList.remove("loading");
+  }
+}
+
+function showToast(message, type = "success") {
+  // Simple toast
+  const toast = document.createElement("div");
+  toast.className = `fixed top-20 right-4 p-4 rounded-2xl shadow-xl z-50 ${type === "success" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+async function loadTailwindConfig() {
+  // Placeholder for tailwind
+  console.log("Tailwind configured");
+}
+
+// Global removes
+window.removeIngredient = removeIngredient;
+window.removeStep = removeStep;
