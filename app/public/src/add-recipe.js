@@ -92,8 +92,9 @@ async function parsePdf(file) {
     let fullText = "";
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const textContent = await page.getPageTextContent();
-      fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
+      const textContent = await page.getTextContent();
+      // Better line structure
+      fullText += textContent.items.map((item) => item.str).join(" ") + "\n\n\n";
     }
     document.getElementById("recipe-text-paste").value = fullText;
     parseRecipeFromText();
@@ -115,119 +116,136 @@ function parseRecipeFromText() {
 
   showLoading("parse-feedback", true);
   setTimeout(() => {
-    // Simulate async parse
     const parsed = parseYammiRecipe(text);
     populateForm(parsed);
     showParseFeedback(parsed);
   }, 800);
 }
 
+function preprocessPdfText(text) {
+  return text
+    .replace(/ {3,}/g, '\n') // qty\nname pairs
+    .replace(/\s*\n\s*/g, "\n")
+    .replace(/ {2,}/g, " ")
+    .replace(/\t/g, " ")
+    .trim();
+}
+
 function parseYammiRecipe(text) {
-  // Enhanced Yämmi format parser
+  const cleanText = preprocessPdfText(text);
+  const lines = cleanText.split("\n").map(l => l.trim()).filter(l => l);
   const parsed = {
     name: "",
+    prepTime: 0,
     time: "",
     difficulty: "medium",
     portions: 4,
+    servings: 4,
+    summary: "",
     description: "",
-    author: "",
+    analyzedInstructions: [{ name: "Preparação", steps: [] }],
     ingredients: [],
     steps: [],
+    nutrition: {}
   };
 
-  const lines = text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l);
+  // Title/metadata from end
+  const revLines = [...lines].reverse();
+  const prepIdx = revLines.findIndex(l => l.includes('Prep:'));
+  if (prepIdx !== -1) {
+    parsed.name = revLines[prepIdx - 1]?.trim() || 'Receita sem título';
+    const meta = revLines[prepIdx];
+    const prepM = meta.match(/Prep[ :]*(\\d+)/i);
+    parsed.prepTime = prepM ? parseInt(prepM[1]) : 0;
+    parsed.time = parsed.prepTime.toString();
+    const portM = meta.match(/(\\d+)\\s*(pessoas?|porç)/i);
+    parsed.portions = portM ? parseInt(portM[1]) : 4;
+    parsed.servings = parsed.portions;
+    const diffM = meta.match(/(Fácil|Média|Difícil)/i);
+    if (diffM) parsed.difficulty = diffM[1].toLowerCase().includes('fácil') ? 'easy' : 'medium';
+  } else {
+    parsed.name = lines.find(l => l.length > 20) || lines[0] || 'Receita sem título';
+  }
 
-  // Title: first substantial line
-  const titleLine = lines.find((l) => l.length > 10 && !/[0-9]{2,}/.test(l));
-  parsed.name = titleLine || lines[0] || "Receita sem título";
+  // Desc: before Ingredientes
+  const ingIdx = lines.findIndex(l => l.match(/Ingredientes/i));
+  if (ingIdx > 5) parsed.summary = lines.slice(ingIdx - 5, ingIdx).join(' ').trim().substring(0, 300);
+  parsed.description = parsed.summary;
 
-  // Time
-  const timeMatch = text.match(/([0-9]+).*?min/);
-  parsed.time = timeMatch ? timeMatch[1] : "";
+  // Ingredients pair qty + name
+  const prepIngIdx = lines.findIndex(l => l.match(/Preparação/i));
+  const ingEnd = prepIngIdx !== -1 ? prepIngIdx : lines.length;
+  const ingLines = lines.slice(ingIdx + 1, ingEnd);
+  for (let i = 0; i < ingLines.length; i += 2) {
+    const qty = ingLines[i]?.trim();
+    const name = ingLines[i+1]?.trim();
+    if (qty && name && qty.match(/^\\d/) && !name.match(/^\\d/)) {
+      const amtMatch = qty.match(/^(\\d+(?:,\\d+)?)/);
+      const amount = amtMatch ? parseFloat(amtMatch[1].replace(',', '.')) : null;
+      const unit = qty.replace(/^\\d+(?:,\\d+)?/, '').trim().toLowerCase();
+      parsed.ingredients.push({
+        amount,
+        unit,
+        name: name.replace(/^[•\\s]/, ''),
+        original: `${qty} ${name}`
+      });
+    }
+  }
 
-  // Difficulty
-  if (text.includes("Fácil")) parsed.difficulty = "easy";
-  else if (text.includes("Média") || text.includes("Médio"))
-    parsed.difficulty = "medium";
-  else if (text.includes("Difícil") || text.includes("Chef"))
-    parsed.difficulty = "hard";
-
-  // Portions
-  const portionsMatch = text.match(/([0-9]+)\s*(porções?|pessoas?)/i);
-  parsed.portions = portionsMatch ? parseInt(portionsMatch[1]) : 4;
-
-  // Description
-  const descMatch = text.match(/Descrição:?\s*([\s\S]*?)(?=\n[0-9])/i);
-  parsed.description = descMatch ? descMatch[1].trim() : "";
-
-  // Ingredients section
-  const ingSection = text.match(
-    /Ingredientes:?\s*([\s\S]*?)(?=Passos|Modo de|Preparação)/i,
-  );
-  if (ingSection) {
-    const ingLines = ingSection[1]
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l && !l.match(/^[0-9]+$/));
-    parsed.ingredients = ingLines.slice(0, 20).map((line) => {
-      // Parse qty unit name: e.g., "2 dentes alho" or "1 colher sopa azeite"
-      const match = line.match(
-        /^([0-9]+(?:\.[0-9]+)?)\s*([a-zàáâãéíóôõúç]*)\s*(.*)$/i,
-      );
-      if (match) {
-        return {
-          quantity: match[1],
-          unit: match[2] || "",
-          name: match[3].trim(),
-        };
+  // Steps under Preparação, plain numbers
+  if (prepIngIdx !== -1) {
+    const stepLines = lines.slice(prepIngIdx + 1, lines.length - 5);
+    let currentNum = 1;
+    stepLines.forEach(line => {
+      const numM = line.match(/^(\\d+)/);
+      if (numM) {
+        currentNum = parseInt(numM[1]);
+        const step = line.replace(/^\\d+\\.?[\\s)]*/, '').trim();
+        parsed.steps.push(step);
+        parsed.analyzedInstructions[0].steps.push({number: currentNum, step});
+      } else if (parsed.steps.length) {
+        parsed.steps[parsed.steps.length - 1] += ' ' + line.trim();
       }
-      return {
-        quantity: "",
-        unit: "",
-        name: line.replace(/^[•\-\d\.\s]+/i, "").trim(),
-      };
     });
   }
 
-  // Steps section - improved numbered grouping
-  const stepsSection = text.match(/Passos?:?\s*([\s\S]*)$/i);
-  if (stepsSection) {
-    const stepLines = stepsSection[1]
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean);
-    let currentStep = "";
-    parsed.steps = [];
-    stepLines.forEach((line) => {
-      if (/^[1-9][0-9]*[.)]\s/i.test(line)) {
-        // New numbered step
-        if (currentStep) parsed.steps.push(currentStep.trim());
-        currentStep = line;
-      } else {
-        currentStep += " " + line;
-      }
-    });
-    if (currentStep) parsed.steps.push(currentStep.trim());
-    parsed.steps = parsed.steps.slice(0, 15);
-  }
+  // Nutrition rough parse end lines
+  const nutLines = lines.slice(-10);
+  ['Energia (\\d+(,\\d+)?) Kcal', 'Gordura (\\d+(,\\d+)?) g', 'Hidratos (\\d+(,\\d+)?) g', 'Proteínas (\\d+(,\\d+)?) g'].forEach(pat => {
+    const m = cleanText.match(new RegExp(pat, 'i'));
+    if (m && m[1]) {
+      const amt = parseFloat(m[1].replace(',', '.'));
+      if (pat.includes('Energia')) parsed.nutrition.calories = {amount: amt, unit: 'kcal'};
+      if (pat.includes('Gordura')) parsed.nutrition.fatTotal = {amount: amt, unit: 'g'};
+      if (pat.includes('Hidratos')) parsed.nutrition.carbohydrates = {amount: amt, unit: 'g'};
+      if (pat.includes('Proteínas')) parsed.nutrition.protein = {amount: amt, unit: 'g'};
+    }
+  });
+
+  window.parsedRecipe = parsed;
+  sessionStorage.setItem('parsedRecipe', JSON.stringify(parsed));
 
   return parsed;
 }
 
 function populateForm(data) {
-  document.getElementById("recipe-name").value = data.name;
-  document.getElementById("recipe-time").value = data.time;
-  document.getElementById("recipe-difficulty").value = data.difficulty;
+  document.getElementById("recipe-name").value = data.name || '';
+  document.getElementById("recipe-time").value = data.prepTime || data.time || '';
+  document.getElementById("recipe-difficulty").value = data.difficulty || 'medium';
 
-  // Clear & repopulate
   document.getElementById("ingredients-list").innerHTML = "";
-  data.ingredients.forEach((ing) => addIngredientField(ing));
+  data.ingredients.forEach(ing => addIngredientField({
+    quantity: ing.amount ? ing.amount.toString() : '',
+    unit: ing.unit || '',
+    name: ing.name || ''
+  }));
 
   document.getElementById("steps-list").innerHTML = "";
-  data.steps.forEach((step) => addStepField(step));
+  (data.analyzedInstructions[0]?.steps || data.steps || []).forEach(s => addStepField(s.step || s));
+
+  // Store for collectFormData
+  window.parsedRecipe = data;
+  sessionStorage.setItem('parsedRecipe', JSON.stringify(data));
 }
 
 function showParseFeedback(data) {
@@ -235,20 +253,18 @@ function showParseFeedback(data) {
   const stats = document.getElementById("parse-stats");
   const warnings = document.getElementById("parse-warnings");
 
-  const parsedIngs = data.ingredients.filter(
-    (ing) => ing.quantity && ing.name,
-  ).length;
+  const goodIngs = data.ingredients.filter(ing => ing.amount && ing.name).length;
+  const nutKeys = Object.keys(data.nutrition).length;
   stats.innerHTML = `
-    <div>📝 Título: ${data.name ? "OK" : "❌"}</div>
-    <div>⏱️ Tempo: ${data.time ? "OK" : "⚠️"}</div>
-    <div>🥘 ${data.ingredients.length} ingredientes (${parsedIngs} parseados)</div>
+    <div>📝 Título: ${data.name ? 'OK' : '❌'}</div>
+    <div>⏱️ Tempo: ${data.prepTime ? 'OK' : '⚠️'}</div>
+    <div>👥 ${data.servings || 4} porções</div>
+    <div>🥘 ${data.ingredients.length} ingredientes (${goodIngs} estruturados)</div>
     <div>📋 ${data.steps.length} passos</div>
+    <div>🥗 Nutrição: ${nutKeys} campos</div>
   `;
 
-  warnings.textContent =
-    parsedIngs < data.ingredients.length / 2
-      ? "Aviso: Alguns ingredientes não foram totalmente parseados (qty/unit)."
-      : "";
+  warnings.textContent = goodIngs < 5 ? 'Alguns ingredientes precisam edição manual.' : '';
 
   feedback.classList.remove("hidden");
   showLoading("parse-feedback", false);
@@ -260,8 +276,8 @@ function addIngredientField(ing = { quantity: "", unit: "", name: "" }) {
   const html = `
     <div class="group flex gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all items-end">
       <input type="text" placeholder="2" value="${ing.quantity}" class="flex-1 bg-transparent border-none focus:ring-0 p-2 w-16 font-mono text-sm" data-ing-qty="${id}" />
-      <input type="text" placeholder="dentes" value="${ing.unit}" class="flex-1 bg-transparent border-none focus:ring-0 p-2 w-20 text-sm" data-ing-unit="${id}" />
-      <input type="text" placeholder="alho" value="${ing.name}" class="flex-2 bg-transparent border-none focus:ring-0 p-2 font-medium" data-ing-name="${id}" data-ing-id="${id}" />
+      <input type="text" placeholder="kg" value="${ing.unit}" class="flex-1 bg-transparent border-none focus:ring-0 p-2 w-20 text-sm" data-ing-unit="${id}" />
+      <input type="text" placeholder="tomate" value="${ing.name}" class="flex-2 bg-transparent border-none focus:ring-0 p-2 font-medium" data-ing-name="${id}" data-ing-id="${id}" />
       <button type="button" class="size-8 text-slate-400 hover:text-red-500 group-hover:text-red-400 self-start" onclick="removeIngredient(${id})">
         <span class="material-symbols-outlined text-sm">delete</span>
       </button>
@@ -275,7 +291,7 @@ function addStepField(text = "") {
   const id = Date.now();
   const html = `
     <div class="group p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
-      <textarea rows="2" placeholder="1. Pique a cebola finamente..." class="w-full bg-transparent border-none focus:ring-0 p-0 resize-vertical font-medium">${text}</textarea>
+      <textarea rows="2" placeholder="1. Pré-aqueça o forno..." class="w-full bg-transparent border-none focus:ring-0 p-0 resize-vertical font-medium">${text}</textarea>
       <button type="button" class="mt-2 text-slate-400 hover:text-red-500 group-hover:text-red-400 self-end" onclick="removeStep(${id})">
         <span class="material-symbols-outlined text-sm">delete</span>
       </button>
@@ -290,9 +306,7 @@ window.removeIngredient = function (id) {
 };
 
 window.removeStep = function (id) {
-  const row =
-    document.querySelector(`[data-ing-id="${id}"]`) ||
-    document.querySelector(`textarea`);
+  const row = document.querySelector(`[data-ing-id="${id}"]`) || document.querySelector(`textarea`);
   if (row) row.closest("div").remove();
 };
 
@@ -357,29 +371,38 @@ async function handleSubmit(e) {
 }
 
 function collectFormData() {
-  const ingredients = [];
+  // Merge form + parsed data for full seed format
+  const parsed = JSON.parse(sessionStorage.getItem('parsedRecipe') || '{}');
+  const formIngs = [];
   document.querySelectorAll("[data-ing-id]").forEach((el) => {
     const id = el.dataset.ingId;
     const qty = document.querySelector(`[data-ing-qty="${id}"]`)?.value || "";
     const unit = document.querySelector(`[data-ing-unit="${id}"]`)?.value || "";
-    const name = el.value;
-    if (name.trim()) {
-      ingredients.push({ quantity: qty, unit, name: name.trim() });
+    const name = el.value.trim();
+    if (name) {
+      const amt = parseFloat(qty) || null;
+      formIngs.push({ amount: amt, unit, name, original: `${qty} ${unit} ${name}` });
     }
   });
 
+  const instructions = Array.from(document.querySelectorAll("#steps-list textarea"))
+    .map((ta) => ta.value.trim())
+    .filter(Boolean);
+
   return {
-    name: document.getElementById("recipe-name").value,
-    prepTime: document.getElementById("recipe-time").value,
+    name: document.getElementById("recipe-name").value.trim(),
+    prepTime: parseInt(document.getElementById("recipe-time").value) || parsed.prepTime || 30,
     difficulty: document.getElementById("recipe-difficulty").value,
-    portions: 4,
-    ingredients,
-    instructions: Array.from(document.querySelectorAll("#steps-list textarea"))
-      .map((textarea) => textarea.value)
-      .filter(Boolean),
+    servings: parsed.servings || 4,
+    portions: parsed.portions || 4,
+    summary: parsed.summary || parsed.description || '',
+    analyzedInstructions: parsed.analyzedInstructions || [{ name: "Passos", steps: instructions.map((s, i) => ({number: i+1, step: s})) }],
+    nutrition: parsed.nutrition || {},
+    ingredients: formIngs.length ? formIngs : parsed.ingredients || [],
+    instructions, // backward compat
     imageUrl: "",
-    nutrition: {},
     tags: [],
+    source: "imported-pdf"
   };
 }
 
@@ -392,13 +415,11 @@ function debounce(fn, delay) {
 }
 
 function showLoading(selector, show = true) {
-  const el =
-    typeof selector === "string" ? document.getElementById(selector) : selector;
+  const el = typeof selector === "string" ? document.getElementById(selector) : selector;
   if (show) {
     el.classList.add("loading");
   } else {
     el.classList.remove("loading");
-    // Remove spinner if exists
     const spinner = el.querySelector(".spinner");
     if (spinner) spinner.remove();
   }
@@ -417,5 +438,11 @@ async function loadTailwindConfig() {
 }
 
 // Global window functions
-window.removeIngredient = removeIngredient;
-window.removeStep = removeStep;
+window.removeIngredient = function(id) { 
+  const row = document.querySelector(`[data-ing-id="${id}"]`);
+  if (row) row.closest("div").remove();
+};
+window.removeStep = function(id) { 
+  const row = document.querySelector(`[data-ing-id="${id}"]`) || document.querySelector('textarea');
+  if (row) row.closest("div").remove();
+};
