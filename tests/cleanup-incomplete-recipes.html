@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Cleanup Incomplete Recipes</title>
+    <style>
+      body {
+        font-family: monospace;
+        padding: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 20px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧹 Cleanup Incomplete Recipes</h1>
+    <p>Identifies + deletes recipes with:</p>
+    <ul>
+      <li>ingredients as strings (not objects)</li>
+      <li>missing analyzedInstructions.steps</li>
+      <li>no nutrition</li>
+    </ul>
+    <p>
+      <strong>⚠️ BACKUP FIRST</strong> | <em>Login required (your account)</em>
+    </p>
+
+    <button onclick="runCleanup()">🚀 RUN CLEANUP</button>
+    <pre id="log">Ready...</pre>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        deleteDoc,
+        doc,
+      } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider,
+      } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+      const config = {
+        apiKey: "AIzaSyAXYDmdlxSvPMHdazuQzJ29QB-hlb1rMOY",
+        authDomain: "nannymeal-d966b.firebaseapp.com",
+        projectId: "nannymeal-d966b",
+        storageBucket: "nannymeal-d966b.firebasestorage.app",
+        messagingSenderId: "572933668964",
+        appId: "1:572933668964:web:d429db7ac475310d0a9f71",
+      };
+
+      const app = initializeApp(config);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      function log(msg) {
+        const pre = document.getElementById("log");
+        pre.textContent += new Date().toLocaleTimeString() + ": " + msg + "\n";
+        pre.scrollTop = pre.scrollHeight;
+        console.log(msg);
+      }
+
+      async function isIncomplete(recipe) {
+        const issues = [];
+
+        // String ingredients (bad)
+        if (
+          recipe.ingredients &&
+          recipe.ingredients.length > 0 &&
+          typeof recipe.ingredients[0] === "string"
+        ) {
+          issues.push("STRING_INGREDIENTS");
+        }
+
+        // Missing proper steps structure
+        if (
+          !recipe.analyzedInstructions?.[0]?.steps ||
+          recipe.analyzedInstructions[0].steps.length === 0
+        ) {
+          issues.push("MISSING_STEPS");
+        }
+
+        // No nutrition
+        if (
+          !recipe.nutrition?.calories?.amount ||
+          recipe.nutrition.calories.amount <= 0
+        ) {
+          issues.push("NO_NUTRITION");
+        }
+
+        return {
+          incomplete: issues.length > 0,
+          issues,
+          id: recipe.id,
+          name: recipe.name,
+        };
+      }
+
+      window.runCleanup = async function () {
+        log("🔐 Checking auth...");
+        try {
+          // Login if not auth'd
+          if (!auth.currentUser) {
+            log("👤 Login required - Google popup...");
+            await signInWithPopup(auth, provider);
+          }
+          log(`✅ Auth: ${auth.currentUser.email}`);
+
+          log("📥 Fetching recipes...");
+          const snapshot = await getDocs(collection(db, "recipes"));
+          const recipes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          log(`📊 ${recipes.length} recipes found`);
+
+          const toDelete = [];
+          recipes.forEach((recipe) => {
+            const check = isIncomplete(recipe);
+            if (check.incomplete) {
+              toDelete.push(check);
+            }
+          });
+
+          log(`\n🗑️  ${toDelete.length} recipes to delete:`);
+          toDelete.forEach((r) =>
+            log(`  ❌ ${r.id}: "${r.name}" [${r.issues.join(", ")}]`),
+          );
+
+          if (toDelete.length === 0) {
+            log("\n✅ No incomplete recipes found!");
+            return;
+          }
+
+          log("\n⚠️  CONFIRM DELETE? Refresh = cancel");
+          if (!confirm(`Delete ${toDelete.length} incomplete recipes?`)) {
+            log("❌ Cancelled");
+            return;
+          }
+
+          log("\n🗑️  Deleting...");
+          let deleted = 0;
+          for (const recipe of toDelete) {
+            try {
+              await deleteDoc(doc(db, "recipes", recipe.id));
+              log(`  ✅ DELETED: ${recipe.id}`);
+              deleted++;
+            } catch (e) {
+              log(`  ❌ FAILED ${recipe.id}: ${e.message}`);
+            }
+          }
+
+          log(`\n🎉 CLEANUP COMPLETE: ${deleted}/${toDelete.length} deleted`);
+        } catch (error) {
+          log("❌ ERROR: " + error.message);
+        }
+      };
+    </script>
+  </body>
+</html>

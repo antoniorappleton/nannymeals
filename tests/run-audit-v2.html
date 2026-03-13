@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NannyMeals Recipe Audit v2 - Standalone</title>
+    <style>
+      body {
+        font-family: monospace;
+        padding: 20px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔍 Recipe Completeness Audit (Standalone)</h1>
+    <p>Auto-running... <span id="status">Starting...</span></p>
+    <pre id="output">Loading Firebase...</pre>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+      import {
+        getAuth,
+        signInAnonymously,
+      } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+      const config = {
+        apiKey: "AIzaSyAXYDmdlxSvPMHdazuQzJ29QB-hlb1rMOY",
+        authDomain: "nannymeal-d966b.firebaseapp.com",
+        projectId: "nannymeal-d966b",
+        storageBucket: "nannymeal-d966b.firebasestorage.app",
+        messagingSenderId: "572933668964",
+        appId: "1:572933668964:web:d429db7ac475310d0a9f71",
+      };
+
+      const app = initializeApp(config);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      function log(msg) {
+        document.getElementById("output").textContent += msg + "\n";
+        console.log(msg);
+      }
+
+      function isComplete(recipe) {
+        const issues = [];
+
+        // 1. English check (name without PT chars + proper casing)
+        if (
+          !recipe.name?.match(/^[A-Z][a-z]/) ||
+          recipe.name?.match(/[çãõáéíú]/i)
+        ) {
+          issues.push("NOT_ENGLISH");
+        }
+
+        // 2. Steps
+        if (!recipe.analyzedInstructions?.[0]?.steps?.length) {
+          issues.push("MISSING_STEPS");
+        }
+
+        // 3. Ingredients ALL complete
+        const ingredients = recipe.ingredients || [];
+        const allIngComplete = ingredients.every(
+          (ing) =>
+            ing.amount != null &&
+            ing.amount > 0 &&
+            ing.unit &&
+            ing.unit !== "q.b." &&
+            ing.unit !== null,
+        );
+        if (!allIngComplete || ingredients.length === 0) {
+          issues.push("INCOMPLETE_INGREDIENTS");
+        }
+
+        // 4. Nutrition
+        if (
+          !recipe.nutrition?.calories?.amount ||
+          recipe.nutrition.calories.amount <= 0
+        ) {
+          issues.push("MISSING_NUTRITION");
+        }
+
+        return {
+          complete: issues.length === 0,
+          issues,
+          recipeId: recipe.id,
+          name: recipe.name || "(no name)",
+          ingCount: ingredients.length,
+          stepCount: recipe.analyzedInstructions?.[0]?.steps?.length || 0,
+        };
+      }
+
+      async function runAudit() {
+        const statusEl = document.getElementById("status");
+        try {
+          statusEl.textContent = "Authenticating anonymously...";
+          const userCredential = await signInAnonymously(auth);
+          log(`✅ Auth OK: ${userCredential.user.uid.substring(0, 8)}...`);
+
+          statusEl.textContent = "Fetching recipes...";
+          const snapshot = await getDocs(collection(db, "recipes"));
+          const recipes = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          log(`📊 Found ${recipes.length} recipes`);
+
+          const results = { complete: 0, incomplete: [] };
+          recipes.forEach((recipe) => {
+            const check = isComplete(recipe);
+            if (check.complete) {
+              results.complete++;
+            } else {
+              results.incomplete.push(check);
+            }
+          });
+
+          log("\n✅ RESULTS:");
+          log(`   Complete: ${results.complete}`);
+          log(`   Incomplete: ${results.incomplete.length}`);
+
+          log("\n❌ INCOMPLETE RECIPES:");
+          results.incomplete.forEach((r) => {
+            log(`  ${r.recipeId}: "${r.name}" [${r.issues.join(", ")}]`);
+          });
+
+          log(
+            `\n🚮 DELETE IDs: ${results.incomplete.map((r) => r.recipeId).join(", ")}`,
+          );
+
+          log("\n📋 JSON:");
+          log(
+            JSON.stringify(
+              {
+                completeCount: results.complete,
+                incompleteCount: results.incomplete.length,
+                deleteIds: results.incomplete.map((r) => r.recipeId),
+                totalRecipes: recipes.length,
+              },
+              null,
+              2,
+            ),
+          );
+
+          statusEl.textContent = "COMPLETE ✅";
+        } catch (error) {
+          log("❌ ERROR: " + error.message);
+          statusEl.textContent = "FAILED";
+        }
+      }
+
+      // Auto-run
+      runAudit();
+    </script>
+  </body>
+</html>

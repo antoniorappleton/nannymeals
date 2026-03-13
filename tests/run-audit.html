@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NannyMeals - Recipe Audit</title>
+    <script type="module">
+      import { audit } from "./audit-recipes-completeness.js";
+
+      window.addEventListener("load", async () => {
+        document.body.innerHTML +=
+          '<h1>🔍 Running Recipe Audit...</h1><pre id="output"></pre>';
+
+        try {
+          const result = await audit();
+          document.getElementById("output").textContent = JSON.stringify(
+            result,
+            null,
+            2,
+          );
+        } catch (e) {
+          document.getElementById("output").textContent = "ERROR: " + e.message;
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Audit will run automatically</h1>
+  </body>
+</html>

@@ -82,14 +82,15 @@
           <h3 class="text-xl font-extrabold">Como Usar</h3>
         </div>
         <div class="space-y-3 text-sm">
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">calendar_today</span><div><p class="font-bold">1. Cria Plano</p><p class="text-xs text-slate-500">Gera um plano semanal.</p></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">shopping_basket</span><div><p class="font-bold">2. Lista Compras</p><p class="text-xs text-slate-500">Ingredientes por categoria.</p></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">store</span><div><p class="font-bold">3. Supermercados</p><p class="text-xs text-slate-500">Exporta para Continente, Pingo Doce, etc.</p></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">swap_horiz</span><div><p class="font-bold">4. Trocar</p><p class="text-xs text-slate-500">Muda receitas que nao queres.</p></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">thumb_up</span><div><p class="font-bold">5. Feedback</p><p class="text-xs text-slate-500">Diz se as criancas gostaram.</p></div>
+          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">calendar_today</span><div><p class="font-bold">1. Cria Plano</p><p class="text-xs text-slate-500">Gera um plano semanal.</p></div></div>
+          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">shopping_basket</span><div><p class="font-bold">2. Lista Compras</p><p class="text-xs text-slate-500">Ingredientes por categoria.</p></div></div>
+          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">store</span><div><p class="font-bold">3. Supermercados</p><p class="text-xs text-slate-500">Exporta para Continente, Pingo Doce, etc.</p></div></div>
+          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">swap_horiz</span><div><p class="font-bold">4. Trocar</p><p class="text-xs text-slate-500">Muda receitas que nao queres.</p></div></div>
+          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">thumb_up</span><div><p class="font-bold">5. Feedback</p><p class="text-xs text-slate-500">Diz se as criancas gostaram.</p></div></div>
         </div>
         <button id="btn-close-help" class="w-full mt-4 bg-primary text-slate-900 font-bold py-3 rounded-2xl">Entendido</button>
       </div>
+    </div>
   </div>
 
   <!-- Delete Modal -->
@@ -102,9 +103,11 @@
           <p class="text-slate-500 text-sm mb-4">Esta acao e irreversivel.</p>
           <div class="flex gap-2">
             <button id="btn-cancel-delete" class="flex-1 bg-slate-100 font-bold py-3 rounded-2xl">Cancelar</button>
-            <button id="btn-confirm-delete" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl" onclick="console.log('Botão Eliminar clicado diretamente!')">Eliminar</button>
+            <button id="btn-confirm-delete" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl">Eliminar</button>
           </div>
+        </div>
       </div>
+    </div>
   </div>
 
   <script type="module">
@@ -153,6 +156,27 @@
         console.log("btn-confirm-delete: planToDelete é null ou undefined!");
       }
     };
+    // Event delegation for delete buttons - FORCE SHOW
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-del')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const btn = e.target.closest('.btn-del');
+        const planId = btn.getAttribute('data-id');
+        console.log('Delegation: Delete click, planId:', planId);
+        planToDelete = planId;
+        console.log('Modal element:', deleteModal);
+        if (deleteModal) {
+          deleteModal.classList.remove('hidden');
+          deleteModal.style.display = 'flex'; // Force show
+          deleteModal.style.zIndex = '10000';
+          console.log('FORCE display:flex, z-index:10000, style:', window.getComputedStyle(deleteModal).display, deleteModal.classList, 'computed z-index:', window.getComputedStyle(deleteModal).zIndex);
+        } else {
+          console.error('deleteModal not found!');
+        }
+      }
+    }, true);
+    
     deleteModal.onclick = (e) => { if(e.target === deleteModal){ deleteModal.classList.add("hidden"); planToDelete = null; }};
 
     const loadHousehold = async (userId) => {
@@ -178,15 +202,7 @@
       const list = document.getElementById("active-plans-list");
       if(active.length === 0){ list.innerHTML = "<p class='text-slate-400 text-sm text-center py-2'>Sem planos</p>"; return; }
       list.innerHTML = active.map(p => `<div class="flex justify-between p-3 bg-slate-50 rounded-xl"><div><p class="font-bold text-sm">${p.name||"Plano"}</p><p class="text-xs text-slate-400">${p.meals?.length||0} refeicoes</p></div><div class="flex gap-1"><button data-id="${p.id}" class="btn-del p-2 rounded-full bg-red-100 text-red-500"><span class="material-symbols-outlined text-lg">delete</span></button></div>`).join("");
-      console.log("loadPlans: Botões criados, a adicionar event listeners");
-      document.querySelectorAll(".btn-del").forEach(b => {
-        console.log("loadPlans: A adicionar listener ao botão:", b.getAttribute("data-id"));
-        b.onclick = () => { 
-          console.log("loadPlans: Clique no botão eliminar, planToDelete:", b.getAttribute("data-id"));
-          planToDelete = b.getAttribute("data-id"); 
-          deleteModal.classList.remove("hidden"); 
-        };
-      });
+      console.log("loadPlans: Botões criados via delegation");
     };
 
     const loadFeedbackStats = async () => {
