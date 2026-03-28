@@ -24,6 +24,34 @@
       .meal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(19,236,91,0.15); border-color: #13ec5b; }
       .meal-card:active { transform: scale(0.98); }
       .day-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #6b7e72; padding: 0 4px; margin-bottom: 6px; }
+
+      /* Budget bar */
+      .budget-bar-track {
+        height: 7px; border-radius: 99px;
+        background: #e4ede7; overflow: hidden;
+      }
+      html.dark .budget-bar-track { background: #1e2d22; }
+      .budget-bar-fill {
+        height: 100%; border-radius: 99px;
+        transition: width 600ms cubic-bezier(.34,1.56,.64,1), background-color 400ms;
+        width: 0%;
+      }
+
+      /* Balance pills */
+      .balance-pill {
+        flex: 1; padding: 7px 0;
+        border-radius: 10px; text-align: center;
+        border: 1.5px solid #e4ede7;
+        background: #f8faf8;
+        font-size: 11px; font-weight: 800;
+        color: #6b7e72;
+        transition: all 200ms ease;
+      }
+      html.dark .balance-pill { background: #111a14; border-color: #1e2d22; color: #5a7060; }
+      .balance-pill.active {
+        background: #f0fdf4; border-color: #86efac; color: #15803d;
+      }
+      html.dark .balance-pill.active { background: #0d2e0d; border-color: #166534; color: #4ade80; }
     </style>
     <script>
       (function() {
@@ -77,6 +105,45 @@
               <p class="font-black text-sm">Plano Inteligente</p>
               <p class="text-xs text-muted leading-relaxed mt-0.5" id="adaptation-text">A carregar sugestões personalizadas...</p>
             </div>
+          </div>
+        </div>
+
+        <!-- ── BUDGET BAR ──────────────────────────── -->
+        <div class="px-4 lg:px-6 pt-4 pb-1 hidden" id="budget-section">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 shadow-sm">
+            <!-- Bar -->
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-muted">Orçamento semanal</span>
+              <span class="text-xs font-black" id="budget-label">-- / --</span>
+            </div>
+            <div class="budget-bar-track mb-3">
+              <div class="budget-bar-fill" id="budget-bar-fill"></div>
+            </div>
+            <!-- Mini stats -->
+            <div class="grid grid-cols-3 gap-2">
+              <div class="text-center">
+                <p class="text-sm font-black" id="stat-per-meal">--</p>
+                <p class="text-[9px] font-black uppercase tracking-widest text-muted">Por refeição</p>
+              </div>
+              <div class="text-center">
+                <p class="text-sm font-black" id="stat-planned">--</p>
+                <p class="text-[9px] font-black uppercase tracking-widest text-muted">Planeadas</p>
+              </div>
+              <div class="text-center">
+                <p class="text-sm font-black text-primary" id="stat-remaining">--</p>
+                <p class="text-[9px] font-black uppercase tracking-widest text-muted">Restante</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── BALANCE PILLS ───────────────────────── -->
+        <div class="px-4 lg:px-6 pt-3 pb-1 hidden" id="balance-section">
+          <div class="flex gap-2">
+            <div class="balance-pill" id="pill-peixe">🐟 Peixe</div>
+            <div class="balance-pill" id="pill-carne">🥩 Carne</div>
+            <div class="balance-pill" id="pill-veggie">🥦 Veggie</div>
+            <div class="balance-pill" id="pill-sopa">🥣 Sopa</div>
           </div>
         </div>
 
@@ -858,6 +925,12 @@
             ? "Plano personalizado criado por ti"
             : "Sugestões personalizadas com base no vosso perfil e feedback anterior.";
 
+        // ── Budget Bar & Balance Pills ──────────────────────
+        if (plan.meals?.length) {
+          updateBudgetBar(plan.meals, currentHousehold);
+          updateBalancePills(plan.meals);
+        }
+
         mealsContainer.innerHTML = plan.meals
           .map(
             (meal, index) => `
@@ -959,6 +1032,7 @@
           };
 
           try {
+            currentHousehold = await getHousehold(user.uid);
             allPlans = await getAllPlans(user.uid);
             
             // Filter only active plans
@@ -982,8 +1056,74 @@
         }
       });
 
-      // Version V22
-      console.log("Plano carregado [V22]");
+      // ── Budget Bar ─────────────────────────────
+      function updateBudgetBar(meals, household) {
+        const budgetSection = document.getElementById('budget-section');
+        if (!budgetSection || !meals?.length) return;
+        budgetSection.classList.remove('hidden');
+
+        // Budget from household (budgetLevel: low=50, medium=100, high=200)
+        const budgetMap = { low: 50, medium: 100, high: 200 };
+        const weeklyBudget = household ? (budgetMap[household.budgetLevel] || 100) : 100;
+
+        // Sum cost from meals
+        const adults = household?.adults || 2;
+        const children = household?.children?.length || 0;
+        const persons = adults + children || 2;
+        const totalSpent = meals.reduce((sum, m) => {
+          const pps = parseFloat(m.pricePerServing) || 0;
+          return sum + pps * persons;
+        }, 0);
+        const planned = meals.length;
+        const perMeal = planned > 0 ? totalSpent / planned : 0;
+        const remaining = Math.max(0, weeklyBudget - totalSpent);
+        const pct = Math.min(100, Math.round((totalSpent / weeklyBudget) * 100));
+
+        // Color: green <60%, amber 60-85%, red >85%
+        const color = pct < 60 ? '#13ec5b' : pct < 85 ? '#f59e0b' : '#ef4444';
+
+        const fill = document.getElementById('budget-bar-fill');
+        if (fill) { fill.style.width = `${pct}%`; fill.style.background = color; }
+
+        const labelEl = document.getElementById('budget-label');
+        if (labelEl) labelEl.textContent = totalSpent > 0
+          ? `${totalSpent.toFixed(0)}€ / ${weeklyBudget}€`
+          : `-- / ${weeklyBudget}€`;
+        labelEl.style.color = color;
+
+        const perMealEl = document.getElementById('stat-per-meal');
+        if (perMealEl) perMealEl.textContent = perMeal > 0 ? `${perMeal.toFixed(2)}€` : '--';
+        const plannedEl = document.getElementById('stat-planned');
+        if (plannedEl) plannedEl.textContent = `${planned}/7`;
+        const remainEl = document.getElementById('stat-remaining');
+        if (remainEl) remainEl.textContent = totalSpent > 0 ? `${remaining.toFixed(0)}€` : '--';
+      }
+
+      // ── Balance Pills ────────────────────────────
+      function updateBalancePills(meals) {
+        const balanceSection = document.getElementById('balance-section');
+        if (!balanceSection) return;
+        balanceSection.classList.remove('hidden');
+
+        const catMap = { peixe: false, carne: false, veggie: false, sopa: false };
+        meals.forEach(m => {
+          const cat = (m.category || '').toLowerCase().trim();
+          const name = (m.recipeName || '').toLowerCase();
+          if (cat === 'peixe' || name.includes('peixe') || name.includes('salmão') || name.includes('bacalhau') || name.includes('atum')) catMap.peixe = true;
+          if (cat === 'carne' || name.includes('frango') || name.includes('carne') || name.includes('peru') || name.includes('vaca') || name.includes('porco')) catMap.carne = true;
+          if (cat === 'vegetariano' || cat === 'veggie' || name.includes('vegetar') || name.includes('veggie') || name.includes('tofu') || name.includes('lentil') || name.includes('salada')) catMap.veggie = true;
+          if (cat === 'sopa' || name.includes('sopa') || name.includes('caldo') || name.includes('creme')) catMap.sopa = true;
+        });
+
+        const pillMap = { peixe: 'pill-peixe', carne: 'pill-carne', veggie: 'pill-veggie', sopa: 'pill-sopa' };
+        Object.entries(catMap).forEach(([key, active]) => {
+          const el = document.getElementById(pillMap[key]);
+          if (el) el.classList.toggle('active', active);
+        });
+      }
+
+      // Version V29 — Budget Bar + Balance Pills
+      console.log("Plano carregado [V29]");
     </script>
   </body>
   <script>

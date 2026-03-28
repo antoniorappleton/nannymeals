@@ -14,6 +14,7 @@
   <style>
     body { min-height: 100dvh; }
 
+    /* ── Hero card ─────────────────────────── */
     .hero-card {
       background: linear-gradient(135deg, #13ec5b 0%, #0fbb47 100%);
       border-radius: 24px;
@@ -37,51 +38,88 @@
       background: rgba(255,255,255,0.08);
     }
 
+    /* ── Today meal card ───────────────────── */
+    .today-card {
+      background: white;
+      border-radius: 20px;
+      border: 1.5px solid #e4ede7;
+      box-shadow: 0 4px 24px -4px rgba(19,236,91,0.10);
+      transition: all 180ms ease;
+      overflow: hidden;
+    }
+    html.dark .today-card { background: #111a14; border-color: #1e2d22; }
+    .today-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(19,236,91,0.18); border-color: #13ec5b; }
+    .meal-type-badge {
+      font-size: 10px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.2em;
+      padding: 4px 12px; border-radius: 99px;
+    }
+    .badge-peixe     { background: #e0f0ff; color: #2563eb; }
+    .badge-sopa      { background: #fff3e0; color: #d97706; }
+    .badge-carne     { background: #fef2f2; color: #dc2626; }
+    .badge-massa     { background: #faf5ff; color: #9333ea; }
+    .badge-vegetariano { background: #f0fdf4; color: #16a34a; }
+    .badge-sobremesa { background: #fff7ed; color: #ea580c; }
+    html.dark .badge-peixe     { background: #1e3a5c; color: #60a5fa; }
+    html.dark .badge-sopa      { background: #3d2f00; color: #fbbf24; }
+    html.dark .badge-carne     { background: #3d1212; color: #f87171; }
+    html.dark .badge-massa     { background: #2d1c4a; color: #c084fc; }
+    html.dark .badge-vegetariano { background: #0d2e0d; color: #4ade80; }
+    html.dark .badge-sobremesa { background: #3d1a00; color: #fb923c; }
+
+    /* ── Week strip ────────────────────────── */
+    .week-strip { display: flex; gap: 6px; }
+    .week-day {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+    }
+    .week-day-bubble {
+      width: 100%; aspect-ratio: 1;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      border: 2px solid #e4ede7;
+      background: #f8faf8;
+      transition: all 150ms ease;
+    }
+    html.dark .week-day-bubble { background: #111a14; border-color: #1e2d22; }
+    .week-day-bubble.has-meal { border-color: #b8f0cb; background: #f0fdf4; }
+    .week-day-bubble.is-today { border-color: #13ec5b; background: #e8fff2; box-shadow: 0 0 0 3px rgba(19,236,91,0.18); }
+    html.dark .week-day-bubble.has-meal { background: #0d2e0d; border-color: #166534; }
+    html.dark .week-day-bubble.is-today { background: #052e10; border-color: #13ec5b; }
+    .week-day-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7e72; }
+    .week-day-label.is-today { color: #13ec5b; }
+
+    /* ── Stat card ─────────────────────────── */
     .stat-card {
       background: white;
       border-radius: 20px;
       border: 1px solid #e4ede7;
       box-shadow: 0 4px 20px -4px rgba(19,236,91,0.08);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 12px;
-      text-align: center;
-      gap: 8px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 20px 12px; text-align: center; gap: 8px;
       aspect-ratio: 1;
     }
-    html.dark .stat-card {
-      background: #111a14;
-      border-color: #1e2d22;
-    }
+    html.dark .stat-card { background: #111a14; border-color: #1e2d22; }
 
-    .feedback-item {
-      background: #f8faf8;
-      border-radius: 16px;
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    html.dark .feedback-item { background: #1a2e1f; }
-
+    /* ── Quick actions ──────────────────────── */
     .quick-action {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
       padding: 16px 8px;
-      background: white;
-      border-radius: 18px;
+      background: white; border-radius: 18px;
       border: 1px solid #e4ede7;
-      cursor: pointer;
-      transition: all 180ms ease;
+      cursor: pointer; transition: all 180ms ease;
       text-decoration: none;
     }
     html.dark .quick-action { background: #111a14; border-color: #1e2d22; }
     .quick-action:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(19,236,91,0.15); border-color: #13ec5b; }
     .quick-action:active { transform: scale(0.97); }
+
+    /* ── Feedback item ──────────────────────── */
+    .feedback-item { background: #f8faf8; border-radius: 16px; padding: 14px 16px; }
+    html.dark .feedback-item { background: #1a2e1f; }
   </style>
   <script>
     (function() {
@@ -105,7 +143,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted" id="current-month-header">RESUMO MENSAL</p>
-          <h1 class="text-xl font-black tracking-tight mt-0.5">Dashboard</h1>
+          <h1 class="text-xl font-black tracking-tight mt-0.5" id="greeting-heading">Dashboard</h1>
         </div>
         <button id="btn-logout" class="size-10 rounded-full hover:bg-primary/10 transition-colors text-slate-400 hover:text-primary flex items-center justify-center" title="Sair">
           <span class="material-symbols-outlined text-xl">logout</span>
@@ -141,8 +179,41 @@
         </div>
       </div>
 
-      <!-- Stats grid -->
-      <div class="grid grid-cols-2 gap-3 animate-fade-up delay-75">
+      <!-- ── TODAY'S MEAL ──────────────────────────── -->
+      <div class="animate-fade-up delay-50">
+        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted mb-3">Hoje</p>
+        <div id="today-meal-card">
+          <!-- Filled by JS -->
+          <div class="today-card p-4 flex items-center gap-4">
+            <div class="size-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse shrink-0 text-2xl">🍽️</div>
+            <div class="flex-1 min-w-0">
+              <div class="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse mb-2 w-3/4"></div>
+              <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── WEEK STRIP ────────────────────────────── -->
+      <div class="animate-fade-up delay-75">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted">Esta Semana</p>
+          <a href="plan.html" class="text-primary text-xs font-bold hover:underline">Editar</a>
+        </div>
+        <div class="week-strip" id="week-strip">
+          <!-- Filled by JS -->
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Seg</span></div>
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Ter</span></div>
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Qua</span></div>
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Qui</span></div>
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Sex</span></div>
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Sáb</span></div>
+          <div class="week-day"><div class="week-day-bubble"><span class="text-slate-300 dark:text-slate-600 text-xs">·</span></div><span class="week-day-label">Dom</span></div>
+        </div>
+      </div>
+
+      <!-- ── STATS GRID ─────────────────────────────── -->
+      <div class="grid grid-cols-2 gap-3 animate-fade-up delay-100">
         <div class="stat-card">
           <div class="size-11 rounded-2xl bg-primary/15 flex items-center justify-center">
             <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1">menu_book</span>
@@ -163,7 +234,7 @@
         </div>
       </div>
 
-      <!-- Quick actions -->
+      <!-- ── QUICK ACTIONS ──────────────────────────── -->
       <div class="animate-fade-up delay-150">
         <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted mb-3">Ações rápidas</p>
         <div class="grid grid-cols-4 gap-2">
@@ -194,7 +265,7 @@
         </div>
       </div>
 
-      <!-- Feedback recente -->
+      <!-- ── FEEDBACK RECENTE ───────────────────────── -->
       <div class="animate-fade-up delay-225">
         <div class="flex items-center justify-between mb-3">
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted">Feedback Recente</p>
@@ -202,7 +273,6 @@
         </div>
         <div class="bg-white dark:bg-surface-dark rounded-3xl border border-slate-100 dark:border-border-dark shadow-card overflow-hidden">
           <div id="feedback-list" class="divide-y divide-slate-50 dark:divide-border-dark">
-            <!-- Loading state -->
             <div class="flex flex-col items-center justify-center py-10 text-muted gap-3">
               <div class="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                 <span class="material-symbols-outlined text-2xl">sentiment_neutral</span>
@@ -225,26 +295,64 @@
 
     document.getElementById("btn-logout").onclick = () => logout();
 
-    // Week label in hero
-    const heroWeek = document.getElementById("hero-week-label");
+    // ── Greeting dinâmico ─────────────────────────────
+    const h = new Date().getHours();
+    const greetEmoji = h < 12 ? '☀️' : h < 18 ? '🌤️' : '🌙';
+    const greetWord  = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+
+    // ── Week label ────────────────────────────────────
     const now = new Date();
-    const dayOfWeek = now.getDay();
+    const dayOfWeek = now.getDay(); // 0=Sun
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     const monday = new Date(now); monday.setDate(now.getDate() + mondayOffset);
     const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-    const fmt = d => `${d.getDate()} ${d.toLocaleDateString('pt-PT', {month:'short'}).toUpperCase()}`;
-    heroWeek.textContent = `${fmt(monday)} – ${fmt(sunday)}`;
+    const fmt = d => `${d.getDate()} ${d.toLocaleDateString('pt-PT', {month:'short'}).toUpperCase().replace('.', '')}`;
+    document.getElementById("hero-week-label").textContent = `${fmt(monday)} – ${fmt(sunday)}`;
 
-    // Month header
-    const monthEl = document.getElementById("current-month-header");
-    monthEl.textContent = `RESUMO MENSAL • ${now.toLocaleDateString('pt-PT', {month:'long', year:'numeric'}).toUpperCase()}`;
+    // ── Month header ──────────────────────────────────
+    document.getElementById("current-month-header").textContent =
+      `RESUMO MENSAL • ${now.toLocaleDateString('pt-PT', {month:'long', year:'numeric'}).toUpperCase()}`;
+
+    // ── Category emoji map ────────────────────────────
+    const catEmoji = {
+      sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝',
+      vegetariano:'🥦', sobremesa:'🍮', default:'🍽️'
+    };
+    function recipeEmoji(name='', category='') {
+      const key = (category || '').toLowerCase().trim();
+      if (catEmoji[key]) return catEmoji[key];
+      const n = name.toLowerCase();
+      if (n.includes('sopa') || n.includes('caldo') || n.includes('creme')) return '🥣';
+      if (n.includes('frango') || n.includes('carne') || n.includes('peru') || n.includes('vaca') || n.includes('porco')) return '🥩';
+      if (n.includes('salmão') || n.includes('bacalhau') || n.includes('peixe') || n.includes('atum')) return '🐟';
+      if (n.includes('massa') || n.includes('esparguete') || n.includes('lasanha')) return '🍝';
+      if (n.includes('salada') || n.includes('vegeta') || n.includes('tofu') || n.includes('lentil')) return '🥦';
+      return '🍽️';
+    }
+
+    // ── Today helper ─────────────────────────────────
+    // Returns 0=Mon, 1=Tue, …, 6=Sun (matches plan.meals[index])
+    const todayIndex = (now.getDay() + 6) % 7; // JS Sun=0 → Mon=0
+    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    const planDayNames = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
+
+    // ── week strip label ──────────────────────────────
+    // The global plan days are indexed Mon=0…Sun=6
 
     onAuthStateChanged(auth, async user => {
-      if (!user) return;
-      await loadRecipeStats(user.uid);
-      await loadRecentFeedback(user.uid);
+      if (!user) { window.location.href='index.html'; return; }
+
+      // Update greeting
+      document.getElementById('greeting-heading').textContent = `${greetWord}, ${greetEmoji}`;
+
+      await Promise.all([
+        loadRecipeStats(user.uid),
+        loadPlanData(user.uid),
+        loadRecentFeedback(user.uid),
+      ]);
     });
 
+    // ── Recipe stats ──────────────────────────────────
     async function loadRecipeStats(uid) {
       try {
         const all = await getAllRecipes(uid);
@@ -256,18 +364,104 @@
       } catch(e) { console.error("Stats error:", e); }
     }
 
+    // ── Plan data: Today's Meal + Week Strip ──────────
+    async function loadPlanData(uid) {
+      try {
+        const plans = await getAllPlans(uid);
+        const activePlan = (plans || []).find(p => p.status === 'active') || plans?.[0];
+
+        const todayCard = document.getElementById("today-meal-card");
+        const weekStrip = document.getElementById("week-strip");
+
+        if (!activePlan || !activePlan.meals?.length) {
+          todayCard.innerHTML = buildEmptyToday();
+          renderWeekStrip(weekStrip, [], todayIndex);
+          return;
+        }
+
+        const meals = activePlan.meals;
+
+        // Today's meal (index 0=Mon)
+        const todayMeal = meals[todayIndex] || null;
+        todayCard.innerHTML = todayMeal
+          ? buildTodayCard(todayMeal)
+          : buildEmptyToday();
+
+        // Week strip
+        renderWeekStrip(weekStrip, meals, todayIndex);
+
+      } catch(e) {
+        console.error("Plan data error:", e);
+        document.getElementById("today-meal-card").innerHTML = buildEmptyToday();
+      }
+    }
+
+    function buildTodayCard(meal) {
+      const emoji = recipeEmoji(meal.recipeName, meal.category);
+      const cat = (meal.category || 'default').toLowerCase().trim();
+      const badgeClass = `badge-${cat}`;
+      const time = meal.prepTime ? `${meal.prepTime} min` : '';
+      const cost = meal.pricePerServing ? `${meal.pricePerServing} €/p.p.` : '';
+      return `
+        <a href="plan.html" class="today-card p-4 flex items-center gap-4 block hover:no-underline">
+          <div class="size-16 rounded-2xl bg-primary/10 dark:bg-primary/5 flex items-center justify-center shrink-0 text-3xl">${emoji}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2 mb-1.5">
+              <p class="font-black text-base leading-tight truncate">${meal.recipeName}</p>
+              <span class="meal-type-badge ${badgeClass} shrink-0">${meal.category || 'Receita'}</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-muted font-bold">
+              ${time ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span>${time}</span>` : ''}
+              ${cost ? `<span class="text-primary">${cost}</span>` : ''}
+            </div>
+          </div>
+        </a>`;
+    }
+
+    function buildEmptyToday() {
+      return `
+        <a href="plan.html" class="today-card p-5 flex flex-col items-center justify-center gap-3 min-h-[88px] block">
+          <div class="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl">🍽️</div>
+          <div class="text-center">
+            <p class="font-bold text-sm text-slate-700 dark:text-slate-300">Sem refeição planeada</p>
+            <p class="text-xs text-muted mt-0.5">Vai ao Plano para adicionar</p>
+          </div>
+        </a>`;
+    }
+
+    function renderWeekStrip(container, meals, todayIdx) {
+      const labels = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+      container.innerHTML = labels.map((lbl, i) => {
+        const meal = meals[i] || null;
+        const isToday = i === todayIdx;
+        const emoji = meal ? recipeEmoji(meal.recipeName, meal.category) : null;
+        const bubbleCls = [
+          'week-day-bubble',
+          meal ? 'has-meal' : '',
+          isToday ? 'is-today' : ''
+        ].filter(Boolean).join(' ');
+        const labelCls = `week-day-label${isToday ? ' is-today' : ''}`;
+        return `
+          <div class="week-day">
+            <div class="${bubbleCls}">
+              ${emoji
+                ? `<span style="font-size:16px" title="${meal.recipeName}">${emoji}</span>`
+                : `<span class="text-slate-300 dark:text-slate-600" style="font-size:10px">·</span>`}
+            </div>
+            <span class="${labelCls}">${lbl}</span>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Recent feedback ───────────────────────────────
     async function loadRecentFeedback(uid) {
       try {
-        const household = await getHousehold(uid);
-        if (!household) return;
         const plans = await getAllPlans(uid);
         const feedbackList = [];
-        for (const plan of plans) {
-          if (plan.meals) {
-            plan.meals.forEach((meal, i) => {
-              if (meal.feedback) feedbackList.push({ recipeName: meal.recipeName, feedback: meal.feedback, planId: plan.id, mealIndex: i });
-            });
-          }
+        for (const plan of (plans || [])) {
+          (plan.meals || []).forEach((meal, i) => {
+            if (meal.feedback) feedbackList.push({ recipeName: meal.recipeName, feedback: meal.feedback, planId: plan.id, mealIndex: i });
+          });
         }
         feedbackList.sort((a, b) => {
           const tA = a.feedback.timestamp ? new Date(a.feedback.timestamp).getTime() : 0;
@@ -276,8 +470,10 @@
         });
         const recent = feedbackList.slice(0, 5);
         const container = document.getElementById("feedback-list");
-        if (!container) return;
-        if (recent.length === 0) return;
+        if (!container || recent.length === 0) return;
+
+        const starRating = (r) => r ? '★'.repeat(r) + '☆'.repeat(5-r) : '';
+
         container.innerHTML = recent.map(item => {
           const kidsIcon = item.feedback.kidsLiked
             ? '<span class="material-symbols-outlined text-green-500 text-base" style="font-variation-settings:\'FILL\' 1">sentiment_very_satisfied</span>'
@@ -288,9 +484,12 @@
           const wasteIcon = item.feedback.wasteLevel > 0
             ? '<span class="material-symbols-outlined text-orange-400 text-base">delete_sweep</span>'
             : '<span class="material-symbols-outlined text-green-500 text-base" style="font-variation-settings:\'FILL\' 1">check_circle</span>';
+          const stars = item.feedback.starRating
+            ? `<span class="text-xs font-black text-amber-400 tracking-tight">${starRating(item.feedback.starRating)}</span>` : '';
           return `<div class="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
             <div class="flex-1 min-w-0">
               <p class="font-bold text-sm truncate">${item.recipeName}</p>
+              ${stars}
             </div>
             <div class="flex items-center gap-3 shrink-0">
               <div title="Crianças gostaram">${kidsIcon}</div>
@@ -301,7 +500,8 @@
         }).join('');
       } catch(e) { console.error("Feedback error:", e); }
     }
-    console.log("Dashboard [v28]");
+
+    console.log("Dashboard [v29 — Today + Week Strip]");
   </script>
   <script>
     fetch('bottom-nav.html').then(r => r.text()).then(html => {
