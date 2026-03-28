@@ -392,14 +392,25 @@
       return '🍽️';
     }
 
+    const categoryImages = {
+      sopa: 'assets/images/recipe_sopa.png',
+      carne: 'assets/images/recipe_carne.png',
+      peixe: 'assets/images/recipe_peixe.png',
+      massa: 'assets/images/recipe_massa.png',
+      vegetariano: 'assets/images/recipe_vegetariano.png',
+      sobremesa: 'assets/images/recipe_sobremesa.png',
+      default: 'assets/images/recipe_default.png'
+    };
+
     function buildTodayCard(meal) {
       const emoji = recipeEmoji(meal.recipeName, meal.category);
       const isDone = meal.completed === true;
       const badgeCls = `badge-${(meal.category||'default').toLowerCase()}`;
-      
+      const fallbackImg = categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default;
+
       const imageHtml = meal.image 
-        ? `<img src="${meal.image}" class="size-16 rounded-2xl object-cover shadow-sm shrink-0" alt="${meal.recipeName}" onerror="this.outerHTML='<div class=\'size-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl shrink-0\'>${emoji}</div>'">`
-        : `<div class="size-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl shadow-sm shrink-0">${emoji}</div>`;
+        ? `<img src="${meal.image}" class="size-16 rounded-2xl object-cover shadow-sm shrink-0" alt="${meal.recipeName}" onerror="this.src='${fallbackImg}'">`
+        : `<img src="${fallbackImg}" class="size-16 rounded-2xl object-cover shadow-sm shrink-0" alt="${meal.recipeName}">`;
 
       return `
         <div class="today-card p-5 flex items-center gap-5 group">
@@ -448,11 +459,18 @@
       container.innerHTML = dayNames.map((name, i) => {
         const meal = meals[i];
         const isToday = i === activeIdx;
-        const emoji = meal ? recipeEmoji(meal.recipeName, meal.category) : '·';
+        const fallbackImg = meal ? (categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default) : null;
+        
+        let content = `<span class="text-slate-200 dark:text-slate-800 text-xs">·</span>`;
+        if (meal) {
+          const imgSrc = meal.image || fallbackImg;
+          content = `<img src="${imgSrc}" class="size-full object-cover rounded-full" onerror="this.src='${fallbackImg}'">`;
+        }
+
         return `
           <div class="week-day text-center">
-            <div class="week-day-bubble ${meal ? 'has-meal' : ''} ${isToday ? 'is-today' : ''}">
-              <span class="${meal ? '' : 'text-slate-300 dark:text-slate-600 text-xs'}">${emoji}</span>
+            <div class="week-day-bubble ${meal ? 'has-meal' : ''} ${isToday ? 'is-today' : ''} overflow-hidden p-0 flex items-center justify-center">
+              ${content}
             </div>
             <span class="week-day-label ${isToday ? 'is-today' : ''}">${name}</span>
           </div>
@@ -516,10 +534,10 @@
         if (scored.length > 0) {
           document.getElementById('pantry-suggestions').classList.remove('hidden');
           document.getElementById('pantry-suggestions-grid').innerHTML = scored.map(r => {
-            const emoji = recipeEmoji(r.name, (r.tags||[])[0]);
+            const fallbackImg = categoryImages[(r.category||'').toLowerCase()] || categoryImages.default;
             const imageHtml = r.image 
-              ? `<img src="${r.image}" class="h-20 w-full rounded-xl object-cover" alt="${r.name}" onerror="this.outerHTML='<div class=\'h-20 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl\'>${emoji}</div>'">`
-              : `<div class="h-20 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl">${emoji}</div>`;
+              ? `<img src="${r.image}" class="h-20 w-full rounded-xl object-cover" alt="${r.name}" onerror="this.src='${fallbackImg}'">`
+              : `<img src="${fallbackImg}" class="h-20 w-full rounded-xl object-cover" alt="${r.name}">`;
               
             return `
               <a href="recipes-catalog.html?id=${r.id}" class="flex-none w-36 bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-border-dark p-3 space-y-2">

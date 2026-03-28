@@ -301,6 +301,7 @@
       vegetarian: 'assets/images/recipe_vegetariano.png',
       vegetariano: 'assets/images/recipe_vegetariano.png',
       sobremesa: 'assets/images/recipe_sobremesa.png',
+      default: 'assets/images/recipe_default.png'
     };
     const categoryEmoji = { sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝', vegetarian:'🥦', vegetariano:'🥦', sobremesa:'🍮', 'kid-friendly':'👶', fast:'⚡' };
     const categoryBg = { sopa:'cat-sopa', carne:'cat-carne', peixe:'cat-peixe', massa:'cat-massa', vegetarian:'cat-vegetariano', vegetariano:'cat-vegetariano', sobremesa:'cat-sobremesa' };
@@ -394,10 +395,11 @@
       emptyState.classList.add("hidden");
       recipesGrid.classList.remove("hidden");
       recipesGrid.innerHTML = filtered.map(recipe => {
-        const imgData = getRecipeImage(recipe);
-        const imgHtml = imgData.type === 'img'
-          ? `<img src="${imgData.src}" alt="${recipe.name}" class="recipe-card-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'recipe-card-img-placeholder cat-default\'>🍽️</div>'">`
-          : `<div class="recipe-card-img-placeholder ${categoryBg[(recipe.tags||[])[0]] || 'cat-default'}">${categoryEmoji[(recipe.tags||[])[0]] || '🍽️'}</div>`;
+        const primaryTag = (recipe.tags || [])[0] || 'default';
+        const emoji = categoryEmoji[primaryTag] || '🍽️';
+        const imgHtml = recipe.image 
+          ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-img" loading="lazy" onerror="this.outerHTML='<div class=\'recipe-card-img-placeholder ${categoryBg[primaryTag] || 'cat-default'}\'>${emoji}</div>'">`
+          : `<div class="recipe-card-img-placeholder ${categoryBg[primaryTag] || 'cat-default'}">${emoji}</div>`;
         
         // Use pre-computed match if available (from pantry filter) or calculate fresh
         const matchPct = recipe._match !== undefined ? recipe._match : calcMatch(recipe);
@@ -413,13 +415,16 @@
             </div>` 
           : '';
 
+        const time = `<div class="flex items-center gap-1"><span class="material-symbols-outlined text-[10px] text-muted">schedule</span><span class="text-[10px] font-black text-muted">${recipe.prepTime || '--'} min</span></div>`;
+        const tagsHtml = (recipe.tags || []).slice(0, 2).map(tag => `<span class="tag-badge ${getTagStyle(tag)}">${tag}</span>`).join('');
+
         return `<div class="recipe-card" onclick="openRecipeDetail('${recipe.id}')">
           ${imgHtml}
           <div class="p-3 space-y-2">
             <h3 class="font-black text-sm leading-tight line-clamp-2">${recipe.name}</h3>
             <div class="flex items-center justify-between">
               ${time}
-              <div class="flex flex-wrap gap-1 justify-end">${tags}</div>
+              <div class="flex flex-wrap gap-1 justify-end">${tagsHtml}</div>
             </div>
             ${matchBar}
           </div>

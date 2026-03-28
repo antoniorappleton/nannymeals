@@ -109,6 +109,15 @@
 
     const avatarBgs = ['bg-primary/15','bg-blue-500/10','bg-orange-500/10','bg-purple-500/10','bg-red-500/10','bg-yellow-500/10'];
     const avatarEmojis = ['🥘','🍲','🥗','🍛','🍜','🥩','🐟','🥦','🍰','🥣'];
+    const categoryImages = {
+      sopa: 'assets/images/recipe_sopa.png',
+      carne: 'assets/images/recipe_carne.png',
+      peixe: 'assets/images/recipe_peixe.png',
+      massa: 'assets/images/recipe_massa.png',
+      vegetariano: 'assets/images/recipe_vegetariano.png',
+      sobremesa: 'assets/images/recipe_sobremesa.png',
+      default: 'assets/images/recipe_default.png'
+    };
 
     function getAvatarStyle(idx) {
       return { bg: avatarBgs[idx % avatarBgs.length], emoji: avatarEmojis[idx % avatarEmojis.length] };
@@ -169,8 +178,13 @@
 
       html += recipes.map((r, idx) => {
         const av = getAvatarStyle(idx);
+        const fallbackImg = categoryImages[(r.category||'').toLowerCase()] || categoryImages.default;
+        const imageHtml = r.image 
+          ? `<img src="${r.image}" class="size-full object-cover rounded-xl" onerror="this.src='${fallbackImg}'">`
+          : `<img src="${fallbackImg}" class="size-full object-cover rounded-xl">`;
+
         return `<div class="my-recipe-card animate-fade-up" style="animation-delay:${idx * 50}ms" data-recipe-id="${r.id}" onclick="editRecipe('${r.id}')">
-          <div class="recipe-avatar ${av.bg}">${av.emoji}</div>
+          <div class="recipe-avatar ${av.bg}">${imageHtml}</div>
           <div class="flex-1 min-w-0">
             <h3 class="font-black text-sm leading-tight truncate">${r.customName || r.name || 'Sem título'}</h3>
             <p class="text-[10px] text-muted mt-1 font-bold uppercase tracking-widest">ID: ${r.recipeId}</p>

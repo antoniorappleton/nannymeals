@@ -572,6 +572,16 @@
       let currentHousehold = null;
 
       const catEmoji = { sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝', vegetariano:'🥦', sobremesa:'🍮', default:'🍽️' };
+      const categoryImages = {
+        sopa: 'assets/images/recipe_sopa.png',
+        carne: 'assets/images/recipe_carne.png',
+        peixe: 'assets/images/recipe_peixe.png',
+        massa: 'assets/images/recipe_massa.png',
+        vegetariano: 'assets/images/recipe_vegetariano.png',
+        sobremesa: 'assets/images/recipe_sobremesa.png',
+        default: 'assets/images/recipe_default.png'
+      };
+
       function recipeEmoji(name='', category='') {
         const key = (category || '').toLowerCase().trim();
         if (catEmoji[key]) return catEmoji[key];
@@ -948,10 +958,10 @@
         mealsContainer.innerHTML = plan.meals
           .map(
             (meal, index) => {
-              const emoji = recipeEmoji(meal.recipeName, meal.category);
+              const fallbackImg = categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default;
               const imageHtml = meal.image 
-                ? `<img src="${meal.image}" class="w-full h-40 object-cover" alt="${meal.recipeName}" onerror="this.outerHTML='<div class=\'w-full h-40 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-4xl\'>${emoji}</div>'">`
-                : `<div class="w-full h-40 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-4xl">${emoji}</div>`;
+                ? `<img src="${meal.image}" class="w-full h-40 object-cover" alt="${meal.recipeName}" onerror="this.src='${fallbackImg}'">`
+                : `<img src="${fallbackImg}" class="w-full h-40 object-cover" alt="${meal.recipeName}">`;
 
               return `
         <div class="space-y-3">

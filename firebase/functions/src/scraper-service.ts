@@ -197,8 +197,32 @@ export function extractFromHtml(html: string, url: string = ''): ScrapedRecipe {
   if (html.includes('pingodoce.pt') || $('.recipe-ingredients__list').length) return parsePingoDoce($, url);
   if (html.includes('auchan.pt') || $('.recipe-ingredients__item').length) return parseAuchan($, url);
   
-  // Try generic if no specific markers
-  return parseGenericText($('body').text() || html);
+  // Catch generic recipe from sites like AllRecipes or Portuguese blogs
+  const generic = parseGenericText($('body').text() || html);
+  
+  // Try to find an image if missing
+  if (!generic.image) {
+    const metaImg = $('meta[property="og:image"]').attr('content') || 
+                  $('meta[name="twitter:image"]').attr('content');
+    if (metaImg) {
+      generic.image = metaImg;
+    } else {
+      // Look for the largest/first likely recipe image
+      const imgs = $('img').map((_, el) => ({
+        src: $(el).attr('src'),
+        width: parseInt($(el).attr('width') || '0'),
+        alt: $(el).attr('alt') || ''
+      })).get();
+      
+      const likely = imgs.find(i => 
+        i.src && !i.src.includes('logo') && !i.src.includes('icon') && 
+        (i.width > 200 || (i.alt && i.alt.toLowerCase().includes(generic.name.split(' ')[0].toLowerCase())))
+      );
+      if (likely && likely.src) generic.image = likely.src;
+    }
+  }
+
+  return generic;
 }
 
 /**

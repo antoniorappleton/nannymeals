@@ -1019,14 +1019,17 @@ export const initDB = () => {
  */
 export const getAllRecipes = async (userId = null) => {
   try {
-    // Sempre sincronizar receitas para garantir que têm os dados atualizados
-    console.log("A sincronizar receitas...");
-    await seedRecipes();
+    // Apenas o administrador deve tentar semear/sincronizar receitas globais
+    // para evitar erros de permissão "Missing or insufficient permissions" para utilizadores normais.
+    if (auth.currentUser && auth.currentUser.email === "antonioappleton@gmail.com") {
+      console.log("A sincronizar receitas (Admin mode)...");
+      await seedRecipes();
+    }
     
     let rSnap = await getDocs(collection(db, "recipes"));
 
-    // Se não existem receitas após sincronização, semear
-    if (rSnap.empty) {
+    // Se não existem receitas e somos admin, tentamos semear uma última vez
+    if (rSnap.empty && auth.currentUser && auth.currentUser.email === "antonioappleton@gmail.com") {
       console.log("Base de dados de receitas vazia. A semear...");
       await seedRecipes();
       rSnap = await getDocs(collection(db, "recipes"));
