@@ -1,315 +1,332 @@
 <!doctype html>
-<html class="light" lang="pt">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>NannyMeal - Login</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script src="src/tailwind-config.js"></script>
-    <link rel="stylesheet" href="css/global.css" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" href="assets/images/hero.webp" />
-  </head>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NannyMeals — Planeamento de refeições familiar inteligente. Receitas, listas de compras e planos semanais para toda a família." />
+  <title>NannyMeals — Entrar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/images/hero.webp" />
+  <style>
+    body { min-height: 100dvh; background: var(--bg-light); }
+    html.dark body { background: var(--bg-dark); }
 
-  <body
-    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased"
-  >
-    <div class="app-container glass-effect justify-center p-4">
-      <div
-        class="relative w-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 border border-slate-100 dark:border-slate-800 p-8"
-      >
-        <!-- Welcome Header -->
-        <div class="text-center mb-10">
-          <h1
-            class="text-slate-900 dark:text-slate-50 tracking-tight text-3xl font-extrabold leading-tight"
-            id="auth-title"
-          >
-            Bem-vindo de volta!
-          </h1>
-          <p
-            class="text-slate-500 dark:text-slate-400 mt-2 text-sm font-medium"
-          >
-            Pronto para planear a próxima refeição?
-          </p>
+    .login-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(19,236,91,0.18) 0%, transparent 70%),
+        var(--bg-light);
+    }
+    html.dark .login-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(19,236,91,0.12) 0%, transparent 70%),
+        var(--bg-dark);
+    }
+
+    .input-field {
+      width: 100%;
+      background: #f8faf8;
+      border: 1.5px solid #e4ede7;
+      border-radius: 14px;
+      padding: 0 16px 0 48px;
+      height: 54px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a2e1f;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    html.dark .input-field {
+      background: #1a2e1f;
+      border-color: #1e2d22;
+      color: #e8f5ec;
+    }
+    .input-field::placeholder { color: #9ca8a0; font-weight: 500; }
+    .input-field:focus {
+      border-color: #13ec5b;
+      box-shadow: 0 0 0 3px rgba(19,236,91,0.18);
+      outline: none;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: #13ec5b;
+      color: #0a1a0e;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 14px;
+      height: 54px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(19,236,91,0.4);
+      transition: all 180ms ease;
+    }
+    .btn-primary:hover { background: #0fbb47; box-shadow: 0 8px 28px rgba(19,236,91,0.5); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .feature-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+  </style>
+  <script>
+    // Apply theme before render
+    (function() {
+      const saved = localStorage.getItem('nm_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
+    })();
+    // Cache bust
+    if (localStorage.getItem('app_version') !== 'v28') {
+      localStorage.setItem('app_version', 'v28');
+      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 600); });
+    }
+  </script>
+</head>
+
+<body class="login-bg font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div class="min-h-dvh flex flex-col lg:flex-row">
+
+    <!-- ╔══════════════════════════════════════╗ -->
+    <!-- ║  HERO PANEL  (left on desktop)       ║ -->
+    <!-- ╚══════════════════════════════════════╝ -->
+    <div class="hidden lg:flex flex-col justify-between w-[480px] shrink-0 bg-gradient-primary p-12 relative overflow-hidden">
+      <!-- Decorative circles -->
+      <div class="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-white/10"></div>
+      <div class="absolute bottom-10 -right-20 w-96 h-96 rounded-full bg-white/8"></div>
+
+      <!-- Logo -->
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="size-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">restaurant</span>
+          </div>
+          <span class="text-white text-2xl font-black tracking-tight">NannyMeals</span>
+        </div>
+        <p class="text-white/80 text-sm font-medium">O planeamento de refeições da tua família</p>
+      </div>
+
+      <!-- Features -->
+      <div class="relative z-10 space-y-5">
+        <div class="flex gap-4">
+          <div class="size-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1">calendar_today</span>
+          </div>
+          <div>
+            <p class="text-white font-bold">Planos Semanais Inteligentes</p>
+            <p class="text-white/70 text-sm">Gerados automaticamente com base nas preferências da família</p>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="size-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1">shopping_basket</span>
+          </div>
+          <div>
+            <p class="text-white font-bold">Lista de Compras Automática</p>
+            <p class="text-white/70 text-sm">Integração com Continente, Pingo Doce e muito mais</p>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="size-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1">favorite</span>
+          </div>
+          <div>
+            <p class="text-white font-bold">Receitas para Toda a Família</p>
+            <p class="text-white/70 text-sm">Adaptadas às alergias e preferências de adultos e crianças</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="relative z-10 text-white/50 text-xs">© 2026 NannyMeals</p>
+    </div>
+
+    <!-- ╔══════════════════════════════════════╗ -->
+    <!-- ║  FORM PANEL  (right / full mobile)   ║ -->
+    <!-- ╚══════════════════════════════════════╝ -->
+    <div class="flex-1 flex flex-col justify-center items-center px-5 py-10 lg:py-12 lg:px-16">
+
+      <!-- Mobile Logo -->
+      <div class="flex flex-col items-center mb-8 lg:hidden animate-fade-up">
+        <div class="size-16 bg-primary rounded-3xl flex items-center justify-center shadow-glow mb-4">
+          <span class="material-symbols-outlined text-slate-900 text-3xl" style="font-variation-settings:'FILL' 1">restaurant</span>
+        </div>
+        <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">NannyMeals</h1>
+        <p class="text-muted text-sm mt-1">O planeamento da tua família</p>
+      </div>
+
+      <!-- Card de login -->
+      <div class="w-full max-w-md animate-fade-up delay-75">
+
+        <!-- Título dinâmico -->
+        <div class="mb-8">
+          <h2 id="auth-title" class="text-2xl lg:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Bem-vindo de volta!</h2>
+          <p class="text-muted text-sm mt-1">Pronto para planear a próxima refeição?</p>
         </div>
 
-        <!-- Auth Form -->
-        <form class="space-y-5" id="auth-form">
+        <!-- Formulário -->
+        <form id="auth-form" class="space-y-4">
+          <!-- Email -->
           <div class="space-y-1.5">
-            <label
-              class="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider px-1"
-              >Email</label
-            >
+            <label class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 px-1">Email</label>
             <div class="relative">
-              <span
-                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl"
-                >mail</span
-              >
-              <input
-                id="email"
-                autocomplete="email"
-                class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-4 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400 dark:text-white font-medium"
-                placeholder="chef@familia.com"
-                type="email"
-                required
-              />
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl select-none">mail</span>
+              <input id="email" type="email" autocomplete="email" class="input-field" placeholder="chef@familia.com" required />
             </div>
           </div>
 
+          <!-- Password -->
           <div class="space-y-1.5">
             <div class="flex justify-between items-center px-1">
-              <label
-                class="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider"
-                >Palavra-passe</label
-              >
-              <a
-                id="forgot-password"
-                class="text-primary font-bold text-xs hover:underline"
-                href="#"
-                >Esqueceu-se?</a
-              >
+              <label class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Palavra-passe</label>
+              <a id="forgot-password" href="#" class="text-primary text-xs font-bold hover:underline">Esqueceu-se?</a>
             </div>
             <div class="relative">
-              <span
-                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl"
-                >lock</span
-              >
-              <input
-                id="password"
-                autocomplete="current-password"
-                class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-12 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400 dark:text-white font-medium"
-                placeholder="••••••••"
-                type="password"
-                required
-              />
-              <button
-                id="toggle-password"
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                type="button"
-              >
-                <span class="material-symbols-outlined eye-icon"
-                  >visibility</span
-                >
-                <span class="material-symbols-outlined eye-off-icon hidden"
-                  >visibility_off</span
-                >
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl select-none">lock</span>
+              <input id="password" type="password" autocomplete="current-password" class="input-field" placeholder="••••••••" required />
+              <button id="toggle-password" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined eye-icon text-xl">visibility</span>
+                <span class="material-symbols-outlined eye-off-icon text-xl hidden">visibility_off</span>
               </button>
             </div>
           </div>
 
-          <!-- Register Specific Fields -->
+          <!-- Confirm Password (only on register) -->
           <div id="confirm-password-container" class="space-y-1.5 hidden">
-            <label
-              class="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider px-1"
-              >Confirmar Password</label
-            >
+            <label class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 px-1">Confirmar Palavra-passe</label>
             <div class="relative">
-              <span
-                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl"
-                >verified_user</span
-              >
-              <input
-                id="confirm-password"
-                autocomplete="new-password"
-                class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-12 pr-4 h-14 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
-                placeholder="••••••••"
-                type="password"
-              />
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl select-none">verified_user</span>
+              <input id="confirm-password" type="password" autocomplete="new-password" class="input-field" placeholder="••••••••" />
+              <button id="toggle-confirm-password" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined eye-icon text-xl">visibility</span>
+                <span class="material-symbols-outlined eye-off-icon text-xl hidden">visibility_off</span>
+              </button>
             </div>
           </div>
 
-          <div
-            id="auth-error"
-            class="hidden text-red-500 text-xs font-bold px-3 py-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30"
-          ></div>
+          <!-- Error -->
+          <div id="auth-error" class="hidden text-red-600 dark:text-red-400 text-xs font-bold px-4 py-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/40"></div>
 
-          <button
-            id="btn-submit"
-            class="w-full bg-primary text-slate-900 font-black py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all mt-4 uppercase tracking-widest text-sm"
-            type="submit"
-          >
-            Entrar
-          </button>
+          <!-- Submit -->
+          <button id="btn-submit" type="submit" class="btn-primary mt-2">Entrar</button>
 
-          <div class="relative py-4 flex items-center">
-            <div
-              class="flex-grow border-t border-slate-100 dark:border-slate-800"
-            ></div>
-            <span
-              class="flex-shrink mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]"
-              >ou continuar com</span
-            >
-            <div
-              class="flex-grow border-t border-slate-100 dark:border-slate-800"
-            ></div>
+          <!-- Divider -->
+          <div class="relative py-2 flex items-center">
+            <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            <span class="flex-shrink mx-4 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">ou continuar com</span>
+            <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
           </div>
 
-          <button
-            id="btn-google"
-            class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-[0.98]"
-            type="button"
-          >
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#4285F4"
-              ></path>
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              ></path>
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                fill="#FBBC05"
-              ></path>
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              ></path>
+          <!-- Google -->
+          <button id="btn-google" type="button"
+            class="w-full flex items-center justify-center gap-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark h-[54px] rounded-[14px] hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-[0.98] shadow-sm">
+            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            <span
-              class="text-slate-700 dark:text-slate-200 font-bold tracking-tight"
-              >Google</span
-            >
+            <span class="text-slate-700 dark:text-slate-200 font-bold text-sm">Continuar com Google</span>
           </button>
         </form>
 
-        <p class="text-center mt-8 text-sm text-slate-500">
+        <!-- Toggle Login/Register -->
+        <p class="text-center mt-6 text-sm text-slate-500 dark:text-slate-400">
           <span id="auth-footer-text">Novo por aqui?</span>
-          <button
-            id="toggle-auth-mode"
-            class="text-primary font-black hover:underline ml-1"
-          >
-            Registe-se grátis
-          </button>
+          <button id="toggle-auth-mode" class="text-primary font-black hover:underline ml-1">Registe-se grátis</button>
         </p>
       </div>
     </div>
-    <script type="module" src="src/auth.js?v=19"></script>
-    <script>
-      // Script de emergência para limpar cache se detectar versão antiga nos logs
+  </div>
 
-      if (localStorage.getItem("app_version") !== "v26") {
-        console.log("URGENTE: Limpando ambientes para v26...");
-        localStorage.setItem("app_version", "v26");
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.getRegistrations().then((regs) => {
-            for (let reg of regs) {
-              reg.unregister().then(() => console.log("SW Unregistered"));
-            }
-          });
-        }
-        if ("caches" in window) {
-          caches.keys().then((names) => {
-            for (let name of names) caches.delete(name);
-            console.log("Caches Cleared");
-            setTimeout(() => window.location.reload(true), 800);
-          });
-        }
-      }
-    </script>
-    <script type="module">
-      const setupPasswordToggle = (btnId, inputId) => {
-        const btn = document.getElementById(btnId);
-        const input = document.getElementById(inputId);
-        if (btn && input) {
-          btn.addEventListener("click", () => {
-            const isPass = input.type === "password";
-            input.type = isPass ? "text" : "password";
-            btn.querySelector(".eye-icon").classList.toggle("hidden", isPass);
-            btn
-              .querySelector(".eye-off-icon")
-              .classList.toggle("hidden", !isPass);
-          });
+  <script type="module" src="src/auth.js?v=28"></script>
+  <script type="module">
+    // Password visibility toggles
+    const setupToggle = (btnId, inputId) => {
+      const btn = document.getElementById(btnId);
+      const inp = document.getElementById(inputId);
+      if (!btn || !inp) return;
+      btn.addEventListener('click', () => {
+        const isPass = inp.type === 'password';
+        inp.type = isPass ? 'text' : 'password';
+        btn.querySelector('.eye-icon').classList.toggle('hidden', isPass);
+        btn.querySelector('.eye-off-icon').classList.toggle('hidden', !isPass);
+      });
+    };
+    setupToggle('toggle-password', 'password');
+    setupToggle('toggle-confirm-password', 'confirm-password');
+
+    // Forgot password
+    const forgotLink = document.getElementById('forgot-password');
+    if (forgotLink) {
+      forgotLink.onclick = async e => {
+        e.preventDefault();
+        const email = prompt('Insira o seu email para recuperar a palavra-passe:');
+        if (email) {
+          try {
+            const { resetPassword } = await import('./src/auth.js?v=28');
+            await resetPassword(email);
+            alert('Email de recuperação enviado! Verifique a sua caixa de entrada.');
+          } catch (err) { alert('Erro: ' + err.message); }
         }
       };
+    }
 
-      setupPasswordToggle("toggle-password", "password");
-      setupPasswordToggle("toggle-confirm-password", "confirm-password");
+    // Login / Register toggle
+    const authTitle = document.getElementById('auth-title');
+    const authBtn = document.getElementById('btn-submit');
+    const authFooterText = document.getElementById('auth-footer-text');
+    const toggleBtn = document.getElementById('toggle-auth-mode');
+    const forgotEl = document.getElementById('forgot-password');
+    const confirmContainer = document.getElementById('confirm-password-container');
+    const confirmInput = document.getElementById('confirm-password');
+    let isLogin = true;
+    window.isLoginMode = true;
 
-      // Lógica de alternância de modo (Login/Registo)
-      const toggleAuthBtn = document.getElementById("toggle-auth-mode");
-      const authTitle = document.querySelector("h1");
-      const authBtn = document.getElementById("btn-submit");
-      const authFooterText = document.getElementById("auth-footer-text");
-      const forgotLink = document.getElementById("forgot-password");
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        isLogin = !isLogin;
+        window.isLoginMode = isLogin;
+        if (isLogin) {
+          authTitle.textContent = 'Bem-vindo de volta!';
+          authBtn.textContent = 'Entrar';
+          authFooterText.textContent = 'Novo por aqui?';
+          toggleBtn.textContent = 'Registe-se grátis';
+          forgotEl?.classList.remove('hidden');
+          confirmContainer.classList.add('hidden');
+          confirmInput.required = false;
+        } else {
+          authTitle.textContent = 'Crie a sua conta!';
+          authBtn.textContent = 'Criar Conta';
+          authFooterText.textContent = 'Já tem conta?';
+          toggleBtn.textContent = 'Inicie sessão';
+          forgotEl?.classList.add('hidden');
+          confirmContainer.classList.remove('hidden');
+          confirmInput.required = true;
+        }
+      });
+    }
 
-      if (forgotLink) {
-        forgotLink.onclick = async (e) => {
-          e.preventDefault();
-          const email = prompt(
-            "Insira o seu email para recuperar a palavra-passe:",
-          );
-          if (email) {
-            try {
-              const { resetPassword } = await import("./src/auth.js?v=19");
-              await resetPassword(email);
-              alert(
-                "Email de recuperação enviado! Verifique a sua caixa de entrada.",
-              );
-            } catch (error) {
-              alert("Erro: " + error.message);
-            }
-          }
-        };
-      }
-
-      const confirmPassContainer = document.getElementById(
-        "confirm-password-container",
-      );
-      let isLoginMode = true;
-
-      if (toggleAuthBtn) {
-        toggleAuthBtn.addEventListener("click", () => {
-          isLoginMode = !isLoginMode;
-
-          if (isLoginMode) {
-            authTitle.textContent = "Bem-vindo de volta, Chef!";
-            authBtn.textContent = "Entrar";
-            authFooterText.textContent = "Novo por aqui?";
-            toggleAuthBtn.textContent = "Registe-se grátis";
-            forgotLink.classList.remove("hidden");
-            confirmPassContainer.classList.add("hidden");
-            document.getElementById("confirm-password").required = false;
-          } else {
-            authTitle.textContent = "Crie a sua conta, Chef!";
-            authBtn.textContent = "Criar Conta";
-            authFooterText.textContent = "Já tem conta?";
-            toggleAuthBtn.textContent = "Inicie sessão";
-            forgotLink.classList.add("hidden");
-            confirmPassContainer.classList.remove("hidden");
-            document.getElementById("confirm-password").required = true;
-          }
-
-          window.isLoginMode = isLoginMode;
-        });
-      }
-      window.isLoginMode = true;
-
-      // Estado visual do botão Google
-      const googleBtn = document.getElementById("btn-google");
-      if (googleBtn) {
-        window.setGoogleLoading = (loading) => {
-          const text = googleBtn.querySelector("span");
-          if (loading) {
-            googleBtn.disabled = true;
-            googleBtn.classList.add("opacity-50", "cursor-wait");
-            text.textContent = "A processar login...";
-          } else {
-            googleBtn.disabled = false;
-            googleBtn.classList.remove("opacity-50", "cursor-wait");
-            text.textContent = "Google";
-          }
-        };
-      }
-    </script>
-  </body>
+    // Google button state
+    const googleBtn = document.getElementById('btn-google');
+    if (googleBtn) {
+      window.setGoogleLoading = loading => {
+        const txt = googleBtn.querySelector('span.text-slate-700, span.text-slate-200, span.font-bold');
+        googleBtn.disabled = loading;
+        googleBtn.classList.toggle('opacity-60', loading);
+        googleBtn.classList.toggle('cursor-wait', loading);
+        if (txt) txt.textContent = loading ? 'A processar...' : 'Continuar com Google';
+      };
+    }
+  </script>
+</body>
 </html>

@@ -1,0 +1,1232 @@
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+// ── THEME — Warm, light, editorial ───────────────────────────────────────────
+// Palette inspired by Pantone neutrals: Antique White, Sand, Warm Taupe,
+// Terracotta accent, Sage green, Dusty Rose highlight.
+const T = {
+// Backgrounds
+bg: "#FAF7F2", // Antique White — page background
+surface: "#F3EDE3", // Warm Sand — elevated surface (sheets, nav)
+card: "#FFFFFF", // Pure white card
+border: "#E8DFD0", // Warm Linen — subtle dividers
+// Text
+ink: "#2C2420", // Warm near-black — primary text
+inkLight: "#6B5E54", // Warm Brown — secondary text
+inkMuted: "#A8978A", // Warm Taupe — placeholder / muted
+// Accent — Terracotta
+accent: "#C4704F", // Terracotta
+accentDim: "#F7EDE7", // Very pale terracotta tint
+accentDark: "#A05A3C", // Deep terracotta (pressed state)
+// Success — Sage Green
+sage: "#7A9E87", // Sage Green
+sageDim: "#EDF4EF", // Pale sage tint
+sageDark: "#5A7D68", // Deep sage
+// Warning — Warm Amber
+amber: "#D4915A", // Warm amber/orange
+amberDim: "#FAF0E6", // Pale amber tint
+// Error — Dusty Rose
+rose: "#C47A7A", // Dusty Rose
+roseDim: "#FAF0F0", // Pale rose tint
+// Legacy aliases used in logic
+green: "#7A9E87",
+greenDim: "#EDF4EF",
+red: "#C47A7A",
+redDim: "#FAF0F0",
+white: "#FFFFFF",
+gray: "#A8978A",
+grayLight: "#6B5E54",
+};
+// Card background tints — warm, light versions of each meal type
+const MEAL_BG = {
+Fish: "#F0F4F8",
+Meat: "#F8F2EE",
+Veggie: "#F2F6F1",
+};
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function getTodayLabel() {
+const map = [6,0,1,2,3,4,5];
+return DAYS[map[new Date().getDay()]];
+}
+function getGreeting() {
+const h = new Date().getHours();
+if (h < 12) return "Good morning";
+if (h < 18) return "Good afternoon";
+return "Good evening";
+}
+// ── SUPERMARKETS ──────────────────────────────────────────────────────────────
+const SUPERMARKETS = [
+{ id:"continente", name:"Continente", color:"#E30613", abbr:"C" },
+{ id:"pingodoce", name:"Pingo Doce", color:"#D4A017", abbr:"PD" },
+{ id:"minipreco", name:"Mini Preço", color:"#0057A8", abbr:"MP" },
+{ id:"auchan", name:"Auchan", color:"#E05C00", abbr:"AU" },
+{ id:"supercor", name:"SuperCor", color:"#2E7D32", abbr:"SC" },
+];
+// ── MEALS ─────────────────────────────────────────────────────────────────────
+const ALL_MEALS = [
+{ id:1, name:"Salmon & Sweet Potato", tag:"Fish", time:"25m", costVal:8.9, fire:2, emoji:" { id:2, name:"Pasta Primavera", tag:"Veggie", time:"20m", costVal:3.5, fire:1, emoji:" { id:3, name:"Chicken Rice Bowl", tag:"Meat", time:"30m", costVal:7.2, fire:2, emoji:" { id:4, name:"Lentil & Veg Stew", tag:"Veggie", time:"35m", costVal:3.2, fire:1, emoji:" { id:5, name:"Turkey Meatballs", tag:"Meat", time:"40m", costVal:7.8, fire:3, emoji:" { id:6, name:"Veggie Omelette", tag:"Veggie", time:"15m", costVal:2.8, fire:1, emoji:" { id:7, name:"Homemade Fish Tacos", tag:"Fish", time:"30m", costVal:9.4, fire:2, emoji:" { id:8, name:"Roast Veggie Bowl", tag:"Veggie", time:"45m", costVal:5.6, fire:2, emoji:" { id:9, name:"Chicken Stir Fry", tag:"Meat", time:"20m", costVal:6.4, fire:2, emoji:" { id:10, name:"Tuna Pasta Bake", tag:"Fish", time:"35m", costVal:5.3, fire:2, emoji:" { id:11, name:"Egg Fried Rice", tag:"Veggie", time:"15m", costVal:2.4, fire:1, emoji:" { id:12, name:"Veggie Quesadilla", tag:"Veggie", time:"20m", costVal:4.1, fire:1, emoji:" { id:13, name:"Fish Fingers & Veg", tag:"Fish", time:"25m", costVal:5.7, fire:1, emoji:" { id:14, name:"Pancake Stack", tag:"Veggie", time:"20m", costVal:2.1, fire:1, emoji:" { id:15, name:"Sunday Bolognese", tag:"Meat", time:"50m", costVal:8.2, fire:2, emoji:"
+];
+const WEEKLY_SOUPS = [
+{ id:"s1", name:"Caldo Verde", emoji:" ", time:"30m", costVal:2.7, desc:"Classic Portuguese { id:"s2", name:"Carrot & Ginger",emoji:" ", time:"25m", costVal:2.2, desc:"Sweet carrot with { id:"s3", name:"Tomato Basil", emoji:" ", time:"25m", costVal:2.0, desc:"Rich tomato with { id:"s4", name:"Broccoli Cheese",emoji:" ", time:"30m", costVal:3.1, desc:"Creamy broccoli ];
+const DEFAULT_PANTRY = [
+{name:"Olive Oil", qty:"Half bottle", status:"ok", cat:"Pantry"},
+{name:"Brown Rice", qty:"300g left", status:"ok", cat:"Grains"},
+{name:"Pasta", qty:"Last pack", status:"low", cat:"Grains"},
+{name:"Eggs", qty:"2 remaining", status:"low", cat:"Protein"},
+{name:"Frozen Peas", qty:"Full bag", status:"ok", cat:"Produce"},
+{name:"Tomato Sauce",qty:"Out", status:"out", cat:"Pantry"},
+{name:"Tahini", qty:"Full jar", status:"ok", cat:"Pantry"},
+{name:"Soy Sauce", qty:"Out", status:"out", cat:"Pantry"},
+];
+const MEAL_SHOP = {
+1: [{cat:"Produce",items:[{n:"Sweet Potato ×3",p:"€1.20"},{n:"Broccoli ×1",p:"€0.90"},{n:"Lemon",2: [{cat:"Produce",items:[{n:"Courgette ×2",p:"€1.10"},{n:"Cherry tomatoes",p:"€1.40"}]}],
+3: [{cat:"Produce",items:[{n:"Cucumber ×1",p:"€0.60"}]},{cat:"Protein",items:[{n:"Chicken breast 4: [{cat:"Pantry",items:[{n:"Red lentils 250g",p:"€1.20"}]},{cat:"Produce",items:[{n:"Carrots 5: [{cat:"Protein",items:[{n:"Turkey mince 500g",p:"€4.80"}]},{cat:"Produce",items:[{n:"Courgette 6: [{cat:"Produce",items:[{n:"Spinach bag",p:"€1.80"},{n:"Cherry tomatoes",p:"€1.40"}]},{cat:"7: [{cat:"Protein",items:[{n:"Cod fillet ×2",p:"€5.80"}]},{cat:"Produce",items:[{n:"Avocado 8: [{cat:"Produce",items:[{n:"Mixed peppers ×3",p:"€2.10"},{n:"Red onion ×2",p:"€0.60"}]},{9: [{cat:"Protein",items:[{n:"Chicken strips 400g",p:"€4.50"}]},{cat:"Produce",items:[{n:"Mixed 10:[{cat:"Protein",items:[{n:"Tuna cans ×2",p:"€2.60"}]},{cat:"Dairy",items:[{n:"Cheddar 150g",11:[],
+12:[{cat:"Protein",items:[{n:"Black beans tin",p:"€0.90"}]},{cat:"Dairy",items:[{n:"Cheddar 13:[{cat:"Protein",items:[{n:"Fish fingers ×12",p:"€3.90"}]},{cat:"Produce",items:[{n:"Sweet 14:[{cat:"Produce",items:[{n:"Bananas ×2",p:"€0.60"}]},{cat:"Pantry",items:[{n:"Whole grain 15:[{cat:"Protein",items:[{n:"Beef mince 500g",p:"€5.50"}]},{cat:"Produce",items:[{n:"Onion s1:[{cat:"Produce",items:[{n:"Kale 200g",p:"€1.20"},{n:"Potato ×3",p:"€0.90"},{n:"Onion",p:"€s2:[{cat:"Produce",items:[{n:"Carrots ×6",p:"€1.00"},{n:"Ginger",p:"€0.40"},{n:"Lemon",p:"€s3:[{cat:"Pantry",items:[{n:"Chopped tomatoes tin",p:"€1.10"}]},{cat:"Produce",items:[{n:"Fresh s4:[{cat:"Produce",items:[{n:"Broccoli ×2",p:"€1.60"}]},{cat:"Dairy",items:[{n:"Cheddar 100g",};
+const costStr = v => v <= 4 ? "€" : v <= 7 ? "€€" : "€€€";
+// ── LOGIC ─────────────────────────────────────────────────────────────────────
+function calcMatch(meal, pantry) {
+const needed = meal.pantryKeys || [];
+if (!needed.length) return null;
+const have = needed.filter(n => { const p = pantry.find(x=>x.name===n); return p && p.status!=="return Math.round((have.length / needed.length) * 100);
+}
+function fillWeek(profile, pantry) {
+const budget = parseFloat((profile.budget||"50-80").split("-")[0]) || 50;
+const tight = budget < 60;
+const scored = ALL_MEALS.map(m => {
+let score = (calcMatch(m, pantry)||0) * 0.3;
+if (tight) score += (10 - m.costVal) * 4;
+score += Math.random() * 10;
+return { ...m, score };
+}).sort((a,b) => b.score - a.score);
+const selections = {};
+const usedIds = new Set();
+const tagOrder = ["Fish","Meat","Veggie","Meat","Veggie","Fish","Veggie"];
+DAYS.forEach((d,i) => {
+const pool = scored.filter(m => !usedIds.has(m.id) && m.tag===tagOrder[i]);
+const pick = (pool.length ? pool : scored.filter(m=>!usedIds.has(m.id)))[0];
+if (pick) { selections[d] = pick; usedIds.add(pick.id); }
+});
+return selections;
+}
+// ── SHARED UI ─────────────────────────────────────────────────────────────────
+const shadow = {
+sm: "0 1px 4px rgba(44,36,32,0.07)",
+md: "0 4px 16px rgba(44,36,32,0.10)",
+lg: "0 8px 32px rgba(44,36,32,0.12)",
+};
+function NannyIcon({ size=32, onClick }) {
+return (
+<svg width={size} height={size} viewBox="0 0 42 42" fill="none"
+onClick={onClick} style={onClick?{cursor:"pointer"}:{}}>
+<circle cx="21" cy="21" r="21" fill={T.accent}/>
+<ellipse cx="21" cy="30" rx="9" ry="6" fill="#FAF7F2"/>
+<ellipse cx="21" cy="30.5" rx="5.5" ry="5" fill="white" opacity="0.6"/>
+<circle cx="21" cy="16" r="6" fill="#F4C49E"/>
+<ellipse cx="21" cy="10.5" rx="5" ry="3.5" fill="#6B3A2A"/>
+<circle cx="21" cy="9" r="3" fill="#6B3A2A"/>
+<circle cx="18.5" cy="16" r="1" fill="#2C2420"/>
+<circle cx="23.5" cy="16" r="1" fill="#2C2420"/>
+<path d="M18.5 18.5 Q21 20.5 23.5 18.5" stroke="#2C2420" strokeWidth="0.9" fill="none" </svg>
+);
+}
+function Btn({ children, onClick, variant="primary", style:sx={}, disabled=false }) {
+const s = {
+primary: { bg:T.accent, color:"#fff", border:"none", sh:shadow.md secondary: { bg:T.surface, color:T.ink, border:`1px solid ${T.border}`, sh:shadow.sm ghost: { bg:"transparent", color:T.inkLight, border:`1px solid ${T.border}`, sh:"none" sage: { bg:T.sage, color:"#fff", border:"none", sh:shadow.sm rose: { bg:T.rose, color:"#fff", border:"none", sh:shadow.sm }[variant]||{};
+return (
+<button disabled={disabled} onClick={onClick}
+style={{ background:s.bg, color:s.color, border:s.border, borderRadius:14,
+padding:"13px 20px", fontSize:15, fontWeight:700, cursor:disabled?"not-allowed":"width:"100%", boxShadow:s.sh, opacity:disabled?0.45:1,
+transition:"transform 0.12s, box-shadow 0.12s", ...sx }}
+onMouseEnter={e=>{ if(!disabled){ e.currentTarget.style.transform="translateY(-1px)"; e.onMouseLeave={e=>{ e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.{children}
+</button>
+);
+}
+function Sheet({ children, onClose, title, subtitle }) {
+return (
+<div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", flexDirection:"column", <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(44,36,32,0.35)", <div style={{ position:"relative", background:T.card, borderRadius:"24px 24px 0 0",
+maxHeight:"92vh", display:"flex", flexDirection:"column",
+boxShadow:"0 -8px 40px rgba(44,36,32,0.15)",
+maxWidth:430, width:"100%", margin:"0 auto" }}>
+<div style={{ width:36, height:4, background:T.border, borderRadius:4, margin:"12px auto <div style={{ padding:"14px 24px 12px", borderBottom:`1px solid ${T.border}`,
+display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:<div>
+<div style={{ fontSize:20, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',{subtitle && <div style={{ fontSize:12, color:T.inkMuted, marginTop:2 }}>{subtitle}</</div>
+<button onClick={onClose}
+style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:10,
+width:34, height:34, display:"flex", alignItems:"center", justifyContent:"cursor:"pointer", color:T.inkLight, fontSize:15 }}>✕</button>
+</div>
+<div style={{ overflowY:"auto", flex:1, padding:"20px 24px 40px" }}>{children}</div>
+</div>
+</div>
+);
+}
+function Tag({ label, color, bg }) {
+return (
+<span style={{ background:bg||T.accentDim, color:color||T.accent, borderRadius:20,
+padding:"3px 11px", fontSize:11, fontWeight:700, letterSpacing:"0.2px" }}>
+{label}
+</span>
+);
+}
+function MatchBar({ meal, pantry }) {
+const pct = calcMatch(meal, pantry);
+if (pct === null) return null;
+const color = pct >= 80 ? T.sage : pct >= 50 ? T.amber : T.inkMuted;
+const bg = pct >= 80 ? T.sageDim : pct >= 50 ? T.amberDim : T.surface;
+return (
+<div style={{ marginBottom:10, background:bg, borderRadius:10, padding:"8px 12px" }}>
+<div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+<span style={{ fontSize:11, fontWeight:700, color }}> {pct}% ingredients at home</span>
+<span style={{ fontSize:11, color:T.inkMuted }}>{pct>=80?"Ready to cook":pct>=50?"Mostly </div>
+<div style={{ background:"rgba(44,36,32,0.08)", borderRadius:6, height:5 }}>
+<div style={{ height:"100%", width:`${pct}%`, background:color, borderRadius:6, transition:"</div>
+</div>
+);
+}
+function BudgetBar({ spent, budget }) {
+const pct = Math.min(100, Math.round((spent/budget)*100));
+const color = pct < 60 ? T.sage : pct < 85 ? T.amber : T.rose;
+return (
+<div>
+<div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+<span style={{ fontSize:12, fontWeight:600, color:T.inkLight }}>Weekly budget</span>
+<span style={{ fontSize:12, fontWeight:800, color }}>€{spent.toFixed(0)} / €{budget}</</div>
+<div style={{ background:T.border, borderRadius:8, height:7 }}>
+<div style={{ height:"100%", width:`${pct}%`, background:color, borderRadius:8, transition:"</div>
+</div>
+);
+}
+// ── RECIPE SHEET ──────────────────────────────────────────────────────────────
+function RecipeSheet({ meal, pantry, onClose, actionLabel, onAction, saved, onSave, extraAction
+const [tab, setTab] = useState("recipe");
+const tagColors = { Fish:{c:"#2B6CB0",bg:"#EBF4FF"}, Meat:{c:"#9B4A2A",bg:"#FFF1EC"}, Veggie:{const tc = tagColors[meal.tag]||{c:T.accent,bg:T.accentDim};
+return (
+<Sheet onClose={onClose} title={meal.name} subtitle={`${meal.time} · ${costStr(meal.costVal)} <div style={{ fontSize:72, textAlign:"center", marginBottom:8, lineHeight:1 }}>{meal.emoji}</<div style={{ fontSize:13, color:T.inkLight, lineHeight:1.7, marginBottom:14 }}>{meal.desc}</<MatchBar meal={meal} pantry={pantry}/>
+<div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:16 }}>
+<Tag label={meal.tag} color={tc.c} bg={tc.bg}/>
+<Tag label={`€${meal.costVal.toFixed(2)}`} color={T.inkLight} bg={T.surface}/>
+{meal.nutrients.map(n=><Tag key={n} label={n} color={T.inkMuted} bg={T.surface}/>)}
+</div>
+<div style={{ display:"flex", gap:3, marginBottom:18, background:T.surface, borderRadius:{["recipe","ingredients"].map(t=>(
+<button key={t} onClick={()=>setTab(t)}
+style={{ flex:1, padding:"8px 0", borderRadius:9, border:"none",
+background:tab===t?T.card:"transparent", color:tab===t?T.ink:T.inkMuted,
+fontSize:13, fontWeight:700, cursor:"pointer", textTransform:"capitalize",
+boxShadow:tab===t?shadow.sm:"none", transition:"all 0.15s" }}>
+{t}
+</button>
+))}
+</div>
+{tab==="recipe" ? meal.steps.map((s,i)=>(
+<div key={i} style={{ display:"flex", gap:12, marginBottom:14, alignItems:"flex-start" <div style={{ width:26, height:26, borderRadius:"50%", background:T.accentDim,
+display:"flex", alignItems:"center", justifyContent:"center",
+fontSize:11, fontWeight:800, color:T.accent, flexShrink:0 }}>{i+1}</div>
+<div style={{ fontSize:13, color:T.inkLight, lineHeight:1.65, paddingTop:4 }}>{s}</</div>
+)) : meal.ingredients.map((ing,i)=>(
+<div key={i} style={{ display:"flex", alignItems:"center", gap:12,
+padding:"10px 0", borderBottom:`1px solid ${T.border}` }}>
+<div style={{ width:6, height:6, borderRadius:"50%", background:T.accent, flexShrink:<div style={{ fontSize:13, color:T.inkLight }}>{ing}</div>
+</div>
+))}
+<div style={{ marginTop:20, display:"flex", gap:10 }}>
+{onSave && (
+<button onClick={onSave}
+style={{ flex:"0 0 48px", height:48, borderRadius:12,
+border:`1.5px solid ${saved?T.accent:T.border}`,
+background:saved?T.accentDim:T.surface,
+cursor:"pointer", fontSize:20, display:"flex", alignItems:"center", justifyContent:"color:saved?T.accent:T.inkMuted }}>
+{saved?"★":"☆"}
+</button>
+)}
+{onAction && <Btn onClick={()=>{ onAction(); onClose(); }} style={{ flex:1, padding:"</div>
+{extraAction && (
+<button onClick={()=>{ extraAction.fn(); onClose(); }}
+style={{ width:"100%", marginTop:10, padding:"11px", borderRadius:12,
+border:`1px solid ${T.border}`, background:"none",
+color:T.rose, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+{extraAction.label}
+</button>
+)}
+</Sheet>
+);
+}
+// ── SWAP SHEET ────────────────────────────────────────────────────────────────
+function SwapSheet({ day, pantry, saved, onPick, onClose }) {
+const [filter, setFilter] = useState("All");
+const [preview, setPreview] = useState(null);
+const scored = useMemo(() =>
+ALL_MEALS.map(m=>({...m, sc:(calcMatch(m,pantry)||0)*0.3+(saved.includes(m.id)?15:0)+Math..sort((a,b)=>b.sc-a.sc), [pantry, saved]);
+const visible = filter==="All" ? scored : scored.filter(m=>m.tag===filter);
+if (preview) return (
+<RecipeSheet meal={preview} pantry={pantry} onClose={()=>setPreview(null)}
+actionLabel={`Choose for ${day}`} onAction={()=>{ onPick(preview); onClose(); }}
+saved={saved.includes(preview.id)}/>
+);
+const tagColors = { Fish:{c:"#2B6CB0",bg:"#EBF4FF"}, Meat:{c:"#9B4A2A",bg:"#FFF1EC"}, Veggie:{return (
+<Sheet onClose={onClose} title={`Swap ${day}`} subtitle="Choose a different meal">
+<div style={{ display:"flex", gap:8, marginBottom:16 }}>
+{["All","Fish","Meat","Veggie"].map(t=>(
+<button key={t} onClick={()=>setFilter(t)}
+style={{ flex:1, padding:"8px 4px", borderRadius:10,
+border:`1.5px solid ${filter===t?T.accent:T.border}`,
+background:filter===t?T.accentDim:T.surface,
+color:filter===t?T.accent:T.inkMuted,
+fontSize:12, fontWeight:700, cursor:"pointer" }}>
+{t}
+</button>
+))}
+</div>
+<div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+{visible.map(m=>{
+const tc = tagColors[m.tag]||{};
+return (
+<div key={m.id} onClick={()=>setPreview(m)}
+style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16,
+padding:"12px 14px", display:"flex", alignItems:"center", gap:12,
+cursor:"pointer", boxShadow:shadow.sm }}>
+<div style={{ fontSize:30, width:50, height:50, background:m.bg, borderRadius:12,
+display:"flex", alignItems:"center", justifyContent:"center", flexShrink:{m.emoji}
+</div>
+<div style={{ flex:1, minWidth:0 }}>
+<div style={{ fontSize:14, fontWeight:700, color:T.ink }}>{m.name}</div>
+<div style={{ display:"flex", gap:6, marginTop:4, alignItems:"center" }}>
+<Tag label={m.tag} color={tc.c} bg={tc.bg}/>
+<span style={{ fontSize:11, color:T.inkMuted }}>{m.time}</span>
+<span style={{ fontSize:11, color:T.accent, fontWeight:700 }}>€{m.costVal.toFixed(</div>
+</div>
+<span style={{ fontSize:16, color:T.inkMuted }}>›</span>
+</div>
+);
+})}
+</div>
+</Sheet>
+);
+}
+// ── REVIEW SHEET ──────────────────────────────────────────────────────────────
+function ReviewSheet({ lastWeek, onDone, onClose }) {
+const [ratings, setRatings] = useState({});
+const [cooked, setCooked] = useState({});
+const [submitted, setSubmitted] = useState(false);
+const meals = Object.entries(lastWeek||{}).filter(([,m])=>m);
+if (submitted) return (
+<Sheet onClose={onClose} title="Last Week" subtitle="Thank you for reviewing!">
+<div style={{ textAlign:"center", paddingTop:40 }}>
+<div style={{ fontSize:52, marginBottom:14 }}> </div>
+<div style={{ fontSize:20, fontWeight:800, color:T.ink, marginBottom:8, fontFamily:"'<div style={{ fontSize:13, color:T.inkLight, lineHeight:1.7, marginBottom:24 }}>Your <Btn onClick={onClose}>Done →</Btn>
+</div>
+</Sheet>
+);
+return (
+<Sheet onClose={onClose} title="Last Week" subtitle="What did you cook? How was it?">
+<div style={{ fontSize:13, color:T.inkLight, marginBottom:20, lineHeight:1.65 }}>
+Tick the meals you actually cooked and give them a star rating.
+</div>
+<div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
+{meals.map(([day, meal])=>{
+const did = cooked[day];
+const rating = ratings[day]||0;
+return (
+<div key={day}
+style={{ background:did?T.sageDim:T.surface, border:`1.5px solid ${did?T.sage:T.borderRadius:16, padding:14, transition:"all 0.18s" }}>
+<div style={{ display:"flex", alignItems:"center", gap:12 }}
+onClick={()=>setCooked(p=>({...p,[day]:!p[day]}))}>
+<div style={{ width:44, height:44, background:meal.bg, borderRadius:10,
+display:"flex", alignItems:"center", justifyContent:"center",
+fontSize:22, flexShrink:0 }}>
+{meal.emoji}
+</div>
+<div style={{ flex:1 }}>
+<div style={{ fontSize:10, color:T.inkMuted, textTransform:"uppercase", letterSpacing:"<div style={{ fontSize:14, fontWeight:700, color:did?T.sageDark:T.ink }}>{meal.</div>
+<div style={{ width:26, height:26, borderRadius:"50%",
+border:`2px solid ${did?T.sage:T.border}`,
+background:did?T.sage:"transparent",
+display:"flex", alignItems:"center", justifyContent:"center" }}>
+{did&&<span style={{ color:"#fff", fontSize:12, fontWeight:800 }}>✓</span>}
+</div>
+</div>
+{did && (
+<div style={{ marginTop:10, display:"flex", gap:4, alignItems:"center" }}>
+<span style={{ fontSize:11, color:T.inkMuted, marginRight:6 }}>Your rating:</{[1,2,3,4,5].map(star=>(
+<button key={star} onClick={()=>setRatings(p=>({...p,[day]:star}))}
+style={{ fontSize:22, background:"none", border:"none", cursor:"pointer",
+color:star<=rating?T.amber:T.border, padding:0, lineHeight:1 }}>))}
+</div>
+)}
+</div>
+);
+})}
+</div>
+<Btn variant="sage" onClick={()=>{
+const ids = Object.entries(cooked).filter(([,v])=>v).map(([d])=>lastWeek[d]?.id).filter(
+onDone(ids, ratings); setSubmitted(true);
+}}>Submit review →</Btn>
+</Sheet>
+);
+}
+// ── SOUP PICKER ───────────────────────────────────────────────────────────────
+function SoupPickerSheet({ profile, selected, onToggle, onClose }) {
+const max = profile.soupCount||2;
+return (
+<Sheet onClose={onClose} title="Weekly Soups" subtitle={`Choose up to ${max} soups`}>
+<div style={{ fontSize:13, color:T.inkLight, marginBottom:16, lineHeight:1.65 }}>
+One pot covers 2–3 days. Added to your shopping list automatically.
+</div>
+{WEEKLY_SOUPS.map(soup=>{
+const sel = selected.includes(soup.id);
+const disabled = !sel && selected.length >= max;
+return (
+<div key={soup.id} onClick={()=>!disabled&&onToggle(soup.id)}
+style={{ background:sel?T.sageDim:T.surface, border:`1.5px solid ${sel?T.sage:T.border}`,
+borderRadius:16, padding:"14px 16px", marginBottom:10,
+cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.45:1,
+display:"flex", alignItems:"center", gap:12, transition:"all 0.18s" }}>
+<span style={{ fontSize:32 }}>{soup.emoji}</span>
+<div style={{ flex:1 }}>
+<div style={{ fontSize:14, fontWeight:700, color:T.ink }}>{soup.name}</div>
+<div style={{ fontSize:12, color:T.inkMuted, marginTop:2 }}>{soup.time} · €{soup.</div>
+<div style={{ width:24, height:24, borderRadius:"50%",
+border:`2px solid ${sel?T.sage:T.border}`,
+background:sel?T.sage:"transparent",
+display:"flex", alignItems:"center", justifyContent:"center" }}>
+{sel&&<span style={{ color:"#fff", fontSize:12, fontWeight:800 }}>✓</span>}
+</div>
+</div>
+);
+})}
+</Sheet>
+);
+}
+// ── CART SHEET ────────────────────────────────────────────────────────────────
+function CartSheet({ selections, soups, profile, onClose, onLock }) {
+const [checked, setChecked] = useState({});
+const [done, setDone] = useState(false);
+const toggle = k => setChecked(p=>({...p,[k]:!p[k]}));
+const listMap = {};
+const addItems = arr=>(arr||[]).forEach(({cat,items})=>{ if(!listMap[cat])listMap[cat]=[]; Object.values(selections).forEach(m=>{if(m)addItems(MEAL_SHOP[m.id]);});
+soups.forEach(sid=>addItems(MEAL_SHOP[sid]));
+const total = Object.values(listMap).flat().reduce((s,i)=>s+parseFloat(i.p.replace("€","")),const sm = profile?.supermarkets?.[0] ? SUPERMARKETS.find(s=>s.id===profile.supermarkets[0]) return (
+<Sheet onClose={onClose} title="Shopping List" subtitle={`Est. €${total.toFixed(2)} this {done ? (
+<div style={{ textAlign:"center", paddingTop:40 }}>
+<div style={{ fontSize:52, marginBottom:14 }}> </div>
+<div style={{ fontSize:20, fontWeight:800, color:T.ink, marginBottom:8, fontFamily:"'<div style={{ fontSize:13, color:T.inkLight, lineHeight:1.65 }}>
+Your shopping list is ready.{sm?` Take it to ${sm.name}.`:""} Happy cooking!
+</div>
+</div>
+) : (
+<>
+{sm && (
+<div style={{ background:`${sm.color}14`, border:`1.5px solid ${sm.color}44`, borderRadius:padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", <div style={{ width:34, height:34, borderRadius:8, background:sm.color,
+display:"flex", alignItems:"center", justifyContent:"center",
+fontSize:11, fontWeight:900, color:"white", flexShrink:0 }}>
+{sm.abbr}
+</div>
+<div style={{ fontSize:13, fontWeight:700, color:T.ink }}>{sm.name}</div>
+</div>
+)}
+{Object.entries(listMap).map(([cat,items])=>(
+<div key={cat} style={{ marginBottom:16 }}>
+<div style={{ fontSize:10, fontWeight:800, color:T.inkMuted, textTransform:"uppercase",
+letterSpacing:"0.8px", marginBottom:8 }}>{cat}</div>
+{items.map(item=>{ const k=`${cat}-${item.n}`;
+return (
+<div key={k} onClick={()=>toggle(k)}
+style={{ display:"flex", alignItems:"center", gap:12, padding:"9px 0",
+borderBottom:`1px solid ${T.border}`, opacity:checked[k]?0.3:1,
+cursor:"pointer", transition:"opacity 0.18s" }}>
+<div style={{ width:20, height:20, borderRadius:5,
+border:`2px solid ${checked[k]?T.sage:T.border}`,
+background:checked[k]?T.sage:"transparent",
+display:"flex", alignItems:"center", justifyContent:"center", {checked[k]&&<span style={{ color:"#fff", fontSize:11, fontWeight:800 }}></div>
+<div style={{ flex:1, fontSize:13, color:T.ink,
+textDecoration:checked[k]?"line-through":"none" }}>{item.n}</
+<div style={{ fontSize:12, color:T.inkMuted, fontWeight:600 }}>{item.p}</</div>
+);
+})}
+</div>
+))}
+<div style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:12,
+padding:"12px 16px", marginBottom:16, display:"flex", justifyContent:"alignItems:"center" }}>
+<div style={{ fontSize:14, fontWeight:700, color:T.ink }}>Total estimate</div>
+<div style={{ fontSize:18, fontWeight:800, color:T.accent }}>€{total.toFixed(2)}</</div>
+<Btn variant="sage" onClick={()=>{ onLock(); setDone(true); }}>✓ Accept week &amp; <div style={{ fontSize:11, color:T.inkMuted, textAlign:"center", marginTop:10 }}>
+Locks the week for 7 days — no further edits
+</div>
+</>
+)}
+</Sheet>
+);
+}
+// ── ADD RECIPE SHEET ──────────────────────────────────────────────────────────
+const CARD_BKGS = [MEAL_BG.Fish, MEAL_BG.Meat, MEAL_BG.Veggie];
+const EMOJI_OPTIONS = [" "," "," "," "," "," "," "," "," "," "," "," "," "," function AddRecipeSheet({ onSave, onClose }) {
+const [form, setForm] = useState({ name:"", tag:"Veggie", time:"30m", costVal:5, emoji:" ", const [page, setPage] = useState(0);
+const [error, setError] = useState("");
+const set = (k,v) => setForm(f=>({...f,[k]:v}));
+const addRow = key => setForm(f=>({...f,[key]:[...f[key],""]}));
+const setRow = (key,i,v) => setForm(f=>({...f,[key]:f[key].map((x,idx)=>idx===i?v:x)}));
+const removeRow = (key,i) => setForm(f=>({...f,[key]:f[key].filter((_,idx)=>idx!==i)}));
+const inputStyle = {
+width:"100%", background:T.surface, border:`1.5px solid ${T.border}`,
+borderRadius:10, padding:"11px 14px", fontSize:14, color:T.ink, outline:"none",
+boxSizing:"border-box", fontFamily:"'DM Sans',sans-serif",
+};
+const labelStyle = { fontSize:11, fontWeight:700, color:T.inkMuted,
+textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:7, display:"block" };
+const pageLabels = ["Basics","Ingredients","Steps"];
+const handleSave = () => {
+if (!form.name.trim()) { setError("Please add a recipe name."); return; }
+const ings = form.ingredients.filter(x=>x.trim());
+const stps = form.steps.filter(x=>x.trim());
+if (!ings.length) { setError("Add at least one ingredient."); setPage(1); return; }
+if (!stps.length) { setError("Add at least one step."); setPage(2); return; }
+onSave({
+id: `custom-${Date.now()}`,
+name: form.name.trim(), tag: form.tag, time: form.time,
+costVal: parseFloat(form.costVal)||5, fire:1,
+emoji: form.emoji, bg: CARD_BKGS[Math.floor(Math.random()*CARD_BKGS.length)],
+desc: form.desc.trim()||`A delicious ${form.tag.toLowerCase()} recipe.`,
+pantryKeys:[], nutrients:[], ingredients: ings, steps: stps, custom:true,
+});
+onClose();
+};
+const pages = [
+<div>
+<div style={{ marginBottom:18 }}>
+<label style={labelStyle}>Recipe name *</label>
+<input value={form.name} onChange={e=>set("name",e.target.value)}
+placeholder="e.g. Mum's Chickpea Curry" style={inputStyle}/>
+</div>
+<div style={{ marginBottom:18 }}>
+<label style={labelStyle}>Choose an emoji</label>
+<div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+{EMOJI_OPTIONS.map(e=>(
+<button key={e} onClick={()=>set("emoji",e)}
+style={{ width:40, height:40, borderRadius:10,
+border:`2px solid ${form.emoji===e?T.accent:T.border}`,
+background:form.emoji===e?T.accentDim:T.surface,
+fontSize:20, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"{e}
+</button>
+))}
+</div>
+</div>
+<div style={{ marginBottom:18 }}>
+<label style={labelStyle}>Type</label>
+<div style={{ display:"flex", gap:10 }}>
+{[["Fish"," "],["Meat"," "],["Veggie"," "]].map(([t,ic])=>(
+<button key={t} onClick={()=>set("tag",t)}
+style={{ flex:1, padding:"11px 0", borderRadius:12,
+border:`2px solid ${form.tag===t?T.accent:T.border}`,
+background:form.tag===t?T.accentDim:T.surface,
+color:form.tag===t?T.accent:T.inkMuted,
+fontSize:13, fontWeight:700, cursor:"pointer" }}>
+{ic} {t}
+</button>
+))}
+</div>
+</div>
+<div style={{ display:"flex", gap:12, marginBottom:18 }}>
+<div style={{ flex:1 }}>
+<label style={labelStyle}>Cook time</label>
+<select value={form.time} onChange={e=>set("time",e.target.value)}
+style={{ ...inputStyle, appearance:"none" }}>
+{["15m","20m","25m","30m","35m","40m","45m","50m","60m","75m","90m"].map(t=><option </select>
+</div>
+<div style={{ flex:1 }}>
+<label style={labelStyle}>Cost per meal (€)</label>
+<input type="number" min="1" max="30" step="0.5" value={form.costVal}
+onChange={e=>set("costVal",e.target.value)} style={inputStyle}/>
+</div>
+</div>
+<div style={{ marginBottom:24 }}>
+<label style={labelStyle}>Short description (optional)</label>
+<input value={form.desc} onChange={e=>set("desc",e.target.value)}
+placeholder="A quick note about this dish..." style={inputStyle}/>
+</div>
+</div>,
+<div>
+<div style={{ fontSize:13, color:T.inkLight, marginBottom:18, lineHeight:1.65 }}>
+List each ingredient with its quantity, e.g. "Chicken breast ×2".
+</div>
+{form.ingredients.map((ing, i) => (
+<div key={i} style={{ display:"flex", gap:8, marginBottom:10 }}>
+<input value={ing} onChange={e=>setRow("ingredients",i,e.target.value)}
+placeholder={`Ingredient ${i+1}…`} style={{ ...inputStyle, flex:1 }}/>
+{form.ingredients.length > 1 && (
+<button onClick={()=>removeRow("ingredients",i)}
+style={{ width:40, height:44, borderRadius:10, border:`1px solid ${T.border}`,
+background:T.surface, color:T.rose, cursor:"pointer", fontSize:16 }}>×</)}
+</div>
+))}
+<button onClick={()=>addRow("ingredients")}
+style={{ width:"100%", padding:"10px", borderRadius:10,
+border:`1.5px dashed ${T.border}`, background:"none",
+color:T.inkMuted, fontSize:13, fontWeight:600, cursor:"pointer", marginBottom:+ Add ingredient
+</button>
+</div>,
+<div>
+<div style={{ fontSize:13, color:T.inkLight, marginBottom:18, lineHeight:1.65 }}>
+Add each cooking step. Keep them short and clear.
+</div>
+{form.steps.map((step, i) => (
+<div key={i} style={{ display:"flex", gap:8, marginBottom:10, alignItems:"flex-start" <div style={{ width:26, height:26, borderRadius:"50%", background:T.accentDim,
+display:"flex", alignItems:"center", justifyContent:"center",
+fontSize:11, fontWeight:800, color:T.accent, flexShrink:0, marginTop:{i+1}
+</div>
+<input value={step} onChange={e=>setRow("steps",i,e.target.value)}
+placeholder={`Step ${i+1}…`} style={{ ...inputStyle, flex:1 }}/>
+{form.steps.length > 1 && (
+<button onClick={()=>removeRow("steps",i)}
+style={{ width:40, height:44, borderRadius:10, border:`1px solid ${T.border}`,
+background:T.surface, color:T.rose, cursor:"pointer", fontSize:16 }}>×</)}
+</div>
+))}
+<button onClick={()=>addRow("steps")}
+style={{ width:"100%", padding:"10px", borderRadius:10,
+border:`1.5px dashed ${T.border}`, background:"none",
+color:T.inkMuted, fontSize:13, fontWeight:600, cursor:"pointer", marginBottom:+ Add step
+</button>
+</div>,
+];
+return (
+<Sheet onClose={onClose} title="Add Your Recipe" subtitle="It'll appear in your Discover <div style={{ display:"flex", gap:6, marginBottom:22 }}>
+{pageLabels.map((lbl,i)=>(
+<button key={i} onClick={()=>setPage(i)}
+style={{ flex:1, padding:"7px 0", borderRadius:10,
+border:`2px solid ${page===i?T.accent:T.border}`,
+background:page===i?T.accentDim:T.surface,
+color:page===i?T.accent:T.inkMuted,
+fontSize:12, fontWeight:700, cursor:"pointer" }}>
+{i<page?"✓ ":""}{lbl}
+</button>
+))}
+</div>
+{pages[page]}
+{error&&<div style={{ fontSize:12,color:T.rose,marginBottom:12,textAlign:"center" }}>{error}</
+<div style={{ display:"flex", gap:10 }}>
+{page>0&&<Btn variant="ghost" onClick={()=>{setError("");setPage(p=>p-1);}} style={{ {page<2
+? <Btn onClick={()=>{setError("");setPage(p=>p+1);}} style={{ flex:1 }}>Next: {pageLabels[: <Btn variant="sage" onClick={handleSave} style={{ flex:1 }}>Save recipe ✓</Btn>
+}
+</div>
+</Sheet>
+);
+}
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+function Onboarding({ onComplete }) {
+const [step, setStep] = useState(0);
+const [p, setP] = useState({ name:"", kids:1, allergies:[], supermarkets:[], budget:"50-80", const ALLERGIES = ["Gluten","Dairy","Eggs","Nuts","Fish","Shellfish","Soy"];
+const BUDGETS = [["Under €30","<30"],["€30–50","30-50"],["€50–80","50-80"],["€80–120","80-120"],["€const input = { width:"100%", background:T.surface, border:`1.5px solid ${T.border}`,
+borderRadius:12, padding:"13px 16px", fontSize:15, color:T.ink, outline:"none" };
+const label = { fontSize:11, fontWeight:700, color:T.inkMuted, textTransform:"uppercase",
+letterSpacing:"0.5px", marginBottom:8, display:"block" };
+const steps = [
+// 0: Welcome
+<div style={{ textAlign:"center", padding:"24px 0 16px" }}>
+<div style={{ width:80, height:80, borderRadius:"50%", background:T.accentDim,
+display:"flex", alignItems:"center", justifyContent:"center",
+margin:"0 auto 20px", boxShadow:shadow.md }}>
+<NannyIcon size={56}/>
+</div>
+<div style={{ fontSize:32, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',marginBottom:12, letterSpacing:"-0.8px", lineHeight:1.2 }}>
+Welcome to<br/>Nanny Meals
+</div>
+<div style={{ fontSize:14, color:T.inkLight, lineHeight:1.75, marginBottom:36 }}>
+Smart, calm meal planning for busy families.<br/>Fill your whole week in one tap.
+</div>
+<Btn onClick={()=>setStep(1)}>Set up your family →</Btn>
+</div>,
+// 1: Family
+<div>
+<div style={{ fontSize:22, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',<div style={{ fontSize:13, color:T.inkLight, marginBottom:24 }}>Takes about 2 minutes.</<div style={{ marginBottom:18 }}>
+<label style={label}>Family name</label>
+<input value={p.name} onChange={e=>setP(x=>({...x,name:e.target.value}))}
+placeholder="e.g. The Silva Family" style={input}/>
+</div>
+<div style={{ marginBottom:24 }}>
+<label style={label}>Number of children</label>
+<div style={{ display:"flex", gap:10 }}>
+{[1,2,3,4].map(n=>(
+<button key={n} onClick={()=>setP(x=>({...x,kids:n}))}
+style={{ flex:1, padding:"13px 0", borderRadius:12,
+border:`2px solid ${p.kids===n?T.accent:T.border}`,
+background:p.kids===n?T.accentDim:T.surface,
+color:p.kids===n?T.accent:T.inkMuted,
+fontSize:18, fontWeight:800, cursor:"pointer" }}>{n}</button>
+))}
+</div>
+</div>
+<Btn onClick={()=>setStep(2)} style={{ marginBottom:10 }}>Continue →</Btn>
+<Btn variant="ghost" onClick={()=>setStep(0)} style={{ fontSize:13, padding:"10px" }}>← </div>,
+// 2: Allergies
+<div>
+<div style={{ fontSize:22, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',<div style={{ fontSize:13, color:T.inkLight, marginBottom:24 }}>We'll never suggest these.</<div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:28 }}>
+{ALLERGIES.map(a=>{const sel=p.allergies.includes(a); return (
+<button key={a} onClick={()=>setP(x=>({...x,allergies:sel?x.allergies.filter(v=>v!==style={{ padding:"10px 18px", borderRadius:20,
+border:`2px solid ${sel?T.rose:T.border}`,
+background:sel?T.roseDim:T.surface,
+color:sel?T.rose:T.inkMuted, fontSize:14, fontWeight:600, cursor:"pointer" {a}
+</button>
+);})}
+<button onClick={()=>setP(x=>({...x,allergies:[]}))}
+style={{ padding:"10px 18px", borderRadius:20,
+border:`2px solid ${p.allergies.length===0?T.sage:T.border}`,
+background:p.allergies.length===0?T.sageDim:T.surface,
+color:p.allergies.length===0?T.sageDark:T.inkMuted,
+fontSize:14, fontWeight:600, cursor:"pointer" }}>None</button>
+</div>
+<Btn onClick={()=>setStep(3)} style={{ marginBottom:10 }}>Continue →</Btn>
+<Btn variant="ghost" onClick={()=>setStep(1)} style={{ fontSize:13, padding:"10px" }}>← </div>,
+// 3: Budget + Soups
+<div>
+<div style={{ fontSize:22, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',<div style={{ fontSize:13, color:T.inkLight, marginBottom:22 }}>Set your weekly spend and <label style={label}>Weekly grocery budget</label>
+<div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:22 }}>
+{BUDGETS.map(([lbl,val])=>{const sel=p.budget===val; return (
+<button key={val} onClick={()=>setP(x=>({...x,budget:val}))}
+style={{ padding:"13px 16px", borderRadius:12,
+border:`2px solid ${sel?T.accent:T.border}`,
+background:sel?T.accentDim:T.surface,
+color:sel?T.accent:T.inkLight,
+fontSize:14, fontWeight:700, cursor:"pointer", textAlign:"left",
+display:"flex", justifyContent:"space-between" }}>
+<span>{lbl}</span><span style={{ fontSize:18 }}>{sel?"●":"○"}</span>
+</button>
+);})}
+</div>
+<label style={label}>Soup days per week</label>
+<div style={{ display:"flex", gap:10, marginBottom:28 }}>
+{[1,2,3,4].map(n=>(
+<button key={n} onClick={()=>setP(x=>({...x,soupCount:n}))}
+style={{ flex:1, padding:"13px 0", borderRadius:12,
+border:`2px solid ${p.soupCount===n?T.accent:T.border}`,
+background:p.soupCount===n?T.accentDim:T.surface,
+color:p.soupCount===n?T.accent:T.inkMuted,
+fontSize:16, fontWeight:800, cursor:"pointer" }}>{n}</button>
+))}
+</div>
+<Btn onClick={()=>setStep(4)} style={{ marginBottom:10 }}>Continue →</Btn>
+<Btn variant="ghost" onClick={()=>setStep(2)} style={{ fontSize:13, padding:"10px" }}>← </div>,
+// 4: Supermarket
+<div>
+<div style={{ fontSize:22, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',<div style={{ fontSize:13, color:T.inkLight, marginBottom:22 }}>Pick the ones you use most.</<div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:28 }}>
+{SUPERMARKETS.map(sm=>{const sel=p.supermarkets.includes(sm.id); return (
+<button key={sm.id} onClick={()=>setP(x=>({...x,supermarkets:sel?x.supermarkets.filter(style={{ padding:"13px 16px", borderRadius:14,
+border:`2px solid ${sel?sm.color:T.border}`,
+background:sel?`${sm.color}14`:T.surface,
+cursor:"pointer", display:"flex", alignItems:"center", gap:14 }}>
+<div style={{ width:42, height:42, borderRadius:10, background:sm.color,
+display:"flex", alignItems:"center", justifyContent:"center",
+fontSize:12, fontWeight:900, color:"white", flexShrink:0 }}>{sm.abbr}</<div style={{ fontSize:15, fontWeight:700, color:sel?T.ink:T.inkLight, flex:1, textAlign:"<div style={{ width:22, height:22, borderRadius:"50%",
+border:`2px solid ${sel?sm.color:T.border}`,
+background:sel?sm.color:"transparent",
+display:"flex", alignItems:"center", justifyContent:"center" }}>
+{sel&&<span style={{ color:"white", fontSize:11, fontWeight:800 }}>✓</span>}
+</div>
+</button>
+);})}
+</div>
+<Btn onClick={()=>onComplete(p)} style={{ marginBottom:10 }}>Start planning →</Btn>
+<Btn variant="ghost" onClick={()=>setStep(3)} style={{ fontSize:13, padding:"10px" }}>← </div>,
+];
+return (
+<div style={{ minHeight:"100vh", background:T.bg, maxWidth:430, margin:"0 auto", display:"{step > 0 && (
+<div style={{ padding:"52px 24px 0" }}>
+<div style={{ background:T.border, borderRadius:8, height:5, overflow:"hidden" }}>
+<div style={{ height:"100%", width:`${(step/4)*100}%`, background:T.accent, borderRadius:</div>
+<div style={{ fontSize:11, color:T.inkMuted, marginTop:5, textAlign:"right" }}>Step </div>
+)}
+<div style={{ flex:1, padding:step===0?"0 24px 40px":"20px 24px 40px",
+display:"flex", flexDirection:"column", justifyContent:step===0?"center":"{steps[step]}
+</div>
+</div>
+);
+}
+// ── HOME TAB ──────────────────────────────────────────────────────────────────
+function HomeTab({ profile, selections, history, locked }) {
+const [period, setPeriod] = useState("month");
+const today = getTodayLabel();
+const todayMeal = selections[today];
+const budget = parseFloat((profile.budget||"50-80").split("-")[0]) || 50;
+const thisWeekSpent = Object.values(selections).filter(Boolean).reduce((s,m)=>s+m.costVal,0);
+const totalPlanned = Object.values(selections).filter(Boolean).length;
+const monthSpent = thisWeekSpent * 4.2;
+const monthBudget = budget * 4.2;
+const savedAmt = Math.max(0, monthBudget - monthSpent);
+const allIds = [...Object.values(selections).filter(Boolean).map(m=>m.id), ...(history||[])];
+const freq = {};
+allIds.forEach(id=>{ freq[id]=(freq[id]||0)+1; });
+const topMeals = ALL_MEALS.filter(m=>freq[m.id]).sort((a,b)=>(freq[b.id]||0)-(freq[a.id]||0)).
+const greetingEmoji = () => { const h=new Date().getHours(); return h<12?" ":h<18?" ":" return (
+<div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
+{/* Header */}
+<div style={{ padding:"52px 20px 20px" }}>
+<div style={{ fontSize:26, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',{getGreeting()} {greetingEmoji()}
+</div>
+<div style={{ fontSize:13, color:T.inkMuted }}>{profile.name||"My Family"}</div>
+</div>
+{/* Today's meal */}
+<div style={{ margin:"0 20px 18px" }}>
+<div style={{ fontSize:11, fontWeight:800, color:T.inkMuted, textTransform:"uppercase",
+letterSpacing:"0.6px", marginBottom:10 }}>Today · {today}</div>
+{todayMeal ? (
+<div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:20,
+padding:"18px 18px", display:"flex", alignItems:"center", gap:16,
+boxShadow:shadow.md }}>
+<div style={{ fontSize:52, width:72, height:72, background:todayMeal.bg, borderRadius:display:"flex", alignItems:"center", justifyContent:"center", flexShrink:{todayMeal.emoji}
+</div>
+<div style={{ flex:1 }}>
+<div style={{ fontSize:18, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',lineHeight:1.2, marginBottom:6 }}>{todayMeal.name}</div>
+<div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+<Tag label={todayMeal.tag}/>
+<Tag label={` ${todayMeal.time}`} color={T.inkMuted} bg={T.surface}/>
+<Tag label={`€${todayMeal.costVal.toFixed(2)}`} color={T.accent} bg={T.accentDim}/>
+</div>
+</div>
+</div>
+) : (
+<div style={{ background:T.surface, border:`1.5px dashed ${T.border}`, borderRadius:padding:"24px", textAlign:"center" }}>
+<div style={{ fontSize:32, marginBottom:8 }}> </div>
+<div style={{ fontSize:14, fontWeight:700, color:T.ink, marginBottom:4 }}>Nothing <div style={{ fontSize:12, color:T.inkMuted }}>Go to the Plan tab to fill your week</</div>
+)}
+</div>
+{/* Week strip */}
+{totalPlanned > 0 && (
+<div style={{ margin:"0 20px 18px" }}>
+<div style={{ fontSize:11, fontWeight:800, color:T.inkMuted, textTransform:"uppercase",
+letterSpacing:"0.6px", marginBottom:10 }}>This week</div>
+<div style={{ display:"flex", gap:4 }}>
+{DAYS.map(d=>{
+const m=selections[d]; const isToday=d===today;
+return (
+<div key={d} style={{ flex:1, textAlign:"center" }}>
+<div style={{ width:"100%", aspectRatio:"1", borderRadius:10,
+background:isToday?T.accentDim:m?T.sageDim:T.surface,
+border:`2px solid ${isToday?T.accent:m?T.sage:T.border}`,
+display:"flex", alignItems:"center", justifyContent:"center",
+fontSize:m?14:10, marginBottom:3 }}>
+{m?m.emoji:<span style={{ color:T.border }}>·</span>}
+</div>
+<div style={{ fontSize:8, fontWeight:isToday?800:400,
+color:isToday?T.accent:m?T.sageDark:T.inkMuted }}>{d}</div>
+</div>
+);
+})}
+</div>
+{locked && (
+<div style={{ background:T.sageDim, border:`1px solid ${T.sage}55`, borderRadius:padding:"8px 12px", marginTop:10, display:"flex", alignItems:"center", <span> </span>
+<span style={{ fontSize:12, color:T.sageDark, fontWeight:700 }}>Week locked &amp; </div>
+)}
+</div>
+)}
+{/* Period toggle */}
+<div style={{ margin:"0 20px 14px", display:"flex", background:T.surface, borderRadius:border:`1px solid ${T.border}` }}>
+{["month","year"].map(per=>(
+<button key={per} onClick={()=>setPeriod(per)}
+style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none",
+background:period===per?T.card:"transparent",
+color:period===per?T.ink:T.inkMuted,
+fontSize:13, fontWeight:700, cursor:"pointer",
+boxShadow:period===per?shadow.sm:"none" }}>
+{per==="month"?"This Month":"This Year"}
+</button>
+))}
+</div>
+{/* Spend card */}
+<div style={{ margin:"0 20px 14px", background:T.card, border:`1px solid ${T.border}`,
+borderRadius:20, padding:"18px 20px", boxShadow:shadow.sm }}>
+<div style={{ fontSize:11, fontWeight:800, color:T.inkMuted, textTransform:"uppercase",
+letterSpacing:"0.6px", marginBottom:12 }}>
+{period==="month"?"Monthly":"Yearly"} Spend
+</div>
+<div style={{ fontSize:36, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',€{period==="month"?monthSpent.toFixed(0):(monthSpent*12).toFixed(0)}
+</div>
+<div style={{ fontSize:13, color:T.sageDark, marginBottom:14 }}>
+↓ €{period==="month"?savedAmt.toFixed(0):(savedAmt*12).toFixed(0)} saved vs budget
+</div>
+<BudgetBar spent={period==="month"?monthSpent:monthSpent*12} budget={period==="month"?</div>
+{/* Quick stats */}
+<div style={{ margin:"0 20px 18px", display:"flex", gap:10 }}>
+{[
+[" ",`€${(thisWeekSpent/Math.max(totalPlanned,1)).toFixed(2)}`,"per meal"],
+[" ",`${totalPlanned}/7`,"planned"],
+[" ",`€${Math.max(0,budget-thisWeekSpent).toFixed(0)}`,"remaining"],
+].map(([icon,val,lbl])=>(
+<div key={lbl} style={{ flex:1, background:T.card, border:`1px solid ${T.border}`,
+borderRadius:16, padding:"14px 8px", textAlign:"center", boxShadow:<div style={{ fontSize:22, marginBottom:4 }}>{icon}</div>
+<div style={{ fontSize:15, fontWeight:800, color:T.ink }}>{val}</div>
+<div style={{ fontSize:10, color:T.inkMuted, marginTop:2 }}>{lbl}</div>
+</div>
+))}
+</div>
+{/* Top meals */}
+<div style={{ margin:"0 20px 24px" }}>
+<div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:14, fontFamily:"'{topMeals.length===0 ? (
+<div style={{ background:T.surface, border:`1.5px dashed ${T.border}`, borderRadius:<div style={{ fontSize:32, marginBottom:8 }}> </div>
+<div style={{ fontSize:13, color:T.inkMuted }}>Cook meals to see your favourites </div>
+) : topMeals.map((m,i)=>(
+<div key={m.id} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:padding:"11px 14px", marginBottom:8, display:"flex",
+alignItems:"center", gap:12, boxShadow:shadow.sm }}>
+<div style={{ width:28, height:28, borderRadius:8,
+background:i===0?T.accentDim:T.surface,
+display:"flex", alignItems:"center", justifyContent:"center", flexShrink:<span style={{ fontSize:12, fontWeight:800, color:i===0?T.accent:T.inkMuted }}>#{
+</div>
+<span style={{ fontSize:20 }}>{m.emoji}</span>
+<div style={{ flex:1 }}>
+<div style={{ fontSize:13, fontWeight:700, color:T.ink }}>{m.name}</div>
+<div style={{ fontSize:11, color:T.inkMuted }}>{freq[m.id]}× cooked</div>
+</div>
+<span style={{ fontSize:11, color:T.accent, fontWeight:700 }}>€{m.costVal.toFixed(</div>
+))}
+</div>
+</div>
+);
+}
+// ── PLAN TAB ──────────────────────────────────────────────────────────────────
+function PlanTab({ profile, selections, setSelections, soups, setSoups, pantry, saved, locked, const [swapDay, setSwapDay] = useState(null);
+const [recipeDay, setRecipeDay] = useState(null);
+const [soupOpen, setSoupOpen] = useState(false);
+const [filling, setFilling] = useState(false);
+const [reviewOpen, setReviewOpen] = useState(false);
+const budget = parseFloat((profile.budget||"50-80").split("-")[0])||50;
+const spent = Object.values(selections).filter(Boolean).reduce((s,m)=>s+m.costVal,0);
+const total = Object.values(selections).filter(Boolean).length;
+const today = getTodayLabel();
+const hasLastWeek = Object.values(lastWeek||{}).some(Boolean);
+const doFill = () => { setFilling(true); setTimeout(()=>{ setSelections(fillWeek(profile, pantry)); const tags = Object.values(selections).filter(Boolean).map(m=>m.tag);
+const balanceItems = [
+{ e:" ", l:"Fish", ok:tags.includes("Fish") },
+{ e:" ", l:"Meat", ok:tags.includes("Meat") },
+{ e:" ", l:"Veggie",ok:tags.includes("Veggie") },
+];
+return (
+<div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
+{/* Header */}
+<div style={{ padding:"52px 20px 14px", display:"flex", alignItems:"center", justifyContent:"<div style={{ display:"flex", alignItems:"center", gap:12 }}>
+<NannyIcon size={38} onClick={onOpenProfile}/>
+<div>
+<div style={{ fontSize:17, fontWeight:800, color:T.ink, letterSpacing:"-0.3px", fontFamily:"'<div style={{ fontSize:10, color:T.inkMuted, letterSpacing:"0.5px", textTransform:"</div>
+</div>
+<div style={{ display:"flex", gap:8, alignItems:"center" }}>
+{locked && (
+<div style={{ background:T.sageDim, border:`1px solid ${T.sage}66`, borderRadius:padding:"5px 12px", fontSize:11, fontWeight:700, color:T.sageDark }}>
+Locked
+</div>
+)}
+<button onClick={onOpenCart}
+style={{ position:"relative", background:T.card, border:`1px solid ${T.border}`,
+borderRadius:14, width:44, height:44, display:"flex", alignItems:"center",
+justifyContent:"center", cursor:"pointer", fontSize:20, boxShadow:shadow.{total>0&&<div style={{ position:"absolute", top:-5, right:-5, background:T.accent,
+borderRadius:"50%", width:20, height:20, display:"flex",
+alignItems:"center", justifyContent:"center",
+fontSize:11, fontWeight:800, color:"white" }}>{total}</div>}
+</button>
+</div>
+</div>
+{/* Budget */}
+<div style={{ margin:"0 20px 14px", background:T.card, border:`1px solid ${T.border}`,
+borderRadius:18, padding:"14px 16px", boxShadow:shadow.sm }}>
+<BudgetBar spent={spent} budget={budget}/>
+<div style={{ display:"flex", gap:12, marginTop:12 }}>
+{[[`€${(spent/Math.max(total,1)).toFixed(2)}`,"per meal"],[`${total}/7`,"planned"],[`€${<div key={l} style={{ flex:1, textAlign:"center" }}>
+<div style={{ fontSize:14, fontWeight:800, color:T.ink }}>{v}</div>
+<div style={{ fontSize:10, color:T.inkMuted, marginTop:1 }}>{l}</div>
+</div>
+))}
+</div>
+</div>
+{/* Balance pills */}
+<div style={{ margin:"0 20px 12px", display:"flex", gap:6 }}>
+{balanceItems.map(({e,l,ok})=>(
+<div key={l} style={{ flex:1, background:ok?T.sageDim:T.surface,
+border:`1.5px solid ${ok?T.sage:T.border}`,
+borderRadius:10, padding:"6px 0", textAlign:"center",
+fontSize:11, fontWeight:700, color:ok?T.sageDark:T.inkMuted }}>
+{e} {l}
+</div>
+))}
+</div>
+{/* Action row */}
+<div style={{ margin:"0 20px 14px", display:"flex", gap:10 }}>
+<Btn onClick={doFill} disabled={filling||locked} style={{ flex:1 }}>
+{filling?"Filling…":locked?" Week locked":total===7?" Refill Week":" Fill My </Btn>
+{hasLastWeek && (
+<button onClick={()=>setReviewOpen(true)}
+style={{ flexShrink:0, background:T.surface, border:`1px solid ${T.border}`,
+borderRadius:14, padding:"0 14px", fontSize:12, fontWeight:700,
+color:T.inkLight, cursor:"pointer", display:"flex", alignItems:"center",
+gap:6, whiteSpace:"nowrap", boxShadow:shadow.sm }}>
+Last week
+</button>
+)}
+</div>
+{/* Accept banner */}
+{total===7 && !locked && (
+<div style={{ margin:"0 20px 14px", background:T.sageDim, border:`1.5px solid ${T.sage}borderRadius:16, padding:"14px 16px", display:"flex", alignItems:"center", <span style={{ fontSize:22 }}> </span>
+<div style={{ flex:1 }}>
+<div style={{ fontSize:13, fontWeight:800, color:T.sageDark }}>Week complete!</div>
+<div style={{ fontSize:11, color:T.inkLight, marginTop:2 }}>Ready to accept and submit </div>
+<button onClick={onOpenCart}
+style={{ background:T.sage, border:"none", borderRadius:10, padding:"8px 14px",
+fontSize:12, fontWeight:800, color:"white", cursor:"pointer", flexShrink:Accept →
+</button>
+</div>
+)}
+{/* Soup strip */}
+<button onClick={()=>!locked&&setSoupOpen(true)}
+style={{ margin:"0 20px 14px", width:"calc(100% - 40px)",
+background:soups.length>0?T.sageDim:T.surface,
+border:`1.5px solid ${soups.length>0?T.sage:T.border}`,
+borderRadius:12, padding:"10px 16px",
+display:"flex", alignItems:"center", justifyContent:"space-between",
+cursor:locked?"default":"pointer", opacity:locked?0.6:1 }}>
+<div style={{ display:"flex", alignItems:"center", gap:10 }}>
+<span style={{ fontSize:18 }}> </span>
+<span style={{ fontSize:13, fontWeight:600, color:soups.length>0?T.sageDark:T.inkMuted {soups.length>0?`${soups.length} of ${profile.soupCount||2} soups selected`:`Add </span>
+</div>
+{!locked&&<span style={{ fontSize:12, color:T.inkMuted }}>→</span>}
+</button>
+{/* Day cards */}
+<div style={{ padding:"0 20px", display:"flex", flexDirection:"column", gap:10 }}>
+{DAYS.map(d=>{
+const meal = selections[d];
+const isToday = d===today;
+return (
+<div key={d}
+style={{ background:T.card, border:`1.5px solid ${isToday&&meal?T.accent:meal?T.borderRadius:18, overflow:"hidden", boxShadow:isToday&&meal?`0 0 0 3px {meal ? (
+<div style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px" <div style={{ fontSize:28, width:52, height:52, background:meal.bg, borderRadius:display:"flex", alignItems:"center", justifyContent:"center", {meal.emoji}
+</div>
+<div style={{ flex:1, minWidth:0 }} onClick={()=>!locked&&setRecipeDay(d)}>
+<div style={{ display:"flex", alignItems:"center", gap:6 }}>
+<span style={{ fontSize:10, fontWeight:700, color:isToday?T.accent:T.inkMuted,
+textTransform:"uppercase", letterSpacing:"0.4px" }}>{d}</{isToday&&<span style={{ fontSize:9, fontWeight:800, background:T.accent, borderRadius:4, padding:"1px 6px" }}>TODAY</span>}
+</div>
+<div style={{ fontSize:14, fontWeight:700, color:T.ink, marginTop:2 }}>{meal.<div style={{ display:"flex", gap:6, marginTop:3, alignItems:"center" }}>
+<span style={{ fontSize:11, color:T.inkMuted }}>{meal.tag} · {meal.time}</<span style={{ fontSize:11, color:T.accent, fontWeight:700 }}>€{meal.costVal.</div>
+</div>
+{!locked&&(
+<button onClick={()=>setSwapDay(d)}
+style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:padding:"6px 12px", fontSize:12, fontWeight:700, color:T.inkLight,
+cursor:"pointer", flexShrink:0 }}>Swap</button>
+)}
+</div>
+) : (
+<div style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px",
+cursor:locked?"default":"pointer" }} onClick={()=>!locked&&setSwapDay(<div style={{ width:52, height:52, borderRadius:12, background:T.surface,
+border:`1.5px dashed ${T.border}`,
+display:"flex", alignItems:"center", justifyContent:"center", <span style={{ fontSize:20, color:T.border }}>+</span>
+</div>
+<div>
+<div style={{ fontSize:10, fontWeight:700, color:T.inkMuted, textTransform:"<div style={{ fontSize:13, color:T.inkMuted, marginTop:2 }}>Tap to add a </div>
+</div>
+)}
+</div>
+);
+})}
+</div>
+{swapDay&&<SwapSheet day={swapDay} pantry={pantry} saved={saved} onPick={m=>setSelections({recipeDay&&selections[recipeDay]&&<RecipeSheet meal={selections[recipeDay]} pantry={pantry} {soupOpen&&<SoupPickerSheet profile={profile} selected={soups} onToggle={id=>setSoups(p=>{reviewOpen&&<ReviewSheet lastWeek={lastWeek} onDone={(ids,ratings)=>{onReviewDone(ids,</div>
+);
+}
+// ── DISCOVER TAB ──────────────────────────────────────────────────────────────
+function DiscoverTab({ pantry, saved, onToggleSave, selections, setSelections, customRecipes, const [filter, setFilter] = useState("All");
+const [preview, setPreview] = useState(null);
+const [searchQ, setSearchQ] = useState("");
+const [addOpen, setAddOpen] = useState(false);
+const [showCustomOnly, setShowCustomOnly] = useState(false);
+const allMeals = useMemo(()=>[...ALL_MEALS,...customRecipes],[customRecipes]);
+const visible = useMemo(()=>{
+const q = searchQ.toLowerCase();
+return allMeals.filter(m=>{
+const matchTag = filter==="All"||m.tag===filter;
+const matchCustom = !showCustomOnly||m.custom;
+const matchSearch = !q||m.name.toLowerCase().includes(q)||m.ingredients.some(i=>i.toLowerCase().return matchTag&&matchSearch&&matchCustom;
+});
+},[filter,searchQ,allMeals,showCustomOnly]);
+const col1 = visible.filter((_,i)=>i%2===0);
+const col2 = visible.filter((_,i)=>i%2===1);
+const tagColors = { Fish:{c:"#2B6CB0",bg:"#EBF4FF"}, Meat:{c:"#9B4A2A",bg:"#FFF1EC"}, Veggie:{const Card = ({ m, tall }) => {
+const isSaved = saved.includes(m.id);
+const pm = calcMatch(m, pantry);
+const tc = tagColors[m.tag]||{};
+return (
+<div onClick={()=>setPreview(m)}
+style={{ background:T.card, border:`1.5px solid ${m.custom?T.accent+"55":T.border}`,
+borderRadius:18, overflow:"hidden", cursor:"pointer", marginBottom:10,
+minHeight:tall?200:160, position:"relative", display:"flex", flexDirection:"boxShadow:shadow.sm }}>
+{m.custom&&(
+<div style={{ position:"absolute", top:8, left:8, background:T.accentDim,
+border:`1px solid ${T.accent}44`, borderRadius:6,
+padding:"2px 8px", fontSize:9, fontWeight:800, color:T.accent, zIndex:MY RECIPE
+</div>
+)}
+<div style={{ fontSize:tall?62:50, textAlign:"center",
+padding:tall?"20px 12px 8px":"14px 12px 6px",
+background:m.bg, lineHeight:1 }}>{m.emoji}</div>
+<div style={{ padding:"10px 12px 14px", flex:1 }}>
+<div style={{ fontSize:13, fontWeight:800, color:T.ink, lineHeight:1.3, marginBottom:<div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", <Tag label={m.tag} color={tc.c} bg={tc.bg}/>
+<span style={{ fontSize:12, fontWeight:700, color:T.accent }}>{costStr(m.costVal)}</</div>
+{pm!==null&&(
+<div style={{ marginTop:6 }}>
+<div style={{ background:T.border, borderRadius:4, height:4 }}>
+<div style={{ height:"100%", width:`${pm}%`, background:pm>=80?T.sage:T.amber, </div>
+<div style={{ fontSize:10, color:T.inkMuted, marginTop:2 }}>{pm}% at home</div>
+</div>
+)}
+</div>
+<button onClick={e=>{ e.stopPropagation(); onToggleSave(m.id); }}
+style={{ position:"absolute", top:10, right:10, width:30, height:30, borderRadius:"background:"rgba(250,247,242,0.9)", border:`1px solid ${T.border}`,
+cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"color:isSaved?T.accent:T.inkMuted, boxShadow:shadow.sm }}>
+{isSaved?"★":"☆"}
+</button>
+</div>
+);
+};
+return (
+<div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
+<div style={{ padding:"52px 20px 14px" }}>
+<div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:<div style={{ fontSize:24, fontWeight:800, color:T.ink, fontFamily:"'Playfair Display',
+<button onClick={()=>setAddOpen(true)}
+style={{ background:T.accent, border:"none", borderRadius:20, padding:"9px 18px",
+fontSize:13, fontWeight:700, color:"white", cursor:"pointer",
+display:"flex", alignItems:"center", gap:6, boxShadow:shadow.sm }}>
++ Add recipe
+</button>
+</div>
+<div style={{ position:"relative", marginBottom:8 }}>
+<input value={searchQ} onChange={e=>setSearchQ(e.target.value)}
+placeholder="Search recipes or ingredients…"
+style={{ width:"100%", background:T.card, border:`1.5px solid ${searchQ?T.accent:borderRadius:12, padding:"12px 16px 12px 42px", fontSize:14, color:T.ink,
+outline:"none", boxSizing:"border-box", boxShadow:shadow.sm,
+transition:"border-color 0.2s" }}/>
+<span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
+fontSize:16, pointerEvents:"none" }}> </span>
+</div>
+{searchQ&&(
+<div style={{ fontSize:12, color:T.inkMuted, marginBottom:10 }}>
+{visible.length} result{visible.length!==1?"s":""} — searching name &amp; ingredients
+</div>
+)}
+<div style={{ display:"flex", gap:8, marginBottom:12 }}>
+{["All","Fish","Meat","Veggie"].map(t=>(
+<button key={t} onClick={()=>setFilter(t)}
+style={{ flex:1, padding:"8px 4px", borderRadius:10,
+border:`1.5px solid ${filter===t?T.accent:T.border}`,
+background:filter===t?T.accentDim:T.surface,
+color:filter===t?T.accent:T.inkMuted,
+fontSize:12, fontWeight:700, cursor:"pointer" }}>
+{t}
+</button>
+))}
+</div>
+<div style={{ display:"flex", gap:10, alignItems:"center" }}>
+{customRecipes.length>0&&(
+<button onClick={()=>setShowCustomOnly(v=>!v)}
+style={{ padding:"6px 14px", borderRadius:20,
+border:`1.5px solid ${showCustomOnly?T.accent:T.border}`,
+background:showCustomOnly?T.accentDim:T.surface,
+color:showCustomOnly?T.accent:T.inkMuted,
+fontSize:12, fontWeight:700, cursor:"pointer" }}>
+My recipes ({customRecipes.length})
+</button>
+)}
+{saved.length>0&&!searchQ&&(
+<div style={{ fontSize:12, fontWeight:700, color:T.inkMuted }}>★ {saved.length} saved</)}
+</div>
+</div>
+{visible.length===0 ? (
+<div style={{ padding:"40px 20px", textAlign:"center" }}>
+<div style={{ fontSize:40, marginBottom:12 }}> </div>
+<div style={{ fontSize:15, fontWeight:700, color:T.ink, marginBottom:6 }}>No results <div style={{ fontSize:13, color:T.inkMuted }}>Try searching for an ingredient like </div>
+) : (
+<div style={{ padding:"0 20px", display:"flex", gap:10 }}>
+<div style={{ flex:1 }}>{col1.map((m,i)=><Card key={m.id} m={m} tall={i%3===0}/>)}</<div style={{ flex:1, paddingTop:40 }}>{col2.map((m,i)=><Card key={m.id} m={m} tall={</div>
+)}
+{addOpen&&<AddRecipeSheet onSave={onAddCustom} onClose={()=>setAddOpen(false)}/>}
+{preview&&(
+<RecipeSheet meal={preview} pantry={pantry} onClose={()=>setPreview(null)}
+saved={saved.includes(preview.id)} onSave={()=>onToggleSave(preview.id)}
+actionLabel="Add to week" onAction={()=>{ const d=DAYS.find(d=>!selections[d]); if(extraAction={preview.custom?{label:" Delete recipe",fn:()=>{ onDeleteCustom(preview.)}
+</div>
+);
+}
+// ── PROFILE SHEET ─────────────────────────────────────────────────────────────
+function ProfileSheet({ profile, onClose }) {
+const sm = (profile?.supermarkets||[]).map(id=>SUPERMARKETS.find(s=>s.id===id)).filter(Boolean);
+return (
+<Sheet onClose={onClose} title="Family Profile" subtitle="Your setup">
+<div style={{ textAlign:"center", marginBottom:20 }}>
+<div style={{ width:64, height:64, borderRadius:"50%", background:T.accentDim,
+display:"flex", alignItems:"center", justifyContent:"center",
+margin:"0 auto 10px", boxShadow:shadow.sm }}>
+<NannyIcon size={44}/>
+</div>
+<div style={{ fontSize:18, fontWeight:800, color:T.ink }}>{profile.name||"My Family"}</</div>
+{[["Children",profile.kids],["Budget","€"+profile.budget+"/wk"],["Soups/week",profile.soupCount],["<div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"11px 0", <div style={{ fontSize:13, color:T.inkMuted }}>{l}</div>
+<div style={{ fontSize:13, color:T.ink, fontWeight:700 }}>{String(v)}</div>
+</div>
+))}
+{sm.length>0&&(
+<div style={{ padding:"11px 0" }}>
+<div style={{ fontSize:13, color:T.inkMuted, marginBottom:10 }}>Supermarkets</div>
+<div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+{sm.map(s=><div key={s.id} style={{ background:`${s.color}14`, border:`1px solid </div>
+</div>
+)}
+</Sheet>
+);
+}
+// ── BOTTOM NAV ────────────────────────────────────────────────────────────────
+function BottomNav({ tab, setTab }) {
+return (
+<div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+width:"100%", maxWidth:430, background:T.card,
+borderTop:`1px solid ${T.border}`, display:"flex", zIndex:100,
+paddingBottom:20, boxShadow:"0 -4px 24px rgba(44,36,32,0.08)" }}>
+{[["home"," ","Home"],["plan"," ","Plan"],["discover"," ","Discover"]].map(([id,icon,<button key={id} onClick={()=>setTab(id)}
+style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3,
+background:"none", border:"none", cursor:"pointer", padding:"12px 0 0" }}>
+<span style={{ fontSize:22 }}>{icon}</span>
+<span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.3px", textTransform:"uppercase",
+color:tab===id?T.accent:T.inkMuted }}>
+{label}
+</span>
+{tab===id&&<div style={{ width:20, height:3, borderRadius:2, background:T.accent, marginTop:</button>
+))}
+</div>
+);
+}
+// ── ROOT ──────────────────────────────────────────────────────────────────────
+export default function App() {
+const [onboarded, setOnboarded] = useState(false);
+const [profile, setProfile] = useState({});
+const [selections, setSelections] = useState({});
+const [lastWeek, setLastWeek] = useState({ Mon:ALL_MEALS[0], Tue:ALL_MEALS[2], Wed:const [soups, setSoups] = useState([]);
+const [pantry, setPantry] = useState(DEFAULT_PANTRY);
+const [saved, setSaved] = useState([]);
+const [locked, setLocked] = useState(false);
+const [tab, setTab] = useState("plan");
+const [cartOpen, setCartOpen] = useState(false);
+const [profileOpen, setProfileOpen] = useState(false);
+const [history, setHistory] = useState([1,3,6,2,8,1,3]);
+const [customRecipes, setCustomRecipes] = useState([]);
+const toggleSave = id => setSaved(p=>p.includes(id)?p.filter(x=>x!==id):[...p,id]);
+const addCustomRecipe = r => setCustomRecipes(p=>[r,...p]);
+const deleteCustom = id => { setCustomRecipes(p=>p.filter(r=>r.id!==id)); setSaved(p=>p.const handleLock = () => { setLocked(true); setLastWeek({...selections}); };
+const handleReviewDone = (ids, ratings) => {
+setHistory(prev=>[...prev,...ids]);
+setLastWeek({...selections});
+setSelections({}); setLocked(false); setSoups([]);
+};
+const fonts = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=if (!onboarded) return (
+<>
+<link href={fonts} rel="stylesheet"/>
+<style>{`*{box-sizing:border-box;margin:0;padding:0;font-family:'DM Sans',sans-serif;}html,<Onboarding onComplete={p=>{ setProfile(p); setOnboarded(true); }}/>
+</>
+);
+return (
+<>
+<link href={fonts} rel="stylesheet"/>
+<style>{`*{box-sizing:border-box;margin:0;padding:0;font-family:'DM Sans',sans-serif;}html,<div style={{ maxWidth:430, margin:"0 auto", background:T.bg, height:"100vh",
+display:"flex", flexDirection:"column", position:"relative" }}>
+<div style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
+{tab==="home" && <HomeTab profile={profile} selections={selections} history={history} {tab==="plan" && <PlanTab profile={profile} selections={selections} setSelections={{tab==="discover" && <DiscoverTab pantry={pantry} saved={saved} onToggleSave={toggleSave} </div>
+<BottomNav tab={tab} setTab={setTab}/>
+{cartOpen && <CartSheet selections={selections} soups={soups} profile={profile} onClose={()=>{profileOpen && <ProfileSheet profile={profile} onClose={()=>setProfileOpen(false)}/>}
+</div>
+</>
+);
+}

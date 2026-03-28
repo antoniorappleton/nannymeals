@@ -1,319 +1,391 @@
 <!doctype html>
-<html class="light" lang="pt">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>NannyMeal - Lista de Compras</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script type="module" src="src/auth.js?v=14"></script>
-    <script src="src/tailwind-config.js"></script>
-    <link rel="stylesheet" href="css/global.css" />
-    <link rel="manifest" href="manifest.json" />
-    <script>
-      if (localStorage.getItem("app_version") !== "v24") {
-        localStorage.setItem("app_version", "v24");
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.getRegistrations().then((regs) => {
-            for (let reg of regs) reg.unregister();
-          });
-        }
-        if ("caches" in window) {
-          caches.keys().then((names) => {
-            for (let name of names) caches.delete(name);
-            setTimeout(() => window.location.reload(true), 500);
-          });
-        }
-      }
-    </script>
-    <style>
-      body { min-height: 100dvh; }
-    </style>
-  </head>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NannyMeals — Lista de Compras</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="manifest" href="manifest.json" />
+  <script type="module" src="src/auth.js?v=28"></script>
+  <style>
+    body { min-height: 100dvh; }
 
-  <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-    <div class="app-container glass-effect">
-      <header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10">
-        <div class="flex items-center justify-between mb-3">
-          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Lista de Compras</h1>
-          <div class="flex items-center gap-2">
-            <button id="btn-supermarkets" title="Exportar para Supermercados" class="p-2 rounded-full hover:bg-primary/10 transition-colors text-primary min-h-10 min-w-10 flex items-center justify-center">
-              <span class="material-symbols-outlined">store</span>
-            </button>
-            <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center">
-              <span class="material-symbols-outlined">logout</span>
-            </button>
-          </div>
-        <div class="flex items-center justify-between">
-          <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]" id="current-grocery-header">A carregar...</p>
-          <div id="cost-badge" class="hidden bg-primary/10 px-3 py-1.5 rounded-full text-xs font-bold text-primary">
+    .progress-bar-track {
+      height: 6px;
+      background: #e4ede7;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    html.dark .progress-bar-track { background: #1e2d22; }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #13ec5b, #0fbb47);
+      border-radius: 99px;
+      transition: width 500ms cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .grocery-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .grocery-item:hover { background: rgba(19,236,91,0.04); }
+    .grocery-item:active { background: rgba(19,236,91,0.08); }
+
+    .grocery-checkbox {
+      width: 24px; height: 24px; border-radius: 8px;
+      border: 2px solid #d1d9d4;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 200ms ease;
+    }
+    .grocery-item[data-checked="true"] .grocery-checkbox {
+      background: #13ec5b;
+      border-color: #13ec5b;
+    }
+    .grocery-item[data-checked="true"] .item-name {
+      text-decoration: line-through;
+      color: #9ca8a0;
+    }
+    .grocery-item[data-checked="true"] .check-icon { opacity: 1; transform: scale(1); }
+    .check-icon { opacity: 0; transform: scale(0); transition: all 200ms cubic-bezier(0.34,1.56,0.64,1); }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px 6px;
+    }
+
+    .supermarket-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 180ms ease;
+      border: none;
+      color: white;
+    }
+    .supermarket-btn:hover { transform: translateY(-1px); }
+    .supermarket-btn:active { transform: scale(0.98); }
+  </style>
+  <script>
+    (function() {
+      const saved = localStorage.getItem('nm_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
+    })();
+    if (localStorage.getItem('app_version') !== 'v28') {
+      localStorage.setItem('app_version', 'v28');
+      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
+    }
+  </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div class="app-container">
+
+    <!-- ── Header ──────────────────────────────── -->
+    <header class="sticky top-0 z-20 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-100 dark:border-border-dark px-4 lg:px-6 pt-5 pb-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted" id="current-grocery-header">A carregar...</p>
+          <h1 class="text-xl font-black tracking-tight mt-0.5">Lista de Compras</h1>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="cost-badge" class="hidden bg-primary/15 text-primary font-black text-sm px-3 py-1.5 rounded-full">
             <span id="total-cost-display">0</span>€
           </div>
-      </header>
-
-      <main id="grocery-list-container" class="flex-1 overflow-y-auto pb-16">
-        <div class="p-4 space-y-4">
-          <div id="loading-state" class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-            <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-              <span class="material-symbols-outlined text-4xl">shopping_cart</span>
-            </div>
-            <p class="font-bold">A carregar a vossa lista...</p>
-          </div>
-          <div id="empty-state" class="hidden py-12 text-center space-y-4">
-            <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
-              <span class="material-symbols-outlined text-4xl">shopping_cart</span>
-            </div>
-            <p class="text-slate-500 font-medium">Ainda não tens itens na lista. Gera um plano primeiro!</p>
-            <div class="flex items-center justify-center gap-4 flex-wrap">
-              <button onclick="window.location.href = 'plan.html'" class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-premium uppercase tracking-widest text-xs">Ir para o Plano</button>
-              <button id="btn-generate-auto" class="bg-white dark:bg-slate-800 text-primary border border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs">Gerar Plano</button>
-            </div>
+          <button id="btn-supermarkets" title="Supermercados" class="size-10 rounded-full bg-primary text-slate-900 hover:bg-primary-dark flex items-center justify-center shadow-glow transition-all">
+            <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">store</span>
+          </button>
+          <button id="btn-logout" class="size-10 rounded-full hover:bg-primary/10 text-slate-400 hover:text-primary flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-xl">logout</span>
+          </button>
         </div>
-      </main>
-    </div>
-
-    <!-- Supermarket Modal -->
-    <div id="supermarket-modal" class="hidden fixed inset-0 z-50 bg-black">
-      <div class="w-full max-w-lg mx-auto h-full flex flex-col">
-        <div class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 mt-0">
-          <div class="shrink-0 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-slate-800 dark:to-slate-900 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="size-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-                  <span class="material-symbols-outlined text-2xl text-slate-900">store</span>
-                </div>
-                <div>
-                  <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Supermercados</h2>
-                  <p class="text-xs text-slate-500">Exportar lista de compras</p>
-                </div>
-              <button onclick="closeSupermarketModal()" class="shrink-0 p-2 sm:p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-xl">close</span>
-              </button>
-            </div>
-          <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
-            <p class="text-sm text-slate-500 mb-4">Escolhe o supermercado para adicionar os ingredientes:</p>
-            <button onclick="openSupermarket('continente')" class="w-full flex items-center gap-4 p-4 bg-[#0073A7] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
-              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
-              <div class="text-left">
-                <p class="font-black text-lg">Continente</p>
-                <p class="text-xs opacity-80">Abrir no website</p>
-              </div>
-            </button>
-            <button onclick="openSupermarket('pingodoce')" class="w-full flex items-center gap-4 p-4 bg-[#00A04A] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
-              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
-              <div class="text-left">
-                <p class="font-black text-lg">Pingo Doce</p>
-                <p class="text-xs opacity-80">Abrir no website</p>
-              </div>
-            </button>
-            <button onclick="openSupermarket('auchan')" class="w-full flex items-center gap-4 p-4 bg-[#E30613] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
-              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
-              <div class="text-left">
-                <p class="font-black text-lg">Auchan</p>
-                <p class="text-xs opacity-80">Abrir no website</p>
-              </div>
-            </button>
-            <button onclick="openSupermarket('intermarche')" class="w-full flex items-center gap-4 p-4 bg-[#FF6600] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
-              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
-              <div class="text-left">
-                <p class="font-black text-lg">Intermarché</p>
-                <p class="text-xs opacity-80">Abrir no website</p>
-              </div>
-            </button>
-            <button onclick="openSupermarket('supersave')" class="w-full flex items-center gap-4 p-4 bg-[#FF6B35] text-white rounded-2xl hover:scale-[0.98] transition-all shadow-lg">
-              <span class="material-symbols-outlined text-2xl">shopping_cart</span>
-              <div class="text-left">
-                <p class="font-black text-lg">Super Save</p>
-                <p class="text-xs opacity-80">Comparar preços em todas as lojas</p>
-              </div>
-            </button>
-          </div>
       </div>
 
-    <script type="module">
-      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-      import { auth } from "./src/firebase-init.js";
-      import { logout } from "./src/auth.js";
-      import { getLastPlan, getHousehold, getPlanById, generateGroceryListFromPlan, generateWeeklyPlan } from "./src/db.js";
-      import { generateSupermarketLink } from "./src/supermarket-links.js";
+      <!-- Progress bar -->
+      <div id="progress-container" class="hidden space-y-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-muted">Progresso</span>
+          <span class="text-xs font-black text-primary" id="progress-label">0 / 0</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+    </header>
 
-      let currentGroceryList = [];
-      let currentIngredients = [];
+    <!-- ── Main ──────────────────────────────────── -->
+    <main id="grocery-list-container" class="flex-1 overflow-y-auto pb-safe">
+      <div class="p-4 lg:p-6 space-y-2">
 
-      const groceryContainer = document.getElementById("grocery-list-container");
-      const loadingState = document.getElementById("loading-state");
-      const emptyState = document.getElementById("empty-state");
-      const supermarketModal = document.getElementById("supermarket-modal");
+        <!-- Loading skeleton -->
+        <div id="loading-state" class="space-y-4">
+          ${[1,2,3].map(() => `
+            <div>
+              <div class="skeleton h-4 w-24 rounded mb-3 mx-4"></div>
+              <div class="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-border-dark overflow-hidden divide-y divide-slate-50 dark:divide-border-dark">
+                ${[1,2,3].map(() => `<div class="flex items-center gap-3 p-4"><div class="skeleton size-6 rounded-lg shrink-0"></div><div class="flex-1 space-y-1.5"><div class="skeleton h-3 w-2/3 rounded"></div><div class="skeleton h-2.5 w-1/3 rounded"></div></div></div>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>
 
-      document.getElementById("btn-logout").onclick = () => logout();
-      
-      document.getElementById("btn-supermarkets").onclick = () => {
-        if (currentIngredients.length > 0) {
-          supermarketModal.classList.remove("hidden");
-          document.body.style.overflow = "hidden";
-        } else {
-          alert("Gera um plano primeiro para ver os supermercados!");
-        }
-      };
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 gap-5 text-muted">
+          <div class="size-24 rounded-4xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            <span class="material-symbols-outlined text-5xl">shopping_cart</span>
+          </div>
+          <div class="text-center">
+            <p class="font-black text-slate-700 dark:text-slate-200 text-lg">Lista vazia</p>
+            <p class="text-sm mt-1">Gera um plano semanal para criar a tua lista</p>
+          </div>
+          <div class="flex gap-3 flex-wrap justify-center">
+            <button onclick="window.location.href='plan.html'" class="bg-primary text-slate-900 px-6 py-3 rounded-2xl font-black shadow-glow uppercase tracking-widest text-xs">Ir ao Plano</button>
+            <button id="btn-generate-auto" class="bg-white dark:bg-surface-dark text-primary border-2 border-primary px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs">Gerar Plano</button>
+          </div>
+        </div>
 
-      window.closeSupermarketModal = () => {
-        supermarketModal.classList.add("hidden");
-        document.body.style.overflow = "";
-      };
+      </div>
+    </main>
+  </div>
 
-      window.openSupermarket = (supermarketId) => {
-        const link = generateSupermarketLink(supermarketId, currentIngredients);
-        if (link && link.webLink) {
-          window.open(link.webLink, '_blank');
-        }
-      };
+  <!-- ── Supermarket Modal ──────────────────────── -->
+  <div id="supermarket-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end lg:items-center justify-center p-0 lg:p-6">
+    <div class="w-full lg:max-w-md bg-white dark:bg-surface-dark rounded-t-3xl lg:rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in">
+      <div class="p-5 border-b border-slate-100 dark:border-border-dark flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-black">Supermercados</h2>
+          <p class="text-xs text-muted mt-0.5">Exportar lista de compras</p>
+        </div>
+        <button onclick="closeSupermarketModal()" class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+          <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">close</span>
+        </button>
+      </div>
+      <div class="p-5 space-y-3">
+        <p class="text-sm text-muted mb-2">Escolhe o supermercado para adicionar os ingredientes:</p>
+        <button onclick="openSupermarket('continente')" class="supermarket-btn w-full" style="background:#0073A7">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
+            <div class="text-left"><p class="font-black text-lg">Continente</p><p class="text-xs opacity-80">Abrir no website</p></div>
+          </div>
+          <span class="material-symbols-outlined">arrow_forward_ios</span>
+        </button>
+        <button onclick="openSupermarket('pingodoce')" class="supermarket-btn w-full" style="background:#00A04A">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
+            <div class="text-left"><p class="font-black text-lg">Pingo Doce</p><p class="text-xs opacity-80">Abrir no website</p></div>
+          </div>
+          <span class="material-symbols-outlined">arrow_forward_ios</span>
+        </button>
+        <button onclick="openSupermarket('auchan')" class="supermarket-btn w-full" style="background:#E30613">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
+            <div class="text-left"><p class="font-black text-lg">Auchan</p><p class="text-xs opacity-80">Abrir no website</p></div>
+          </div>
+          <span class="material-symbols-outlined">arrow_forward_ios</span>
+        </button>
+        <button onclick="openSupermarket('intermarche')" class="supermarket-btn w-full" style="background:#FF6600">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
+            <div class="text-left"><p class="font-black text-lg">Intermarché</p><p class="text-xs opacity-80">Abrir no website</p></div>
+          </div>
+          <span class="material-symbols-outlined">arrow_forward_ios</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
-      supermarketModal.onclick = (e) => {
-        if (e.target === supermarketModal) closeSupermarketModal();
-      };
+  <script type="module">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { auth } from "./src/firebase-init.js";
+    import { logout } from "./src/auth.js";
+    import { getLastPlan, getHousehold, getPlanById, generateGroceryListFromPlan, generateWeeklyPlan } from "./src/db.js";
+    import { generateSupermarketLink } from "./src/supermarket-links.js";
 
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          try {
-            const plan = await getLastPlan(user.uid);
-            if (plan) {
-              let list = plan.groceryList || [];
-              if (list.length === 0) {
-                list = await generateGroceryListFromPlan(plan.id);
-                try {
-                  const updated = await getPlanById(plan.id);
-                  if (updated) plan = updated;
-                } catch (err) { console.warn("Falha ao reobter plano:", err); }
-              }
+    let currentGroceryList = [], currentIngredients = [];
+    let totalItems = 0, checkedItems = 0;
 
-              if (list && list.length > 0) {
-                const itemCount = list.reduce((acc, cat) => acc + cat.items.length, 0);
-                document.getElementById("current-grocery-header").textContent = `${itemCount} ITENS - ESTIMATIVA ATIVA`;
-                
-                currentGroceryList = list;
-                currentIngredients = list.flatMap(cat => cat.items.map(item => item.name));
+    const groceryContainer = document.getElementById("grocery-list-container");
+    const loadingState = document.getElementById("loading-state");
+    const emptyState = document.getElementById("empty-state");
+    const supermarketModal = document.getElementById("supermarket-modal");
+    const progressContainer = document.getElementById("progress-container");
+    const progressFill = document.getElementById("progress-fill");
+    const progressLabel = document.getElementById("progress-label");
 
-                if (plan.totalEstimatedCost) {
-                  const costBadge = document.getElementById("cost-badge");
-                  if (costBadge) {
-                    costBadge.classList.remove("hidden");
-                    document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost;
-                  }
-                }
-                renderGroceryList(list);
-              } else {
-                loadingState.classList.add("hidden");
-                emptyState.classList.remove("hidden");
-                document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS";
-              }
-            } else {
-              loadingState.classList.add("hidden");
-              emptyState.classList.remove("hidden");
-              document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS";
-            }
+    document.getElementById("btn-logout").onclick = () => logout();
+    document.getElementById("btn-supermarkets").onclick = () => {
+      if (currentIngredients.length > 0) { supermarketModal.classList.remove("hidden"); document.body.style.overflow = "hidden"; }
+      else alert("Gera um plano primeiro para ver os supermercados!");
+    };
 
-            const btnGenerateAutoEl = document.getElementById("btn-generate-auto");
-            if (btnGenerateAutoEl) {
-              btnGenerateAutoEl.onclick = async () => {
-                try {
-                  btnGenerateAutoEl.disabled = true;
-                  btnGenerateAutoEl.textContent = "Gerando...";
-                  const created = await generateWeeklyPlan(user.uid);
-                  if (created) {
-                    const refreshed = await getPlanById(created.id);
-                    const grocery = (refreshed && refreshed.groceryList && refreshed.groceryList.length > 0) ? refreshed.groceryList : created.groceryList || [];
-                    if (grocery.length > 0) {
-                      currentGroceryList = grocery;
-                      currentIngredients = grocery.flatMap(cat => cat.items.map(item => item.name));
-                      renderGroceryList(grocery);
-                      document.getElementById("current-grocery-header").textContent = `${grocery.reduce((acc, cat) => acc + cat.items.length, 0)} ITENS - ESTIMATIVA ATIVA`;
-                      const cost = refreshed?.totalEstimatedCost || created.totalEstimatedCost;
-                      if (cost) {
-                        const costBadge = document.getElementById("cost-badge");
-                        if (costBadge) { costBadge.classList.remove("hidden"); document.getElementById("total-cost-display").textContent = cost; }
-                      }
-                      loadingState.classList.add("hidden");
-                      emptyState.classList.add("hidden");
-                    } else { alert("Nao foi possivel gerar um plano com itens."); }
-                  } else { alert("Nao foi possivel gerar um plano."); }
-                } catch (err) { console.error("Erro ao gerar plano:", err); alert("Erro ao gerar plano."); }
-                finally { btnGenerateAutoEl.disabled = false; btnGenerateAutoEl.textContent = "Gerar Plano"; }
-              };
-            }
-          } catch (err) { console.error("Erro ao carregar dados:", err); loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
-        } else { window.location.href = "index.html"; }
+    window.closeSupermarketModal = () => { supermarketModal.classList.add("hidden"); document.body.style.overflow = ""; };
+    supermarketModal.onclick = e => { if (e.target === supermarketModal) closeSupermarketModal(); };
+    window.openSupermarket = id => {
+      const link = generateSupermarketLink(id, currentIngredients);
+      if (link?.webLink) window.open(link.webLink, '_blank');
+    };
+
+    function updateProgress() {
+      if (totalItems === 0) return;
+      progressContainer.classList.remove("hidden");
+      const pct = Math.round((checkedItems / totalItems) * 100);
+      progressFill.style.width = `${pct}%`;
+      progressLabel.textContent = `${checkedItems} / ${totalItems}`;
+    }
+
+    const categoryIcon = {
+      // Firestore portuguese categories
+      'Frutas e Legumes':'🥦', 'Hortofrutícolas':'🥦', 'Hortifrutis':'🥦', 'Hortofruticolas':'🥦',
+      'Legumes e Frutas':'🥦', 'Verduras':'🥦', 'Vegetais':'🥦', 'Frutas':'🍎',
+      'Carnes e Peixes':'🥩', 'Carnes':'🥩', 'Carne':'🥩', 'Peixes':'🐟', 'Peixe':'🐟',
+      'Peixe e Marisco':'🐟', 'Carnes, Peixes e Ovos':'🥩',
+      'Lacticínios':'🥛', 'Lacticinios':'🥛', 'Laticínios':'🥛', 'Laticínios e Ovos':'🥛',
+      'Lacticínios e Ovos':'🥛', 'Ovos':'🥚', 'Queijos e Iogurtes':'🧀',
+      'Mercearia':'🛒', 'Despensa':'🫙', 'Mercearia Seca':'🛒', 'Enlatados':'🥫',
+      'Padaria':'🍞', 'Pão e Padaria':'🍞', 'Cereais e Pão':'🍞', 'Cereais':'🌾',
+      'Massas e Arroz':'🍝', 'Massa':'🍝', 'Arroz':'🍚',
+      'Condimentos':'🧂', 'Temperos':'🧂', 'Especiarias':'🌶️',
+      'Bebidas':'🥤', 'Óleos e Gorduras':'🫒', 'Azeite e Óleos':'🫒',
+      'Congelados':'🧊', 'Sobremesas':'🍮', 'Doces e Sobremesas':'🍮',
+      'Outros':'📦', 'Geral':'🛍️', 'Miscelânea':'📦',
+      // English fallbacks
+      'Produce':'🥦', 'Meat':'🥩', 'Fish':'🐟', 'Dairy':'🥛', 'Bakery':'🍞',
+      'Pantry':'🛒', 'Frozen':'🧊', 'Beverages':'🥤', 'Other':'📦',
+    };
+    const getCategoryIcon = (name) => {
+      if (!name) return '📦';
+      // Exact match
+      if (categoryIcon[name]) return categoryIcon[name];
+      // Case-insensitive fuzzy match
+      const lower = name.toLowerCase();
+      if (lower.includes('horto') || lower.includes('legum') || lower.includes('vegeta') || lower.includes('fruta')) return '🥦';
+      if (lower.includes('carne') || lower.includes('peixe') || lower.includes('ovo')) return '🥩';
+      if (lower.includes('lactic') || lower.includes('latici') || lower.includes('leite') || lower.includes('queijo')) return '🥛';
+      if (lower.includes('pão') || lower.includes('pao') || lower.includes('padari') || lower.includes('cereal')) return '🍞';
+      if (lower.includes('merceari') || lower.includes('despensa') || lower.includes('enlatad')) return '🛒';
+      if (lower.includes('bebida') || lower.includes('suco') || lower.includes('sumo')) return '🥤';
+      if (lower.includes('massa') || lower.includes('arroz')) return '🍝';
+      if (lower.includes('congelad')) return '🧊';
+      if (lower.includes('sobremesa') || lower.includes('doce')) return '🍮';
+      return '📦';
+    };
+
+    function renderGroceryList(categories) {
+      loadingState.classList.add("hidden");
+      emptyState.classList.add("hidden");
+      const prevSections = groceryContainer.querySelectorAll("section[data-category]");
+      prevSections.forEach(el => el.remove());
+      const wrapper = groceryContainer.querySelector("div");
+      if (!wrapper) return;
+
+      totalItems = categories.reduce((a, c) => a + c.items.length, 0);
+      checkedItems = 0;
+
+      categories.forEach((cat, idx) => {
+        const section = document.createElement("section");
+        section.setAttribute("data-category", idx);
+
+        const icon = getCategoryIcon(cat.category);
+        section.innerHTML = `
+          <div class="category-header">
+            <span class="text-lg">${icon}</span>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-muted">${cat.category}</span>
+          </div>
+          <div class="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-border-dark shadow-card overflow-hidden divide-y divide-slate-50 dark:divide-border-dark" id="cat-items-${idx}"></div>
+        `;
+        wrapper.appendChild(section);
+
+        const itemsContainer = section.querySelector(`#cat-items-${idx}`);
+        cat.items.forEach(item => {
+          const itemEl = document.createElement("div");
+          itemEl.className = "grocery-item";
+          itemEl.setAttribute("data-checked", item.checked ? "true" : "false");
+          if (item.checked) checkedItems++;
+          itemEl.innerHTML = `
+            <div class="grocery-checkbox">
+              <span class="material-symbols-outlined text-white text-base check-icon" style="font-variation-settings:'FILL' 1">check</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-sm item-name">${item.name}</p>
+              <div class="flex items-center gap-3 mt-0.5 flex-wrap">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-muted">${item.quantity || ''}</span>
+                ${item.bestPrice?.price ? `<span class="text-[10px] font-bold text-green-600">${item.bestPrice.price.toFixed(2)}€ (${item.bestPrice.store})</span>` : item.price ? `<span class="text-[10px] font-bold text-primary">${item.price}€</span>` : ''}
+              </div>
+            </div>`;
+          itemEl.onclick = () => {
+            const wasChecked = itemEl.getAttribute("data-checked") === "true";
+            itemEl.setAttribute("data-checked", wasChecked ? "false" : "true");
+            if (wasChecked) checkedItems--; else checkedItems++;
+            updateProgress();
+          };
+          itemsContainer.appendChild(itemEl);
+        });
       });
 
-      function renderGroceryList(categories) {
-        loadingState.classList.add("hidden");
-        emptyState.classList.add("hidden");
-        const previousSections = groceryContainer.querySelectorAll("section[data-category]");
-        previousSections.forEach((el) => el.remove());
-        const container = document.querySelector("#grocery-list-container > div");
-        if (!container) return;
+      updateProgress();
+    }
 
-        categories.forEach((cat, index) => {
-          const section = document.createElement("section");
-          section.setAttribute("data-category", index);
-          section.className = "space-y-2 px-2 sm:px-4";
-          const header = document.createElement("h3");
-          header.className = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 p-3";
-          header.textContent = cat.category;
-          section.appendChild(header);
+    onAuthStateChanged(auth, async user => {
+      if (!user) { window.location.href = "index.html"; return; }
+      try {
+        let plan = await getLastPlan(user.uid);
+        if (plan) {
+          let list = plan.groceryList || [];
+          if (list.length === 0) { list = await generateGroceryListFromPlan(plan.id); try { const u = await getPlanById(plan.id); if (u) plan = u; } catch(e) {} }
+          if (list?.length > 0) {
+            const itemCount = list.reduce((a, c) => a + c.items.length, 0);
+            document.getElementById("current-grocery-header").textContent = `${itemCount} ITENS · ESTIMATIVA ATIVA`;
+            currentGroceryList = list;
+            currentIngredients = list.flatMap(c => c.items.map(i => i.name));
+            if (plan.totalEstimatedCost) {
+              const cb = document.getElementById("cost-badge");
+              if (cb) { cb.classList.remove("hidden"); document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost; }
+            }
+            renderGroceryList(list);
+          } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS"; }
+        } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS"; }
 
-          const itemsDiv = document.createElement("div");
-          itemsDiv.className = "bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-lg overflow-hidden divide-y divide-slate-50 dark:divide-slate-800";
-
-          cat.items.forEach((item) => {
-            const itemEl = document.createElement("div");
-            itemEl.className = "flex items-center gap-3 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer group transition-all";
-            itemEl.setAttribute("data-checked", item.checked ? "true" : "false");
-
-            const checkbox = document.createElement("div");
-            checkbox.className = "size-6 rounded-lg border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-data-[checked=true]:border-primary group-data-[checked=true]:bg-primary/10 transition-colors shrink-0";
-            checkbox.innerHTML = '<span class="material-symbols-outlined text-primary text-lg scale-0 group-data-[checked=true]:scale-100 transition-transform">check</span>';
-
-            const content = document.createElement("div");
-            content.className = "flex-1 min-w-0";
-            let priceDisplay = '';
-            if (item.bestPrice && item.bestPrice.price) { priceDisplay = `<span class="text-[10px] font-bold text-green-600">${item.bestPrice.price.toFixed(2)}€ (${item.bestPrice.store})</span>`; }
-            else if (item.price) { priceDisplay = `<span class="text-[10px] font-bold text-primary">${item.price}€</span>`; }
-            
-            content.innerHTML = `
-              <p class="font-bold text-sm group-data-[checked=true]:text-slate-400 group-data-[checked=true]:line-through transition-all">${item.name}</p>
-              <div class="flex items-center gap-2 mt-1 flex-wrap">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">${item.quantity}</span>
-                ${priceDisplay}
-                ${item.calories ? `<span class="text-[9px] text-slate-400">${item.calories} kcal</span>` : ''}
-              </div>`;
-
-            itemEl.appendChild(checkbox);
-            itemEl.appendChild(content);
-            itemEl.onclick = () => { itemEl.setAttribute("data-checked", itemEl.getAttribute("data-checked") === "true" ? "false" : "true"); };
-            itemsDiv.appendChild(itemEl);
-          });
-
-          section.appendChild(itemsDiv);
-          container.appendChild(section);
-        });
-      }
-    </script>
-  </body>
-  <script>
-    fetch('bottom-nav.html').then(res => res.text()).then(html => {
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      document.body.appendChild(temp.firstElementChild);
-      const script = document.createElement('script');
-      script.src = 'active-screen.js';
-      document.body.appendChild(script);
+        const autoBtnEl = document.getElementById("btn-generate-auto");
+        if (autoBtnEl) autoBtnEl.onclick = async () => {
+          try {
+            autoBtnEl.disabled = true; autoBtnEl.textContent = "A gerar...";
+            const created = await generateWeeklyPlan(user.uid);
+            if (created) {
+              const refreshed = await getPlanById(created.id);
+              const grocery = (refreshed?.groceryList?.length > 0) ? refreshed.groceryList : created.groceryList || [];
+              if (grocery.length > 0) {
+                currentGroceryList = grocery;
+                currentIngredients = grocery.flatMap(c => c.items.map(i => i.name));
+                renderGroceryList(grocery);
+                document.getElementById("current-grocery-header").textContent = `${grocery.reduce((a,c)=>a+c.items.length,0)} ITENS · ESTIMATIVA ATIVA`;
+                const cost = refreshed?.totalEstimatedCost || created.totalEstimatedCost;
+                if (cost) { const cb = document.getElementById("cost-badge"); if (cb) { cb.classList.remove("hidden"); document.getElementById("total-cost-display").textContent = cost; } }
+                loadingState.classList.add("hidden"); emptyState.classList.add("hidden");
+              }
+            }
+          } catch(err) { console.error(err); alert("Erro ao gerar plano."); }
+          finally { autoBtnEl.disabled = false; autoBtnEl.textContent = "Gerar Plano"; }
+        };
+      } catch(err) { console.error(err); loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
     });
   </script>
+
+  <script>
+    fetch('bottom-nav.html').then(r => r.text()).then(html => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+  </script>
+</body>
 </html>

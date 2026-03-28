@@ -1,114 +1,254 @@
 <!doctype html>
-<html class="light" lang="pt">
+<html lang="pt">
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>NannyMeal - Perfil</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NannyMeals — Perfil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="src/tailwind-config.js"></script>
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="manifest" href="manifest.json">
-  <script>
-    if (localStorage.getItem("app_version") !== "v27") {
-      localStorage.setItem("app_version", "v27");
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body { min-height: 100dvh; }
+    .profile-section {
+      background: white;
+      border-radius: 20px;
+      border: 1.5px solid #e4ede7;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     }
+    html.dark .profile-section { background: #111a14; border-color: #1e2d22; }
+    .profile-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f4f1;
+    }
+    html.dark .profile-row { border-bottom-color: #1e2d22; }
+    .profile-row:last-child { border-bottom: none; }
+    .stat-mini {
+      flex: 1; text-align: center; padding: 12px 8px;
+      border-right: 1px solid #f0f4f1;
+    }
+    html.dark .stat-mini { border-right-color: #1e2d22; }
+    .stat-mini:last-child { border-right: none; }
+    .theme-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+    }
+    .toggle-switch {
+      width: 46px; height: 26px; border-radius: 99px;
+      background: #e4ede7;
+      position: relative; cursor: pointer;
+      transition: background 200ms ease;
+      flex-shrink: 0;
+    }
+    html.dark .toggle-switch { background: #13ec5b; }
+    .toggle-knob {
+      position: absolute; top: 3px; left: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1);
+    }
+    html.dark .toggle-knob { transform: translateX(20px); }
+  </style>
+  <script>
+    (function() {
+      const saved = localStorage.getItem('nm_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
+    })();
   </script>
-  <style>body{min-height:100dvh}</style>
 </head>
+
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-  <div class="app-container glass-effect">
-    <header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10">
-      <div class="flex items-center justify-between mb-2">
-        <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Perfil</h1>
-        <button id="btn-help" title="Como usar" class="p-2 -mr-2 rounded-full hover:bg-primary/10 text-primary min-h-10 min-w-10 flex items-center justify-center">
-          <span class="material-symbols-outlined">help</span>
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-100 dark:border-border-dark px-4 lg:px-6 pt-5 pb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted">CONTA & DEFINIÇÕES</p>
+          <h1 class="text-xl font-black tracking-tight mt-0.5">Perfil</h1>
+        </div>
+        <button id="btn-help" class="size-10 rounded-full hover:bg-primary/10 text-primary flex items-center justify-center transition-colors">
+          <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">help</span>
         </button>
       </div>
-      <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">CONFIGURACOES</p>
     </header>
-    <main class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-6 pb-40">
+
+    <!-- Main -->
+    <main class="flex-1 overflow-y-auto px-4 lg:px-6 py-5 pb-safe space-y-4">
+
+      <!-- Loading -->
       <div id="loading-state" class="flex flex-col items-center justify-center py-20">
-        <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-          <span class="material-symbols-outlined text-4xl text-primary">person</span>
+        <div class="size-16 rounded-full bg-primary/15 flex items-center justify-center animate-pulse-slow">
+          <span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings:'FILL' 1">person</span>
         </div>
-        <p class="font-bold mt-4 text-slate-400">A carregar...</p>
+        <p class="font-bold mt-4 text-muted">A carregar...</p>
       </div>
-      <div id="profile-content" class="hidden space-y-6">
-        <section class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800">
-          <div class="flex items-center gap-2 sm:gap-3 mb-4">
-            <div class="bg-primary/10 p-2 rounded-xl"><span class="material-symbols-outlined text-primary">family_restroom</span></div>
-            <h3 class="text-base font-extrabold">Familia</h3>
-            <button id="btn-edit-profile" class="ml-auto text-primary text-sm font-bold">Editar</button>
+
+      <!-- Profile content -->
+      <div id="profile-content" class="hidden space-y-4 animate-fade-up">
+
+        <!-- Avatar + User info -->
+        <div class="flex items-center gap-4 p-4 bg-gradient-card rounded-2xl border border-primary/20">
+          <div id="user-avatar" class="size-14 rounded-2xl bg-primary flex items-center justify-center text-slate-900 text-2xl font-black shrink-0">?</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-black text-base" id="user-email">—</p>
+            <p class="text-xs text-muted mt-0.5">Membro NannyMeals</p>
           </div>
-          <div class="flex justify-between py-2 border-b border-slate-100"><span>Adultos</span><span id="adults-count" class="font-black text-primary">--</span></div>
-          <div class="flex justify-between py-2 border-b border-slate-100"><span>Criancas</span><span id="children-count" class="font-black text-primary">--</span></div>
-          <div class="flex justify-between py-2 border-b border-slate-100"><span>Estilo</span><span id="diet-style" class="text-primary font-bold">--</span></div>
-          <div class="flex justify-between py-2 border-b border-slate-100"><span>Orcamento</span><span id="budget-level" class="text-slate-500">--</span></div>
-          <div class="flex justify-between py-2"><span>Dias/semana</span><span id="cooking-days" class="font-black text-primary">--</span></div>
-        </section>
-        <section class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border">
-          <h3 class="font-extrabold mb-3">Alergias</h3>
-          <div id="allergies-list" class="flex flex-wrap gap-2 text-sm">Sem alergias</div>
-        </section>
-        <section class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border">
-          <div class="flex justify-between mb-3">
-            <h3 class="font-extrabold">Planos Ativos</h3>
-            <span id="plans-count" class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">0</span>
+          <button id="btn-edit-profile" class="size-9 rounded-xl bg-primary/15 text-primary hover:bg-primary/25 flex items-center justify-center transition-all" title="Editar perfil">
+            <span class="material-symbols-outlined text-base">edit</span>
+          </button>
+        </div>
+
+        <!-- Família -->
+        <div class="profile-section animate-fade-up delay-75">
+          <div class="flex items-center gap-3 p-4 border-b border-slate-50 dark:border-border-dark">
+            <div class="size-8 rounded-xl bg-primary/15 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">family_restroom</span>
+            </div>
+            <h3 class="font-black">Família</h3>
           </div>
-          <div id="active-plans-list" class="space-y-2"></div>
-        </section> REPLACE
-        <section class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border">
-          <h3 class="font-extrabold mb-3">Estatisticas</h3>
-          <div class="grid grid-cols-3 gap-2 text-center">
-            <div class="bg-green-50 p-2 rounded-xl"><p id="stat-meals-cooked" class="text-xl font-black text-green-600">--</p><p class="text-[10px]">Refeicoes</p></div>
-            <div class="bg-blue-50 p-2 rounded-xl"><p id="stat-success-rate" class="text-xl font-black text-blue-600">--%</p><p class="text-[10px]">Sucesso</p></div>
-            <div class="bg-orange-50 p-2 rounded-xl"><p id="stat-avg-waste" class="text-xl font-black text-orange-500">--%</p><p class="text-[10px]">Desperdicio</p></div>
-        </section>
-        <section class="flex justify-center">
-          <button id="btn-logout-bottom" class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl text-center w-full max-w-xs"><span class="material-symbols-outlined text-2xl">logout</span><p class="text-xs font-bold mt-1">Sair</p></button>
-        </section>
+          <div class="profile-row"><span class="text-sm text-muted">Adultos</span><span id="adults-count" class="font-black text-primary">--</span></div>
+          <div class="profile-row"><span class="text-sm text-muted">Crianças</span><span id="children-count" class="font-black text-primary">--</span></div>
+          <div class="profile-row"><span class="text-sm text-muted">Estilo alimentar</span><span id="diet-style" class="text-xs font-black bg-primary/15 text-primary px-2 py-1 rounded-full">--</span></div>
+          <div class="profile-row"><span class="text-sm text-muted">Orçamento</span><span id="budget-level" class="font-bold text-sm">--</span></div>
+          <div class="profile-row"><span class="text-sm text-muted">Dias de cozinha / semana</span><span id="cooking-days" class="font-black text-primary">--</span></div>
+        </div>
+
+        <!-- Alergias -->
+        <div class="profile-section animate-fade-up delay-150">
+          <div class="flex items-center gap-3 p-4 border-b border-slate-50 dark:border-border-dark">
+            <div class="size-8 rounded-xl bg-red-500/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-red-500 text-base" style="font-variation-settings:'FILL' 1">warning</span>
+            </div>
+            <h3 class="font-black">Alergias</h3>
+          </div>
+          <div class="p-4">
+            <div id="allergies-list" class="flex flex-wrap gap-2 text-sm">
+              <span class="text-muted text-sm">Sem alergias registadas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="profile-section animate-fade-up delay-225">
+          <div class="flex items-center gap-3 p-4 border-b border-slate-50 dark:border-border-dark">
+            <div class="size-8 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-blue-500 text-base" style="font-variation-settings:'FILL' 1">monitoring</span>
+            </div>
+            <h3 class="font-black">Estatísticas</h3>
+          </div>
+          <div class="flex">
+            <div class="stat-mini">
+              <p class="text-xl font-black text-primary" id="stat-meals-cooked">--</p>
+              <p class="text-[9px] font-black text-muted uppercase tracking-widest mt-0.5">Refeições</p>
+            </div>
+            <div class="stat-mini">
+              <p class="text-xl font-black text-blue-500" id="stat-success-rate">--%</p>
+              <p class="text-[9px] font-black text-muted uppercase tracking-widest mt-0.5">Sucesso</p>
+            </div>
+            <div class="stat-mini">
+              <p class="text-xl font-black text-orange-500" id="plans-count">0</p>
+              <p class="text-[9px] font-black text-muted uppercase tracking-widest mt-0.5">Planos</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Planos ativos -->
+        <div class="profile-section animate-fade-up delay-300">
+          <div class="flex items-center gap-3 p-4 border-b border-slate-50 dark:border-border-dark">
+            <div class="size-8 rounded-xl bg-orange-500/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-orange-500 text-base" style="font-variation-settings:'FILL' 1">calendar_today</span>
+            </div>
+            <h3 class="font-black">Planos Ativos</h3>
+          </div>
+          <div id="active-plans-list" class="p-4 space-y-2">
+            <p class="text-muted text-sm">Sem planos ativos</p>
+          </div>
+        </div>
+
+        <!-- Aparência -->
+        <div class="profile-section animate-fade-up delay-400">
+          <div class="flex items-center gap-3 p-4 border-b border-slate-50 dark:border-border-dark">
+            <div class="size-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-purple-500 text-base" style="font-variation-settings:'FILL' 1">palette</span>
+            </div>
+            <h3 class="font-black">Aparência</h3>
+          </div>
+          <div class="theme-row">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-slate-400 text-xl" style="font-variation-settings:'FILL' 1">dark_mode</span>
+              <div>
+                <p class="font-bold text-sm">Modo Escuro</p>
+                <p class="text-[10px] text-muted">Altera a aparência da app</p>
+              </div>
+            </div>
+            <button id="theme-toggle" onclick="toggleTheme()" class="toggle-switch" aria-label="Alternar tema">
+              <div class="toggle-knob"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sair -->
+        <div class="animate-fade-up delay-400">
+          <button id="btn-logout-bottom" class="w-full flex items-center justify-center gap-3 bg-red-50 dark:bg-red-900/20 text-red-500 font-black py-4 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-all border border-red-200 dark:border-red-800/40">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">logout</span>
+            Terminar Sessão
+          </button>
+        </div>
+
       </div>
     </main>
   </div>
 
   <!-- Help Modal -->
-  <div id="help-modal" class="hidden fixed inset-0 z-50 bg-black/50">
-    <div class="fixed inset-0 flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full max-h-[80vh] overflow-y-auto">
-        <div class="text-center mb-4">
-          <div class="size-14 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2"><span class="material-symbols-outlined text-2xl text-primary">help</span></div>
-          <h3 class="text-xl font-extrabold">Como Usar</h3>
+  <div id="help-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-5">
+    <div class="w-full max-w-sm bg-white dark:bg-surface-dark rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in">
+      <div class="text-center mb-5">
+        <div class="size-14 bg-primary/15 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <span class="material-symbols-outlined text-2xl text-primary" style="font-variation-settings:'FILL' 1">help</span>
         </div>
-        <div class="space-y-3 text-sm">
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">calendar_today</span><div><p class="font-bold">1. Cria Plano</p><p class="text-xs text-slate-500">Gera um plano semanal.</p></div></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">shopping_basket</span><div><p class="font-bold">2. Lista Compras</p><p class="text-xs text-slate-500">Ingredientes por categoria.</p></div></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">store</span><div><p class="font-bold">3. Supermercados</p><p class="text-xs text-slate-500">Exporta para Continente, Pingo Doce, etc.</p></div></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">swap_horiz</span><div><p class="font-bold">4. Trocar</p><p class="text-xs text-slate-500">Muda receitas que nao queres.</p></div></div>
-          <div class="flex gap-2"><span class="material-symbols-outlined text-primary">thumb_up</span><div><p class="font-bold">5. Feedback</p><p class="text-xs text-slate-500">Diz se as criancas gostaram.</p></div></div>
+        <h3 class="text-xl font-black">Como Usar</h3>
+      </div>
+      <div class="space-y-4 text-sm">
+        <div class="flex gap-3"><div class="size-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">calendar_today</span></div><div><p class="font-bold">1. Cria um Plano</p><p class="text-muted text-xs mt-0.5">Gera um plano semanal automático.</p></div></div>
+        <div class="flex gap-3"><div class="size-8 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-blue-500 text-base" style="font-variation-settings:'FILL' 1">shopping_basket</span></div><div><p class="font-bold">2. Lista de Compras</p><p class="text-muted text-xs mt-0.5">Ingredientes organizados por categoria.</p></div></div>
+        <div class="flex gap-3"><div class="size-8 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-green-600 text-base" style="font-variation-settings:'FILL' 1">store</span></div><div><p class="font-bold">3. Supermercados</p><p class="text-muted text-xs mt-0.5">Exporta para Continente, Pingo Doce, etc.</p></div></div>
+        <div class="flex gap-3"><div class="size-8 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-orange-500 text-base" style="font-variation-settings:'FILL' 1">swap_horiz</span></div><div><p class="font-bold">4. Trocar Refeições</p><p class="text-muted text-xs mt-0.5">Altera as receitas que não pretendes cozinhar.</p></div></div>
+      </div>
+      <button id="btn-close-help" class="w-full mt-6 bg-primary text-slate-900 font-black py-3.5 rounded-2xl hover:bg-primary-dark transition-all shadow-glow">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Delete Plan Modal -->
+  <div id="delete-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-5">
+    <div class="w-full max-w-sm bg-white dark:bg-surface-dark rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in">
+      <div class="text-center">
+        <div class="size-14 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <span class="material-symbols-outlined text-red-500 text-3xl" style="font-variation-settings:'FILL' 1">delete</span>
         </div>
-        <button id="btn-close-help" class="w-full mt-4 bg-primary text-slate-900 font-bold py-3 rounded-2xl">Entendido</button>
+        <h3 class="text-xl font-black mb-2">Eliminar Plano?</h3>
+        <p class="text-muted text-sm mb-6">Esta ação é irreversível.</p>
+        <div class="flex gap-3">
+          <button id="btn-cancel-delete" class="flex-1 bg-slate-100 dark:bg-slate-800 font-bold py-3 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Cancelar</button>
+          <button id="btn-confirm-delete" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl hover:bg-red-600 transition-all shadow-lg shadow-red-500/30">Eliminar</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Delete Modal -->
-  <div id="delete-modal" class="hidden fixed inset-0 z-50 bg-black/50">
-    <div class="fixed inset-0 flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full">
-        <div class="text-center">
-          <div class="size-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2"><span class="material-symbols-outlined text-2xl text-red-500">delete</span></div>
-          <h3 class="text-xl font-extrabold mb-2">Eliminar Plano?</h3>
-          <p class="text-slate-500 text-sm mb-4">Esta acao e irreversivel.</p>
-          <div class="flex gap-2">
-            <button id="btn-cancel-delete" class="flex-1 bg-slate-100 font-bold py-3 rounded-2xl">Cancelar</button>
-            <button id="btn-confirm-delete" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl">Eliminar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script>
+    window.toggleTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', !isDark);
+      localStorage.setItem('nm_theme', isDark ? 'light' : 'dark');
+    };
+  </script>
 
   <script type="module">
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -117,8 +257,9 @@
     import { logout } from "./src/auth.js";
 
     let currentUser = null, householdData = null, planToDelete = null;
-    const loadingState = document.getElementById("loading-state");
-    const profileContent = document.getElementById("profile-content");
+
+    const loading = document.getElementById("loading-state");
+    const content = document.getElementById("profile-content");
     const deleteModal = document.getElementById("delete-modal");
     const helpModal = document.getElementById("help-modal");
 
@@ -126,111 +267,100 @@
     document.getElementById("btn-edit-profile").onclick = () => window.location.href = "onboarding.html";
     document.getElementById("btn-help").onclick = () => helpModal.classList.remove("hidden");
     document.getElementById("btn-close-help").onclick = () => helpModal.classList.add("hidden");
-    helpModal.onclick = (e) => { if(e.target === helpModal) helpModal.classList.add("hidden"); };
+    helpModal.onclick = e => { if (e.target === helpModal) helpModal.classList.add("hidden"); };
     document.getElementById("btn-cancel-delete").onclick = () => { deleteModal.classList.add("hidden"); planToDelete = null; };
     document.getElementById("btn-confirm-delete").onclick = async () => {
-      console.log("btn-confirm-delete: Clique detectado, planToDelete:", planToDelete);
-      if(planToDelete) {
-        try {
-          console.log("btn-confirm-delete: A chamar deletePlan para:", planToDelete);
-          document.getElementById("btn-confirm-delete").disabled = true;
-          document.getElementById("btn-confirm-delete").textContent = "A eliminar...";
-          const result = await deletePlan(planToDelete);
-          console.log("btn-confirm-delete: Resultado de deletePlan:", result);
-          if (result) {
-            deleteModal.classList.add("hidden");
-            planToDelete = null;
-            await loadPlans();
-            alert("Plano eliminado com sucesso!");
-          } else {
-            alert("Erro ao eliminar plano. Tenta novamente.");
-          }
-        } catch (error) {
-          console.error("btn-confirm-delete: Erro ao eliminar plano:", error);
-          alert("Erro ao eliminar plano: " + error.message);
-        } finally {
-          document.getElementById("btn-confirm-delete").disabled = false;
-          document.getElementById("btn-confirm-delete").textContent = "Eliminar";
-        }
-      } else {
-        console.log("btn-confirm-delete: planToDelete é null ou undefined!");
-      }
+      if (!planToDelete) return;
+      const btn = document.getElementById("btn-confirm-delete");
+      try {
+        btn.disabled = true; btn.textContent = "A eliminar...";
+        const result = await deletePlan(planToDelete);
+        if (result) { deleteModal.classList.add("hidden"); planToDelete = null; await loadPlans(); }
+        else alert("Erro ao eliminar plano.");
+      } catch(e) { console.error(e); alert("Erro: " + e.message); }
+      finally { btn.disabled = false; btn.textContent = "Eliminar"; }
     };
-    // Event delegation for delete buttons - FORCE SHOW
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('.btn-del')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const btn = e.target.closest('.btn-del');
-        const planId = btn.getAttribute('data-id');
-        console.log('Delegation: Delete click, planId:', planId);
-        planToDelete = planId;
-        console.log('Modal element:', deleteModal);
-        if (deleteModal) {
-          deleteModal.classList.remove('hidden');
-          deleteModal.style.display = 'flex'; // Force show
-          deleteModal.style.zIndex = '10000';
-          console.log('FORCE display:flex, z-index:10000, style:', window.getComputedStyle(deleteModal).display, deleteModal.classList, 'computed z-index:', window.getComputedStyle(deleteModal).zIndex);
-        } else {
-          console.error('deleteModal not found!');
-        }
+    deleteModal.onclick = e => { if (e.target === deleteModal) { deleteModal.classList.add("hidden"); planToDelete = null; } };
+
+    // Event delegation for plan delete buttons
+    document.addEventListener('click', e => {
+      if (e.target.closest('.btn-del-plan')) {
+        e.preventDefault(); e.stopPropagation();
+        const btn = e.target.closest('.btn-del-plan');
+        planToDelete = btn.getAttribute('data-id');
+        deleteModal.classList.remove('hidden');
       }
     }, true);
-    
-    deleteModal.onclick = (e) => { if(e.target === deleteModal){ deleteModal.classList.add("hidden"); planToDelete = null; }};
 
-    const loadHousehold = async (userId) => {
-      householdData = await getHousehold(userId);
-      if(!householdData) return;
+    const loadHousehold = async uid => {
+      householdData = await getHousehold(uid);
+      if (!householdData) return;
+      // User avatar (initial)
+      const emailEl = document.getElementById("user-email");
+      const avatarEl = document.getElementById("user-avatar");
+      if (currentUser?.email) {
+        emailEl.textContent = currentUser.email;
+        avatarEl.textContent = currentUser.email[0].toUpperCase();
+      }
       document.getElementById("adults-count").textContent = householdData.adults || 2;
       document.getElementById("children-count").textContent = householdData.children?.length || 0;
-      document.getElementById("diet-style").textContent = householdData.dietStyle || "Sem restricoes";
-      document.getElementById("budget-level").textContent = {low:"Baixo",medium:"Medio",high:"Elevado"}[householdData.budgetLevel] || "Medio";
+      document.getElementById("diet-style").textContent = householdData.dietStyle || "Sem restrições";
+      document.getElementById("budget-level").textContent = {low:"Baixo",medium:"Médio",high:"Elevado"}[householdData.budgetLevel] || "Médio";
       document.getElementById("cooking-days").textContent = householdData.cookingDaysPerWeek || 5;
       const allergies = householdData.allergies || [];
-      document.getElementById("allergies-list").innerHTML = allergies.length ? allergies.map(a=>`<span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">${a}</span>`).join("") : "Sem alergias";
+      document.getElementById("allergies-list").innerHTML = allergies.length
+        ? allergies.map(a => `<span class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/40 px-2.5 py-1 rounded-full text-xs font-bold">${a}</span>`).join('')
+        : '<span class="text-muted text-sm">Sem alergias registadas</span>';
     };
 
     const loadPlans = async () => {
-      if(!currentUser) return;
-      console.log("loadPlans: A carregar planos para utilizador:", currentUser.uid);
+      if (!currentUser) return;
       const allPlans = await getAllPlans(currentUser.uid);
-      console.log("loadPlans: Planos obtidos:", allPlans);
       const active = allPlans.filter(p => p.status === "active");
-      console.log("loadPlans: Planos ativos:", active);
       document.getElementById("plans-count").textContent = active.length;
       const list = document.getElementById("active-plans-list");
-      if(active.length === 0){ list.innerHTML = "<p class='text-slate-400 text-sm text-center py-2'>Sem planos</p>"; return; }
-      list.innerHTML = active.map(p => `<div class="flex justify-between p-3 bg-slate-50 rounded-xl"><div><p class="font-bold text-sm">${p.name||"Plano"}</p><p class="text-xs text-slate-400">${p.meals?.length||0} refeicoes</p></div><div class="flex gap-1"><button data-id="${p.id}" class="btn-del p-2 rounded-full bg-red-100 text-red-500"><span class="material-symbols-outlined text-lg">delete</span></button></div>`).join("");
-      console.log("loadPlans: Botões criados via delegation");
+      if (active.length === 0) { list.innerHTML = '<p class="text-muted text-sm">Sem planos ativos</p>'; return; }
+      list.innerHTML = active.map(p => `
+        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+          <div>
+            <p class="font-bold text-sm">${p.name || 'Plano'}</p>
+            <p class="text-[10px] text-muted">${p.meals?.length || 0} refeições</p>
+          </div>
+          <button data-id="${p.id}" class="btn-del-plan size-8 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/40 transition-all">
+            <span class="material-symbols-outlined text-base">delete</span>
+          </button>
+        </div>`).join('');
     };
 
-    const loadFeedbackStats = async () => {
-      if(!currentUser || !householdData) return;
-      try{
-        const{db}=await import("./src/firebase-init.js"); const{collection,getDocs,query,where}=await import("https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js");
-        const snap = await getDocs(query(collection(db,"feedback"),where("householdId","==",householdData.id)));
-        const list = snap.docs.map(d=>d.data());
+    const loadStats = async () => {
+      if (!currentUser || !householdData) return;
+      try {
+        const { db } = await import("./src/firebase-init.js");
+        const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js");
+        const snap = await getDocs(query(collection(db, "feedback"), where("householdId", "==", householdData.id)));
+        const list = snap.docs.map(d => d.data());
         document.getElementById("stat-meals-cooked").textContent = list.length;
-        const liked = list.filter(f=>f.kidsLiked).length;
-        document.getElementById("stat-success-rate").textContent = list.length ? Math.round(liked/list.length*100)+"%" : "0%";
-      }catch(e){ console.error(e); }
+        const liked = list.filter(f => f.kidsLiked).length;
+        document.getElementById("stat-success-rate").textContent = list.length ? Math.round(liked / list.length * 100) + "%" : "0%";
+      } catch(e) { console.error(e); }
     };
 
-    onAuthStateChanged(auth, async (user) => {
-      if(user){
-        currentUser = user;
-        await loadHousehold(user.uid);
-        await loadPlans();
-        await loadFeedbackStats();
-        loadingState.classList.add("hidden");
-        profileContent.classList.remove("hidden");
-      }else{window.location.href="index.html";}
+    onAuthStateChanged(auth, async user => {
+      if (!user) { window.location.href = "index.html"; return; }
+      currentUser = user;
+      await loadHousehold(user.uid);
+      await loadPlans();
+      await loadStats();
+      loading.classList.add("hidden");
+      content.classList.remove("hidden");
     });
-    console.log("Perfil V27");
+    console.log("Perfil [v28]");
+  </script>
+
+  <script>
+    fetch("bottom-nav.html").then(r => r.text()).then(html => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
   </script>
 </body>
-<script>
-  fetch("bottom-nav.html").then(r=>r.text()).then(h=>{document.body.insertAdjacentHTML("beforeend",h);});
-</script>
 </html>

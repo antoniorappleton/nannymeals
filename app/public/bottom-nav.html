@@ -1,29 +1,132 @@
-<!-- Bottom Navigation Bar -->
-<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
-  <nav class="flex justify-around items-center bg-white dark:bg-slate-900 px-2 sm:px-4 pb-6 sm:pb-8 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-    <a class="nav-item flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="dashboard.html">
-      <span class="material-symbols-outlined text-lg sm:text-xl">monitoring</span>
-      <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Home</span>
+<!-- NannyMeals Navigation — Mobile bottom bar + Desktop sidebar -->
+
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║  DESKTOP SIDEBAR (hidden on mobile)   ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
+<aside class="nm-sidebar">
+  <!-- Logo -->
+  <a href="dashboard.html" class="flex items-center gap-3 px-2 mb-8 no-underline">
+    <div class="size-9 bg-primary rounded-2xl flex items-center justify-center shadow-glow shrink-0">
+      <span class="material-symbols-outlined text-slate-900 text-lg" style="font-variation-settings:'FILL' 1">restaurant</span>
+    </div>
+    <span class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Nanny<span class="text-primary">Meals</span></span>
+  </a>
+
+  <!-- Nav Items -->
+  <nav class="flex-1 space-y-1">
+    <a href="dashboard.html" class="sidebar-nav-item nav-item group flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-primary/10 transition-all" data-page="dashboard.html">
+      <span class="material-symbols-outlined text-xl transition-all" style="font-variation-settings:'FILL' 0">monitoring</span>
+      <span>Home</span>
     </a>
-    <a class="nav-item flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="plan.html">
-      <span class="material-symbols-outlined font-bold text-lg sm:text-xl">calendar_today</span>
-      <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Plano</span>
+    <a href="plan.html" class="sidebar-nav-item nav-item group flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-primary/10 transition-all" data-page="plan.html">
+      <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 0">calendar_today</span>
+      <span>Plano Semanal</span>
     </a>
-    <a class="nav-item flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="grocery.html">
-      <span class="material-symbols-outlined text-lg sm:text-xl">shopping_basket</span>
-      <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Lista</span>
+    <a href="grocery.html" class="sidebar-nav-item nav-item group flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-primary/10 transition-all" data-page="grocery.html">
+      <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 0">shopping_basket</span>
+      <span>Lista de Compras</span>
     </a>
-    <a class="nav-item flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="recipes-catalog.html">
-      <span class="material-symbols-outlined text-lg sm:text-xl">restaurant</span>
-      <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Receitas</span>
+    <a href="recipes-catalog.html" class="sidebar-nav-item nav-item group flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-primary/10 transition-all" data-page="recipes-catalog.html">
+      <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 0">restaurant</span>
+      <span>Receitas</span>
     </a>
-    <a class="nav-item flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="my-recipes.html">
-      <span class="material-symbols-outlined text-lg sm:text-xl">book</span>
-      <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Minhas</span>
+    <a href="my-recipes.html" class="sidebar-nav-item nav-item group flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-primary/10 transition-all" data-page="my-recipes.html">
+      <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 0">book</span>
+      <span>Minhas Receitas</span>
     </a>
-    <a class="nav-item flex flex-col items-center justify-center gap-1 text-slate-400 group hover:text-primary transition-all min-h-16 flex-1 touch-target" href="perfil.html">
-      <span class="material-symbols-outlined text-lg sm:text-xl">person</span>
-      <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Perfil</span>
+    <a href="perfil.html" class="sidebar-nav-item nav-item group flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-primary/10 transition-all" data-page="perfil.html">
+      <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 0">person</span>
+      <span>Perfil</span>
+    </a>
+  </nav>
+
+  <!-- Dark Mode Toggle -->
+  <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
+    <button id="sidebar-theme-toggle" class="w-full flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-xl theme-icon-light">dark_mode</span>
+      <span class="theme-icon-light">Modo Escuro</span>
+      <span class="material-symbols-outlined text-xl theme-icon-dark hidden">light_mode</span>
+      <span class="theme-icon-dark hidden">Modo Claro</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║   MOBILE BOTTOM NAV (hidden desktop)  ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
+<div class="nm-bottom-nav">
+  <nav class="flex justify-around items-stretch w-full px-1 pt-2 pb-1">
+    <a href="dashboard.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="dashboard.html">
+      <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">monitoring</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Home</span>
+    </a>
+    <a href="plan.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="plan.html">
+      <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">calendar_today</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Plano</span>
+    </a>
+    <a href="grocery.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="grocery.html">
+      <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">shopping_basket</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Lista</span>
+    </a>
+    <a href="recipes-catalog.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="recipes-catalog.html">
+      <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">restaurant</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Receitas</span>
+    </a>
+    <a href="my-recipes.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="my-recipes.html">
+      <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">book</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Minhas</span>
+    </a>
+    <a href="perfil.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="perfil.html">
+      <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">person</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
     </a>
   </nav>
 </div>
+
+<script>
+(function() {
+  // ── Active state highlighting ─────────────────
+  const path = window.location.pathname.split('/').pop() || 'dashboard.html';
+  const allNavItems = document.querySelectorAll('.nav-item[data-page]');
+  allNavItems.forEach(link => {
+    const isActive = link.getAttribute('data-page') === path;
+    if (isActive) {
+      link.classList.add('text-primary');
+      link.classList.remove('text-slate-400', 'dark:text-slate-500');
+      // Filled icon for active
+      const icon = link.querySelector('.material-symbols-outlined');
+      if (icon) icon.style.fontVariationSettings = "'FILL' 1";
+    }
+  });
+  const allSidebarItems = document.querySelectorAll('.sidebar-nav-item[data-page]');
+  allSidebarItems.forEach(link => {
+    const isActive = link.getAttribute('data-page') === path;
+    if (isActive) {
+      link.classList.add('text-primary', 'bg-primary/10', 'dark:bg-primary/10');
+      link.classList.remove('text-slate-500', 'dark:text-slate-400');
+      const icon = link.querySelector('.material-symbols-outlined');
+      if (icon) icon.style.fontVariationSettings = "'FILL' 1";
+    }
+  });
+
+  // ── Dark Mode ─────────────────────────────────
+  function applyTheme(dark) {
+    document.documentElement.classList.toggle('dark', dark);
+    document.querySelectorAll('.theme-icon-light').forEach(el => el.classList.toggle('hidden', dark));
+    document.querySelectorAll('.theme-icon-dark').forEach(el => el.classList.toggle('hidden', !dark));
+  }
+
+  const saved = localStorage.getItem('nm_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved === 'dark' || (!saved && prefersDark));
+
+  const themeBtn = document.getElementById('sidebar-theme-toggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('nm_theme', isDark ? 'light' : 'dark');
+      applyTheme(!isDark);
+    });
+  }
+})();
+</script>

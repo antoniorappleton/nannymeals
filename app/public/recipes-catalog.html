@@ -1,400 +1,453 @@
 <!doctype html>
-<html class="light" lang="pt">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>NannyMeal - Catálogo de Receitas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script src="src/tailwind-config.js"></script>
-    <link rel="stylesheet" href="css/global.css" />
-    <link rel="manifest" href="manifest.json" />
-    <script>
-      if (localStorage.getItem("app_version") !== "v24") {
-        localStorage.setItem("app_version", "v24");
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.getRegistrations().then((regs) => {});
-        }
-        if ("caches" in window) {
-          caches.keys().then((names) => {
-            for (let name of names) caches.delete(name);
-            setTimeout(() => window.location.reload(true), 500);
-          });
-        }
-      }
-    </script>
-  </head>
-  <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-    <!-- App Container -->
-    <div class="app-container glass-effect">
-      <header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-primary/10">
-        <div class="flex items-center justify-between mb-3">
-          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Catálogo de Receitas</h1>
-          <div class="flex gap-1">
-            <a
-              href="add-recipe.html"
-              class="p-2 rounded-full bg-primary text-slate-900 hover:scale-105 transition-colors min-h-10 min-w-10 flex items-center justify-center shadow-lg"
-              title="Nova Receita"
-            >
-              <span class="material-symbols-outlined font-bold">add</span>
-            </a>
-            <button id="btn-logout" class="p-2 -mr-2 rounded-full hover:bg-primary/10 transition-colors text-slate-400 min-h-10 min-w-10 flex items-center justify-center">
-              <span class="material-symbols-outlined">logout</span>
-            </button>
-          </div>
-        </div>
-        <div class="space-y-3">
-          <input type="text" id="search-input" placeholder="Procurar receita..." class="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary text-sm" />
-          <div class="flex gap-1 sm:gap-2 overflow-x-auto pb-2 -mx-3 sm:-mx-4 px-3 sm:px-4">
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-primary text-slate-900 shrink-0" data-filter="all">Todas</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="fast">Rapidas</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="vegetarian">Veg.</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="kid-friendly">Criancas</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="sopa">Sopas</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="sobremesa">Sobremesas</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="carne">Carne</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="peixe">Peixe</button>
-            <button class="filter-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-slate-900 transition-all shrink-0" data-filter="massa">Massa</button>
-          </div>
-        </div>
-      </header>
-      <main class="flex-1 overflow-y-auto pb-16">
-        <div class="p-4 space-y-4">
-          <div id="loading-state" class="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-            <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-              <span class="material-symbols-outlined text-4xl">restaurant_menu</span>
-            </div>
-            <p class="font-bold">A carregar receitas...</p>
-          </div>
-          <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-            <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-              <span class="material-symbols-outlined text-4xl">search_off</span>
-            </div>
-            <p class="font-bold">Nenhuma receita encontrada</p>
-            <p class="text-sm">Tenta mudar os filtros ou a pesquisa</p>
-          </div>
-          <div id="recipes-grid" class="grid grid-cols-2 gap-3"></div>
-        </div>
-      </main>
-    </div>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NannyMeals — Catálogo de Receitas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body { min-height: 100dvh; }
 
-    <!-- Recipe Detail Modal - OUTSIDE app-container for fullscreen -->
-    <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black">
-      <div class="w-full max-w-lg mx-auto h-full flex flex-col">
-        <div class="h-full bg-white dark:bg-slate-900 rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 mt-0 sm:mt-4">
-          <!-- Header -->
-          <div class="shrink-0 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-slate-800 dark:to-slate-900 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <h2 id="modal-recipe-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight"></h2>
-                <div class="flex flex-wrap gap-2 mt-2" id="modal-tags-container"></div>
+    .recipe-card {
+      background: white;
+      border-radius: 20px;
+      border: 1.5px solid #e4ede7;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 180ms ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    html.dark .recipe-card { background: #111a14; border-color: #1e2d22; }
+    .recipe-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(19,236,91,0.15), 0 2px 8px rgba(0,0,0,0.08); border-color: #13ec5b; }
+    .recipe-card:active { transform: scale(0.98); }
+
+    .recipe-card-img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+    }
+    .recipe-card-img-placeholder {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 14px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 180ms ease;
+    }
+    .filter-chip-inactive {
+      background: white;
+      border-color: #e4ede7;
+      color: #6b7e72;
+    }
+    html.dark .filter-chip-inactive { background: #111a14; border-color: #1e2d22; color: #9ca8a0; }
+    .filter-chip-inactive:hover { border-color: #13ec5b; color: #13ec5b; }
+    .filter-chip-active {
+      background: #13ec5b;
+      color: #0a1a0e;
+      box-shadow: 0 4px 12px rgba(19,236,91,0.35);
+    }
+
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Category image mapping */
+    .cat-sopa { background: linear-gradient(135deg, #fdf4e7, #fde8c8); }
+    .cat-carne { background: linear-gradient(135deg, #fdf0f0, #fdd8d8); }
+    .cat-peixe { background: linear-gradient(135deg, #e8f4fd, #c8e2fd); }
+    .cat-massa { background: linear-gradient(135deg, #fdf8e8, #fdf0c8); }
+    .cat-vegetariano { background: linear-gradient(135deg, #edfdf0, #c8fdd4); }
+    .cat-sobremesa { background: linear-gradient(135deg, #fdf0fd, #f6c8fd); }
+    .cat-default { background: linear-gradient(135deg, #f0f8f4, #e2f0e8); }
+
+    .search-input {
+      width: 100%;
+      background: white;
+      border: 1.5px solid #e4ede7;
+      border-radius: 14px;
+      padding: 0 16px 0 44px;
+      height: 46px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a2e1f;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    html.dark .search-input { background: #111a14; border-color: #1e2d22; color: #e8f5ec; }
+    .search-input:focus { border-color: #13ec5b; box-shadow: 0 0 0 3px rgba(19,236,91,0.15); outline: none; }
+    .search-input::placeholder { color: #9ca8a0; font-weight: 500; }
+  </style>
+  <script>
+    (function() {
+      const saved = localStorage.getItem('nm_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
+    })();
+    if (localStorage.getItem('app_version') !== 'v28') {
+      localStorage.setItem('app_version', 'v28');
+      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
+    }
+  </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div class="app-container">
+
+    <!-- ── Header ───────────────────────────────── -->
+    <header class="sticky top-0 z-20 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-100 dark:border-border-dark px-4 lg:px-6 pt-5 pb-4">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black tracking-tight">Catálogo de Receitas</h1>
+        <div class="flex gap-2">
+          <a href="add-recipe.html"
+            class="size-10 rounded-full bg-primary text-slate-900 hover:bg-primary-dark flex items-center justify-center shadow-glow transition-all"
+            title="Nova Receita">
+            <span class="material-symbols-outlined text-xl font-bold">add</span>
+          </a>
+          <button id="btn-logout" class="size-10 rounded-full hover:bg-primary/10 text-slate-400 hover:text-primary flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-xl">logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="relative mb-3">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">search</span>
+        <input id="search-input" type="text" placeholder="Procurar receita..." class="search-input" />
+      </div>
+
+      <!-- Filters -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+        <button class="filter-btn filter-chip filter-chip-active shrink-0" data-filter="all">Todas</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="fast">⚡ Rápidas</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="vegetarian">🥦 Veg.</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="kid-friendly">👶 Crianças</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="sopa">🥣 Sopas</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="sobremesa">🍮 Sobremesas</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="carne">🥩 Carne</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="peixe">🐟 Peixe</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="massa">🍝 Massa</button>
+      </div>
+    </header>
+
+    <!-- ── Main ──────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto pb-safe">
+      <div class="p-4 lg:p-6">
+        <!-- Loading skeleton -->
+        <div id="loading-state" class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          ${[1,2,3,4,5,6].map(() => `
+            <div class="rounded-2xl overflow-hidden border border-slate-100 dark:border-border-dark">
+              <div class="skeleton h-[120px] w-full"></div>
+              <div class="p-3 space-y-2">
+                <div class="skeleton h-4 w-3/4 rounded"></div>
+                <div class="skeleton h-3 w-1/2 rounded"></div>
               </div>
-              <button onclick="closeRecipeModal()" class="shrink-0 p-2 sm:p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-xl">close</span>
-              </button>
-            </div>
-            <div class="flex flex-wrap gap-3 mt-4">
-              <div class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
-                <span class="material-symbols-outlined text-primary text-lg">schedule</span>
-                <span class="text-sm font-bold text-slate-700 dark:text-slate-200" id="modal-prep-time">--</span>
-              </div>
-              <div id="modal-price-container" class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm hidden">
-                <span class="material-symbols-outlined text-green-600 text-lg">euro</span>
-                <span class="text-sm font-bold text-green-600" id="modal-price">--</span>
-              </div>
-              <div id="modal-calories-container" class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm hidden">
-                <span class="material-symbols-outlined text-orange-500 text-lg">local_fire_department</span>
-                <span class="text-sm font-bold text-orange-500" id="modal-calories">--</span>
-              </div>
-            </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-muted gap-4">
+          <div class="size-20 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            <span class="material-symbols-outlined text-4xl">search_off</span>
           </div>
-          <!-- Scrollable Content -->
-          <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700">
-              <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                <span class="material-symbols-outlined">shopping_basket</span>
-                Ingredientes
-              </h3>
-              <ul id="modal-ingredients" class="space-y-2"></ul>
-            </div>
-            <div id="instructions-section" class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 hidden">
-              <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                <span class="material-symbols-outlined">menu_book</span>
-                Modo de Preparação
-              </h3>
-              <ol id="modal-instructions" class="list-decimal list-inside space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"></ol>
-            </div>
-            <div id="nutrition-section" class="hidden">
-              <h3 class="font-bold text-sm uppercase tracking-widest text-slate-500 mb-3">Informação Nutricional</h3>
-              <div id="modal-nutrition" class="grid grid-cols-4 gap-2"></div>
-            </div>
+          <div class="text-center">
+            <p class="font-bold text-slate-700 dark:text-slate-200">Nenhuma receita encontrada</p>
+            <p class="text-sm mt-1">Tenta mudar os filtros ou a pesquisa</p>
           </div>
-          <!-- Action Buttons -->
-          <div class="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4">
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="addRecipeToNewPlan()" class="bg-primary text-slate-900 py-3 sm:py-4 px-4 rounded-2xl font-black text-sm sm:text-xs uppercase tracking-widest shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined">add_circle</span>
-                <span class="hidden sm:inline">Adicionar ao</span> Plano
-              </button>
-              <button onclick="goToGroceryList()" class="bg-green-500 text-white py-3 sm:py-4 px-4 rounded-2xl font-black text-sm sm:text-xs uppercase tracking-widest shadow-lg shadow-green-500/30 hover:shadow-xl hover:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined">shopping_cart</span>
-                Comprar
-              </button>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-              <button onclick="saveCurrentRecipe()" class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-600 transition-all flex items-center justify-center gap-1">
-                <span class="material-symbols-outlined text-lg">bookmark</span>
-                Guardar
-              </button>
-              <button onclick="closeRecipeModal()" class="bg-transparent border-2 border-slate-300 dark:border-slate-600 text-slate-500 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-slate-400 hover:text-slate-600 transition-all">
-                Fechar
-              </button>
-            </div>
+        </div>
+
+        <!-- Recipes grid -->
+        <div id="recipes-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-3 hidden"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Recipe Detail Modal ───────────────────── -->
+  <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end lg:items-center justify-center p-0 lg:p-6">
+    <div class="w-full lg:max-w-xl h-[90dvh] lg:h-auto lg:max-h-[85dvh] bg-white dark:bg-surface-dark rounded-t-3xl lg:rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in">
+      <!-- Modal Header -->
+      <div class="shrink-0 bg-gradient-to-r from-primary/15 to-primary/5 dark:from-primary/10 dark:to-transparent p-5 border-b border-slate-100 dark:border-border-dark">
+        <div id="modal-image-container" class="mb-4 hidden">
+          <img id="modal-recipe-image" alt="Recipe" class="w-full h-44 object-cover rounded-2xl shadow-md" />
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="flex-1 min-w-0">
+            <h2 id="modal-recipe-name" class="text-xl font-black tracking-tight leading-tight"></h2>
+            <div id="modal-tags-container" class="flex flex-wrap gap-1.5 mt-2"></div>
+          </div>
+          <button onclick="closeRecipeModal()" class="shrink-0 size-10 rounded-full bg-white dark:bg-slate-800 shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
+            <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">close</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
+            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+            <span class="text-sm font-bold text-slate-700 dark:text-slate-200" id="modal-prep-time">--</span>
+          </div>
+          <div id="modal-price-container" class="hidden flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
+            <span class="material-symbols-outlined text-green-600 text-base" style="font-variation-settings:'FILL' 1">euro</span>
+            <span class="text-sm font-bold text-green-600" id="modal-price">--</span>
+          </div>
+          <div id="modal-calories-container" class="hidden flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
+            <span class="material-symbols-outlined text-orange-500 text-base" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+            <span class="text-sm font-bold text-orange-500" id="modal-calories">--</span>
           </div>
         </div>
       </div>
+
+      <!-- Scrollable Content -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- Ingredients -->
+        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">
+          <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">shopping_basket</span>
+            Ingredientes
+          </h3>
+          <ul id="modal-ingredients" class="space-y-1.5"></ul>
+        </div>
+        <!-- Instructions -->
+        <div id="instructions-section" class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 hidden">
+          <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">menu_book</span>
+            Modo de Preparação
+          </h3>
+          <ol id="modal-instructions" class="space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"></ol>
+        </div>
+        <!-- Nutrition -->
+        <div id="nutrition-section" class="hidden">
+          <h3 class="font-black text-xs uppercase tracking-widest text-muted mb-3">Informação Nutricional</h3>
+          <div id="modal-nutrition" class="grid grid-cols-4 gap-2"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="shrink-0 bg-white dark:bg-surface-dark border-t border-slate-100 dark:border-border-dark p-4 space-y-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="addRecipeToNewPlan()" class="flex items-center justify-center gap-2 bg-primary text-slate-900 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-glow hover:bg-primary-dark transition-all active:scale-[0.97]">
+            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">add_circle</span>
+            Ao Plano
+          </button>
+          <button onclick="goToGroceryList()" class="flex items-center justify-center gap-2 bg-green-500 text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-500/30 hover:bg-green-600 transition-all active:scale-[0.97]">
+            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">shopping_cart</span>
+            Comprar
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="saveCurrentRecipe()" class="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+            <span class="material-symbols-outlined text-base">bookmark</span>
+            Guardar
+          </button>
+          <button onclick="closeRecipeModal()" class="bg-transparent border-2 border-slate-200 dark:border-slate-700 text-muted py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-slate-300 hover:text-slate-600 transition-all">
+            Fechar
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <script type="module">
-      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-      import { auth } from "./src/firebase-init.js";
-      import { getAllRecipes, saveUserRecipe } from "./src/db.js";
-      import { logout } from "./src/auth.js";
+  <script type="module">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { auth } from "./src/firebase-init.js";
+    import { getAllRecipes, saveUserRecipe } from "./src/db.js";
+    import { logout } from "./src/auth.js";
 
-      const loadingState = document.getElementById("loading-state");
-      const emptyState = document.getElementById("empty-state");
-      const recipesGrid = document.getElementById("recipes-grid");
-      const searchInput = document.getElementById("search-input");
-      const filterButtons = document.querySelectorAll(".filter-btn");
-      const recipeModal = document.getElementById("recipe-modal");
+    const loadingState = document.getElementById("loading-state");
+    const emptyState = document.getElementById("empty-state");
+    const recipesGrid = document.getElementById("recipes-grid");
+    const searchInput = document.getElementById("search-input");
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const recipeModal = document.getElementById("recipe-modal");
 
-      let allRecipes = [];
-      let currentFilter = "all";
-      let currentSearchTerm = "";
-      let selectedRecipe = null;
+    let allRecipes = [], currentFilter = "all", currentSearchTerm = "", selectedRecipe = null;
 
-      document.getElementById("btn-logout").onclick = () => logout();
+    // Category image mapping
+    const categoryImages = {
+      sopa: 'assets/images/recipe_sopa.png',
+      carne: 'assets/images/recipe_carne.png',
+      peixe: 'assets/images/recipe_peixe.png',
+      massa: 'assets/images/recipe_massa.png',
+      vegetarian: 'assets/images/recipe_vegetariano.png',
+      vegetariano: 'assets/images/recipe_vegetariano.png',
+      sobremesa: 'assets/images/recipe_sobremesa.png',
+    };
+    const categoryEmoji = { sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝', vegetarian:'🥦', vegetariano:'🥦', sobremesa:'🍮', 'kid-friendly':'👶', fast:'⚡' };
+    const categoryBg = { sopa:'cat-sopa', carne:'cat-carne', peixe:'cat-peixe', massa:'cat-massa', vegetarian:'cat-vegetariano', vegetariano:'cat-vegetariano', sobremesa:'cat-sobremesa' };
 
-      filterButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          filterButtons.forEach((b) => {
-            b.classList.remove("bg-primary", "text-slate-900");
-            b.classList.add("bg-slate-200", "dark:bg-slate-700", "text-slate-700", "dark:text-slate-300");
-          });
-          btn.classList.add("bg-primary", "text-slate-900");
-          btn.classList.remove("bg-slate-200", "dark:bg-slate-700", "text-slate-700", "dark:text-slate-300");
-          currentFilter = btn.dataset.filter;
-          renderRecipes();
+    function getRecipeImage(recipe) {
+      if (recipe.image) return { type: 'img', src: recipe.image };
+      const tags = recipe.tags || [];
+      for (const tag of tags) {
+        if (categoryImages[tag]) return { type: 'img', src: categoryImages[tag] };
+      }
+      return { type: 'placeholder', tags };
+    }
+
+    function getTagStyle(tag) {
+      const styles = {
+        sopa: 'bg-orange-100 text-orange-700', carne: 'bg-red-100 text-red-700',
+        peixe: 'bg-blue-100 text-blue-700', massa: 'bg-yellow-100 text-yellow-700',
+        vegetarian: 'bg-green-100 text-green-700', vegetariano: 'bg-green-100 text-green-700',
+        sobremesa: 'bg-purple-100 text-purple-700', 'kid-friendly': 'bg-pink-100 text-pink-700',
+        fast: 'bg-primary/15 text-primary',
+      };
+      return styles[tag] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
+    }
+
+    document.getElementById("btn-logout").onclick = () => logout();
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterButtons.forEach(b => {
+          b.classList.remove("filter-chip-active");
+          b.classList.add("filter-chip-inactive");
         });
-      });
-
-      searchInput.addEventListener("input", (e) => {
-        currentSearchTerm = e.target.value.toLowerCase();
+        btn.classList.add("filter-chip-active");
+        btn.classList.remove("filter-chip-inactive");
+        currentFilter = btn.dataset.filter;
         renderRecipes();
       });
+    });
 
-      const filterRecipes = () => {
-        let filtered = allRecipes;
-        if (currentFilter !== "all") {
-          filtered = filtered.filter((r) => r.tags && r.tags.includes(currentFilter));
-        }
-        if (currentSearchTerm) {
-          filtered = filtered.filter((r) => r.name.toLowerCase().includes(currentSearchTerm) || (r.tags && r.tags.some((t) => t.toLowerCase().includes(currentSearchTerm))));
-        }
-        return filtered;
-      };
+    searchInput.addEventListener("input", e => { currentSearchTerm = e.target.value.toLowerCase(); renderRecipes(); });
 
-      const renderRecipes = () => {
-        const filtered = filterRecipes();
-        if (filtered.length === 0) {
-          loadingState.classList.add("hidden");
-          emptyState.classList.remove("hidden");
-          recipesGrid.innerHTML = "";
-          return;
-        }
-        loadingState.classList.add("hidden");
-        emptyState.classList.add("hidden");
-        recipesGrid.innerHTML = filtered.map((recipe) => `
-          <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800 cursor-pointer hover:shadow-xl hover:scale-105 transition-all" onclick="openRecipeDetail('${recipe.id}')">
-            <div class="p-4 space-y-3">
-              <h3 class="font-bold text-sm leading-tight line-clamp-2">${recipe.name}</h3>
-              <div class="flex items-center gap-2 text-xs text-slate-500">
-                <span class="material-symbols-outlined text-sm">schedule</span>
-                <span>${recipe.prepTime}min</span>
-              </div>
-              <div class="flex flex-wrap gap-1">
-                ${(recipe.tags || []).slice(0, 2).map((tag) => `<span class="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full">${tag}</span>`).join("")}
-              </div>
-              <button onclick="event.stopPropagation(); openRecipeDetail('${recipe.id}')" class="w-full mt-2 bg-primary text-slate-900 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all">Ver Detalhes</button>
+    const filterRecipes = () => {
+      let filtered = allRecipes;
+      if (currentFilter !== "all") filtered = filtered.filter(r => r.tags && r.tags.includes(currentFilter));
+      if (currentSearchTerm) filtered = filtered.filter(r => r.name.toLowerCase().includes(currentSearchTerm) || (r.tags && r.tags.some(t => t.toLowerCase().includes(currentSearchTerm))));
+      return filtered;
+    };
+
+    const renderRecipes = () => {
+      const filtered = filterRecipes();
+      loadingState.classList.add("hidden");
+      if (filtered.length === 0) {
+        emptyState.classList.remove("hidden");
+        recipesGrid.classList.add("hidden");
+        recipesGrid.innerHTML = "";
+        return;
+      }
+      emptyState.classList.add("hidden");
+      recipesGrid.classList.remove("hidden");
+      recipesGrid.innerHTML = filtered.map(recipe => {
+        const imgData = getRecipeImage(recipe);
+        const imgHtml = imgData.type === 'img'
+          ? `<img src="${imgData.src}" alt="${recipe.name}" class="recipe-card-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'recipe-card-img-placeholder cat-default\'>🍽️</div>'">`
+          : `<div class="recipe-card-img-placeholder ${categoryBg[(recipe.tags||[])[0]] || 'cat-default'}">${categoryEmoji[(recipe.tags||[])[0]] || '🍽️'}</div>`;
+        const time = recipe.prepTime ? `<span class="text-[10px] font-bold text-muted">${recipe.prepTime}min</span>` : '';
+        const tags = (recipe.tags||[]).slice(0,2).map(t => `<span class="tag-badge ${getTagStyle(t)}">${t}</span>`).join('');
+        return `<div class="recipe-card" onclick="openRecipeDetail('${recipe.id}')">
+          ${imgHtml}
+          <div class="p-3 space-y-2">
+            <h3 class="font-black text-sm leading-tight line-clamp-2">${recipe.name}</h3>
+            <div class="flex items-center justify-between">
+              ${time}
             </div>
+            <div class="flex flex-wrap gap-1">${tags}</div>
           </div>
-        `).join("");
-      };
+        </div>`;
+      }).join('');
+    };
 
-      window.openRecipeDetail = (recipeId) => {
-        selectedRecipe = allRecipes.find((r) => r.id === recipeId);
-        if (!selectedRecipe) return;
+    window.openRecipeDetail = (recipeId) => {
+      selectedRecipe = allRecipes.find(r => r.id === recipeId);
+      if (!selectedRecipe) return;
+      document.getElementById("modal-recipe-name").textContent = selectedRecipe.name;
+      document.getElementById("modal-tags-container").innerHTML = (selectedRecipe.tags||[]).map(tag => `<span class="tag-badge ${getTagStyle(tag)}">${tag}</span>`).join('');
+      document.getElementById("modal-prep-time").textContent = `${selectedRecipe.prepTime||'--'} min`;
+      const pc = document.getElementById("modal-price-container"); const pe = document.getElementById("modal-price");
+      if (selectedRecipe.pricePerServing) { pc.classList.remove("hidden"); pe.textContent = `${selectedRecipe.pricePerServing}€/porção`; } else { pc.classList.add("hidden"); }
+      const cc = document.getElementById("modal-calories-container"); const ce = document.getElementById("modal-calories");
+      const cal = selectedRecipe.calories || selectedRecipe.nutrition?.calories?.amount;
+      if (cal) { cc.classList.remove("hidden"); ce.textContent = `${cal} kcal`; } else { cc.classList.add("hidden"); }
+      // Image
+      const imgC = document.getElementById("modal-image-container"); const imgEl = document.getElementById("modal-recipe-image");
+      const imgData = getRecipeImage(selectedRecipe);
+      if (imgData.type === 'img') { imgC.classList.remove("hidden"); imgEl.src = imgData.src; imgEl.alt = selectedRecipe.name; } else { imgC.classList.add("hidden"); }
+      // Ingredients
+      const ingList = document.getElementById("modal-ingredients");
+      ingList.innerHTML = (selectedRecipe.ingredients||[]).map(ing => {
+        let name = typeof ing === 'string' ? ing : (ing.name || ing.original || '');
+        let amount = typeof ing === 'object' && ing.amount ? `${ing.amount} ${ing.unit||''}` : '';
+        return `<li class="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">check_circle</span><span class="text-slate-700 dark:text-slate-200">${name}</span></span>
+          ${amount ? `<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">${amount}</span>` : ''}
+        </li>`;
+      }).join('');
+      // Instructions
+      const instSec = document.getElementById("instructions-section"); const instList = document.getElementById("modal-instructions");
+      let steps = null;
+      if (selectedRecipe.instructionSteps) { steps = selectedRecipe.instructionSteps; }
+      else if (selectedRecipe.analyzedInstructions?.length > 0) { steps = selectedRecipe.analyzedInstructions.flatMap(i => i.steps ? i.steps.map(s => s.step) : []); }
+      else if (selectedRecipe.instructions) { steps = [selectedRecipe.instructions]; }
+      if (steps?.length > 0) { instSec.classList.remove("hidden"); instList.innerHTML = steps.map((s,i) => `<li class="py-1"><span class="font-black text-primary mr-1">${i+1}.</span>${s}</li>`).join(''); }
+      else { instSec.classList.add("hidden"); }
+      // Nutrition
+      const nutSec = document.getElementById("nutrition-section"); const nutEl = document.getElementById("modal-nutrition");
+      const n = selectedRecipe.nutrition;
+      const hasN = n && (n.calories?.amount||n.calories||n.protein?.amount||n.protein||n.fat?.amount||n.fat);
+      if (hasN) {
+        nutSec.classList.remove("hidden");
+        const getN = k => { if (n.nutrients) { const x=n.nutrients.find(x=>x.name===k); return x?Math.round(x.amount):null; } const v=n[k.toLowerCase()]; if(v&&typeof v==='object'&&v.amount!==undefined) return Math.round(v.amount); if(typeof v==='number') return Math.round(v); return null; };
+        const c=getN("Calories")||n.calories?.amount||n.calories; const p=getN("Protein")||n.protein?.amount; const carb=getN("Carbohydrates")||n.carbohydrates?.amount; const f=getN("Fat")||n.fat?.amount;
+        nutEl.innerHTML = `<div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-orange-600 uppercase">Cal</p><p class="text-lg font-black text-orange-600">${c||'--'}</p></div><div class="bg-red-50 dark:bg-red-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-red-600 uppercase">Prot</p><p class="text-lg font-black text-red-600">${p?p+'g':'--'}</p></div><div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-blue-600 uppercase">Carb</p><p class="text-lg font-black text-blue-600">${carb?carb+'g':'--'}</p></div><div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-yellow-600 uppercase">Gord</p><p class="text-lg font-black text-yellow-600">${f?f+'g':'--'}</p></div>`;
+      } else { nutSec.classList.add("hidden"); }
+      recipeModal.classList.remove("hidden"); document.body.style.overflow = "hidden";
+    };
 
-        document.getElementById("modal-recipe-name").textContent = selectedRecipe.name;
-        document.getElementById("modal-tags-container").innerHTML = (selectedRecipe.tags || []).map((tag) => `<span class="text-[10px] font-bold bg-primary/20 text-primary px-2 py-1 rounded-full capitalize">${tag}</span>`).join("");
-        document.getElementById("modal-prep-time").textContent = `${selectedRecipe.prepTime || "--"} min`;
+    window.closeRecipeModal = () => { recipeModal.classList.add("hidden"); selectedRecipe = null; document.body.style.overflow = ""; };
+    recipeModal.addEventListener('click', e => { if (e.target === recipeModal) closeRecipeModal(); });
+    window.goToGroceryList = () => { if (selectedRecipe) { sessionStorage.setItem("pendingRecipeToGrocery", JSON.stringify({ recipeId: selectedRecipe.id, recipeName: selectedRecipe.name, ingredients: selectedRecipe.ingredients||[] })); } window.location.href = "grocery.html"; };
+    window.addRecipeToNewPlan = () => { if (!selectedRecipe) return; sessionStorage.setItem("selectedRecipeId", selectedRecipe.id); window.location.href = `create-custom-plan.html?addRecipe=${selectedRecipe.id}`; };
+    window.saveCurrentRecipe = async () => {
+      if (!selectedRecipe) return;
+      const user = auth.currentUser;
+      if (!user) { alert("É necessário fazer login."); return; }
+      try { await saveUserRecipe(user.uid, selectedRecipe.id); sessionStorage.setItem('savedRecipe', JSON.stringify(selectedRecipe)); window.location.href = "my-recipes.html"; }
+      catch(err) { console.error(err); alert("Falha ao guardar a receita."); }
+    };
 
-        const priceContainer = document.getElementById("modal-price-container");
-        const priceEl = document.getElementById("modal-price");
-        if (selectedRecipe.pricePerServing) {
-          priceContainer.classList.remove("hidden");
-          priceEl.textContent = `${selectedRecipe.pricePerServing}€/porção`;
-        } else {
-          priceContainer.classList.add("hidden");
-        }
-
-        const caloriesContainer = document.getElementById("modal-calories-container");
-        const caloriesEl = document.getElementById("modal-calories");
-        // Support both direct calories and nested nutrition.calories
-        const caloriesValue = selectedRecipe.calories || selectedRecipe.nutrition?.calories?.amount;
-        if (caloriesValue) {
-          caloriesContainer.classList.remove("hidden");
-          caloriesEl.textContent = `${caloriesValue} kcal`;
-        } else {
-          caloriesContainer.classList.add("hidden");
-        }
-
-        const ingredientsList = document.getElementById("modal-ingredients");
-        const ingredients = selectedRecipe.ingredients || [];
-        ingredientsList.innerHTML = ingredients.map((ing) => {
-          let name = typeof ing === "string" ? ing : (ing.name || ing.original || ing.originalString || "");
-          let amount = typeof ing === "object" && ing.amount ? `${ing.amount} ${ing.unit || ""}` : "";
-          return `<li class="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
-            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">check_circle</span><span class="text-slate-700 dark:text-slate-200">${name}</span></span>
-            ${amount ? `<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">${amount}</span>` : ""}
-          </li>`;
-        }).join("");
-
-        const instructionsSection = document.getElementById("instructions-section");
-        const instructionsList = document.getElementById("modal-instructions");
-        let steps = null;
-        
-        // Support multiple instruction formats
-        if (selectedRecipe.instructionSteps) {
-          steps = selectedRecipe.instructionSteps;
-        } else if (selectedRecipe.analyzedInstructions && selectedRecipe.analyzedInstructions.length > 0) {
-          // New format: analyzedInstructions array
-          steps = selectedRecipe.analyzedInstructions.flatMap(inst => 
-            inst.steps ? inst.steps.map(s => s.step) : []
-          );
-        } else if (selectedRecipe.instructions) {
-          steps = [selectedRecipe.instructions];
-        }
-        
-        if (steps && steps.length > 0) {
-          instructionsSection.classList.remove("hidden");
-          instructionsList.innerHTML = steps.map((step, index) => `<li class="py-1"><span class="font-bold text-primary mr-1">${index + 1}.</span>${step}</li>`).join("");
-        } else {
-          instructionsSection.classList.add("hidden");
-        }
-
-        const nutritionSection = document.getElementById("nutrition-section");
-        const nutrition = selectedRecipe.nutrition;
-        // Support both formats: nutrition.calories (direct) and nutrition.calories.amount (nested from seed)
-        const hasNutrition = nutrition && (
-          nutrition.calories?.amount || nutrition.calories || 
-          nutrition.protein?.amount || nutrition.protein ||
-          nutrition.fat?.amount || nutrition.fat ||
-          nutrition.carbohydrates?.amount || nutrition.carbohydrates
-        );
-        if (hasNutrition) {
-          nutritionSection.classList.remove("hidden");
-          const nutritionEl = document.getElementById("modal-nutrition");
-          // Support both formats - nested (seed) or flat (spoonacular)
-          const getNutrient = (key) => {
-            if (nutrition.nutrients && Array.isArray(nutrition.nutrients)) {
-              const n = nutrition.nutrients.find((x) => x.name === key);
-              return n ? Math.round(n.amount) : null;
-            }
-            // Nested format from seed-recipes.js
-            const nested = nutrition[key.toLowerCase()];
-            if (nested && typeof nested === 'object' && nested.amount !== undefined) {
-              return Math.round(nested.amount);
-            }
-            // Direct value
-            if (typeof nested === 'number') return Math.round(nested);
-            return null;
-          };
-          
-          const cal = getNutrient("Calories") || nutrition.calories?.amount || nutrition.calories;
-          const prot = getNutrient("Protein") || nutrition.protein?.amount;
-          const carb = getNutrient("Carbohydrates") || nutrition.carbohydrates?.amount;
-          const fat = getNutrient("Fat") || nutrition.fat?.amount;
-          
-          nutritionEl.innerHTML = `
-            <div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-orange-600 uppercase">Cal</p><p class="text-lg font-black text-orange-600">${cal || '--'}</p></div>
-            <div class="bg-red-50 dark:bg-red-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-red-600 uppercase">Prot</p><p class="text-lg font-black text-red-600">${prot ? prot + 'g' : '--'}</p></div>
-            <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-blue-600 uppercase">Carb</p><p class="text-lg font-black text-blue-600">${carb ? carb + 'g' : '--'}</p></div>
-            <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-yellow-600 uppercase">Gord</p><p class="text-lg font-black text-yellow-600">${fat ? fat + 'g' : '--'}</p></div>`;
-        } else {
-          nutritionSection.classList.add("hidden");
-        }
-
-        const modalContent = recipeModal.querySelector(".max-w-lg");
-        if (modalContent) modalContent.scrollTop = 0;
-
-        recipeModal.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
-        document.documentElement.style.overscrollBehavior = "none";
-      };
-
-      window.closeRecipeModal = () => {
-        recipeModal.classList.add("hidden");
-        selectedRecipe = null;
-        document.body.style.overflow = "";
-        document.documentElement.style.overscrollBehavior = "";
-      };
-
-      window.goToGroceryList = () => {
-        if (selectedRecipe) {
-          sessionStorage.setItem("pendingRecipeToGrocery", JSON.stringify({ recipeId: selectedRecipe.id, recipeName: selectedRecipe.name, ingredients: selectedRecipe.ingredients || [] }));
-        }
-        window.location.href = "grocery.html";
-      };
-
-      window.addRecipeToNewPlan = () => {
-        if (!selectedRecipe) return;
-        sessionStorage.setItem("selectedRecipeId", selectedRecipe.id);
-        window.location.href = `create-custom-plan.html?addRecipe=${selectedRecipe.id}`;
-      };
-
-window.saveCurrentRecipe = async () => {
-        if (!selectedRecipe) return;
-        const user = auth.currentUser;
-        if (!user) { alert("É necessário fazer login para guardar receitas."); return; }
-        try {
-          await saveUserRecipe(user.uid, selectedRecipe.id);
-          // Guardar dados da receita no sessionStorage para exibir em my-recipes
-          sessionStorage.setItem('savedRecipe', JSON.stringify(selectedRecipe));
-          // Redirecionar para my-recipes.html
-          window.location.href = "my-recipes.html";
-        } catch (err) { console.error("Erro ao guardar receita:", err); alert("Falha ao guardar a receita."); }
-      };
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          try {
-            allRecipes = await getAllRecipes(user.uid);
-            renderRecipes();
-          } catch (error) { console.error("Erro ao carregar receitas:", error); emptyState.classList.remove("hidden"); loadingState.classList.add("hidden"); }
-        } else { window.location.href = "index.html"; }
-      });
-    </script>
-  </body>
-  <script>
-    fetch("bottom-nav.html").then((res) => res.text()).then((html) => {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      document.body.appendChild(temp.firstElementChild);
-      const script = document.createElement("script");
-      script.src = "active-screen.js";
-      document.body.appendChild(script);
+    onAuthStateChanged(auth, async user => {
+      if (!user) { window.location.href = "index.html"; return; }
+      try {
+        allRecipes = await getAllRecipes(user.uid);
+        loadingState.classList.add("hidden");
+        renderRecipes();
+      } catch(e) { console.error(e); loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
     });
   </script>
+
+  <script>
+    fetch("bottom-nav.html").then(r => r.text()).then(html => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+  </script>
+</body>
 </html>
