@@ -47,17 +47,15 @@
               <!-- Importar -->
               <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl">
                 <div class="flex items-center gap-2 mb-2">
-                  <span class="material-symbols-outlined text-blue-600">cloud_download</span>
-                  <h3 class="font-black text-blue-700 dark:text-blue-300">Importar Receitas</h3>
+                  <span class="material-symbols-outlined text-blue-600">auto_fix_high</span>
+                  <h3 class="font-black text-blue-700 dark:text-blue-300">Importador Inteligente</h3>
                 </div>
-                <p class="text-slate-600 dark:text-slate-400">Pesquise e importe receitas da API Spoonacular. Use a <strong>Query de Busca</strong> para especificar o que procura:</p>
+                <p class="text-slate-600 dark:text-slate-400">Copie o link de uma receita do <strong>Continente Feed</strong> ou <strong>Pingo Doce</strong> e cole no campo URL.</p>
                 <ul class="mt-2 ml-4 list-disc text-slate-600 dark:text-slate-400 space-y-1">
-                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">peixe</code> ou <code class="bg-white dark:bg-slate-800 px-1 rounded">salmon</code> - receitas de peixe</li>
-                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">carne</code> ou <code class="bg-white dark:bg-slate-800 px-1 rounded">chicken</code> - receitas de carne</li>
-                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">sopa</code> - sopas</li>
-                  <li><code class="bg-white dark:bg-slate-800 px-1 rounded">bolo</code> ou <code class="bg-white dark:bg-slate-800 px-1 rounded">dessert</code> - sobremesas</li>
+                  <li>Extração automática de ingredientes</li>
+                  <li>Cálculo de custos usando preços reais do Continente/Pingo Doce</li>
+                  <li>Importação direta para a Firebase</li>
                 </ul>
-                <p class="mt-2 text-slate-600 dark:text-slate-400">Pode combinar filtros: <strong>Tipo</strong>, <strong>Dieta</strong>, <strong>Intolerâncias</strong>.</p>
               </div>
 
               <!-- Teste -->
@@ -105,7 +103,7 @@
             </div>
             <div>
               <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Admin Import</h1>
-              <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider">Spoonacular Recipe Importer</p>
+              <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider">Supermarket Smart Importer</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -144,71 +142,36 @@
           <!-- Import Form -->
           <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-premium border border-slate-100 dark:border-slate-800">
             <div class="flex items-center gap-3 mb-4 sm:mb-6">
-              <div class="size-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">cloud_download</span>
+              <div class="size-10 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-primary">auto_fix_high</span>
               </div>
               <div>
-                <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Importar Receitas</h2>
-                <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider">da API Spoonacular</p>
+                <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Importador Inteligente</h2>
+                <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider">Continente & Pingo Doce</p>
               </div>
             </div>
 
             <form id="import-form" class="space-y-4">
-              <!-- Query -->
+              <!-- URL Input -->
               <div>
-                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Query de Busca</label>
-                <input id="q-query" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="pasta, chicken, salad..." />
+                <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">URL da Receita</label>
+                <input id="q-url" type="url" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm" placeholder="https://feed.continente.pt/receitas/..." />
               </div>
 
-              <!-- Filters Row 1 -->
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Store Preference -->
                 <div>
-                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Dieta</label>
-                  <select id="q-diet" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                    <option value="">Todas</option>
-                    <option value="vegetarian">Vegetariano</option>
-                    <option value="vegan">Vegano</option>
-                    <option value="gluten free">Sem Glúten</option>
-                    <option value="ketogenic">Ketogénico</option>
-                    <option value="paleo">Paleo</option>
+                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Supermercado para Preços</label>
+                  <select id="q-store" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                    <option value="continente">Continente</option>
+                    <option value="pingodoce">Pingo Doce</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Intolerâncias</label>
-                  <input id="q-intolerances" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="gluten, dairy..." />
-                </div>
-                <div>
-                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tipo</label>
-                  <select id="q-type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                    <option value="">Todos</option>
-                    <option value="main course">Prato Principal</option>
-                    <option value="side dish">Acompanhamento</option>
-                    <option value="appetizer">Entradas</option>
-                    <option value="dessert">Sobremesa</option>
-                    <option value="salad">Salada</option>
-                    <option value="soup">Sopa</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Filters Row 2 -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                <div>
-                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Tempo Máx (min)</label>
-                  <input id="q-maxReadyTime" type="number" min="0" value="45" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                </div>
-                <div>
-                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Páginas</label>
-                  <input id="q-pages" type="number" min="1" max="10" value="1" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                </div>
-                <div>
-                  <label class="block text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Receitas/Pág</label>
-                  <input id="q-number" type="number" min="1" max="50" value="20" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                </div>
-                <div class="flex items-center pt-6">
+                <!-- Controls -->
+                <div class="flex items-end pb-1">
                   <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="q-completeOnly" checked class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Completas</span>
+                    <input type="checkbox" id="q-save" checked class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Guardar na base de dados</span>
                   </label>
                 </div>
               </div>
@@ -216,12 +179,16 @@
               <!-- Action Buttons -->
               <div class="flex flex-wrap gap-2 sm:gap-3 pt-2">
                 <button id="btn-run" type="button" class="flex-1 sm:flex-none bg-primary text-slate-900 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-primary/20 text-sm sm:text-base" disabled>
-                  <span class="material-symbols-outlined">play_arrow</span>
-                  Importar
+                  <span class="material-symbols-outlined">auto_fix_high</span>
+                  Scrape & Import
                 </button>
-                <button id="btn-run-sample" type="button" class="flex-1 sm:flex-none bg-blue-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-blue-600/20 text-sm sm:text-base" disabled>
-                  <span class="material-symbols-outlined">science</span>
-                  Teste
+                <button id="btn-run-sample-continente" type="button" class="flex-1 sm:flex-none bg-blue-100 dark:bg-blue-900/30 text-blue-600 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all text-sm sm:text-base" disabled>
+                  <span class="material-symbols-outlined">link</span>
+                  Exemplo Continente
+                </button>
+                <button id="btn-run-sample-pd" type="button" class="flex-1 sm:flex-none bg-green-100 dark:bg-green-900/30 text-green-600 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all text-sm sm:text-base" disabled>
+                  <span class="material-symbols-outlined">link</span>
+                  Exemplo Pingo Doce
                 </button>
                 <button id="btn-migrate" type="button" class="flex-1 sm:flex-none bg-amber-500 text-slate-900 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-amber-500/20 text-sm sm:text-base" disabled>
                   <span class="material-symbols-outlined">sync</span>
@@ -296,7 +263,8 @@
       const btnLogin = document.getElementById("btn-login");
       const btnLogout = document.getElementById("btn-logout");
       const btnRun = document.getElementById("btn-run");
-      const btnRunSample = document.getElementById("btn-run-sample");
+      const btnRunSampleContinente = document.getElementById("btn-run-sample-continente");
+      const btnRunSamplePD = document.getElementById("btn-run-sample-pd");
       const btnMigrate = document.getElementById("btn-migrate");
       const logEl = document.getElementById("log");
       const resultEl = document.getElementById("result");
@@ -333,7 +301,8 @@
           mainCard.classList.remove("hidden");
           userStatus.textContent = u.email;
           btnRun.disabled = false;
-          btnRunSample.disabled = false;
+          btnRunSampleContinente.disabled = false;
+          btnRunSamplePD.disabled = false;
           btnMigrate.disabled = false;
           
           // Add logout button
@@ -358,11 +327,12 @@
       });
 
       // Validate
-      const validate = (filters, pages, number) => {
+      const validate = (url) => {
         const errs = [];
-        if (!filters.query) errs.push("Query é obrigatória");
-        if (pages < 1) errs.push("Pages deve ser >= 1");
-        if (number < 1 || number > 50) errs.push("Number deve ser 1..50");
+        if (!url) errs.push("O URL da receita é obrigatório");
+        if (!url.includes("continente.pt") && !url.includes("pingodoce.pt")) {
+          errs.push("Apenas URLs do Continente ou Pingo Doce são suportados");
+        }
         return errs;
       };
 
@@ -406,9 +376,9 @@
       });
 
       // Import
-      const PROXY_URL = "https://us-central1-nannymeal-d966b.cloudfunctions.net/importRecipesHttp";
+      const PROXY_URL = "https://us-central1-nannymeal-d966b.cloudfunctions.net/importFromUrlHttp";
       const callImport = async (payload) => {
-        log("A importar receitas...");
+        log(`A processar URL: ${payload.url}...`);
         if (!currentUser) throw new Error("Utilizador não autenticado");
         const idToken = await currentUser.getIdToken();
         const resp = await fetch(PROXY_URL, {
@@ -416,9 +386,12 @@
           headers: { "Content-Type": "application/json", Authorization: "Bearer " + idToken },
           body: JSON.stringify(payload),
         });
-        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        if (!resp.ok) {
+          const data = await resp.json();
+          throw new Error(data.error || "HTTP " + resp.status);
+        }
         const data = await resp.json();
-        log("Importação concluída!");
+        log("Processamento concluído!");
         return data;
       };
 
@@ -426,18 +399,11 @@
         validation.className = "hidden";
         resultEl.classList.add("hidden");
         
-        const filters = {
-          query: document.getElementById("q-query").value.trim(),
-          diet: document.getElementById("q-diet").value,
-          intolerances: document.getElementById("q-intolerances").value.trim(),
-          type: document.getElementById("q-type").value,
-          maxReadyTime: parseInt(document.getElementById("q-maxReadyTime").value) || undefined,
-        };
-        const pages = parseInt(document.getElementById("q-pages").value) || 1;
-        const number = parseInt(document.getElementById("q-number").value) || 20;
-        const completeOnly = document.getElementById("q-completeOnly").checked;
+        const url = document.getElementById("q-url").value.trim();
+        const storePreference = document.getElementById("q-store").value;
+        const save = document.getElementById("q-save").checked;
 
-        const errs = validate(filters, pages, number);
+        const errs = validate(url);
         if (errs.length) {
           validation.textContent = errs.join("; ");
           validation.className = "mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium";
@@ -445,60 +411,52 @@
         }
 
         btnRun.disabled = true;
-        btnRun.innerHTML = '<span class="material-symbols-outlined animate-spin">hourglass_empty</span> A importar...';
+        btnRun.innerHTML = '<span class="material-symbols-outlined animate-spin">hourglass_empty</span> A extrair...';
 
         try {
-          const data = await callImport({ filters, pages, number, completeOnly });
+          const data = await callImport({ url, storePreference, save });
           
-          // Build summary message
-          let summaryMsg = `✓ Importadas ${data.importedCount} receitas`;
-          if (completeOnly && data.skippedCount > 0) {
-            summaryMsg += ` (${data.skippedCount} ignoradas por incompletas)`;
+          summaryEl.textContent = `✓ Receita "${data.name}" extraída com sucesso de ${data.sourceName}`;
+          if (save) {
+             summaryEl.textContent += " e guardada no catálogo.";
           }
-          summaryEl.textContent = summaryMsg;
           
-          idsEl.textContent = JSON.stringify(data.imported.map(i => i.id), null, 2);
+          idsEl.textContent = JSON.stringify({ id: data.id, source: data.sourceName }, null, 2);
           resultEl.classList.remove("hidden");
 
-          // Fetch example
-          if (data.imported?.length > 0) {
-            const docRef = doc(db, "recipes", data.imported[0].id);
-            const snap = await getDoc(docRef);
-            if (snap.exists()) {
-              exampleEl.textContent = JSON.stringify(snap.data(), null, 2);
-              const obj = snap.data();
-              const verifs = [
-                { label: "Ingredientes", ok: Array.isArray(obj.ingredients) && obj.ingredients.length > 0 && typeof obj.ingredients[0] === "object" },
-                { label: "Preço", ok: typeof obj.pricePerServing === "number" },
-                { label: "Instruções", ok: !!obj.instructions },
-                { label: "Passos", ok: !!(obj.analyzedInstructions && obj.analyzedInstructions.length) }
-              ];
-              verifEl.innerHTML = verifs.map(v => `
-                <div class="p-3 rounded-xl ${v.ok ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}">
-                  <span class="material-symbols-outlined ${v.ok ? 'text-green-600' : 'text-red-600'}">${v.ok ? 'check_circle' : 'cancel'}</span>
-                  <span class="text-xs font-bold ${v.ok ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}">${v.label}</span>
-                </div>
-              `).join('');
-            }
-          }
+          // Display example
+          exampleEl.textContent = JSON.stringify(data, null, 2);
+          const verifs = [
+            { label: "Ingredientes", ok: Array.isArray(data.ingredients) && data.ingredients.length > 0 },
+            { label: "Preços", ok: !!data.totalCost },
+            { label: "Instruções", ok: !!data.instructions },
+            { label: "Imagem", ok: !!data.image }
+          ];
+          verifEl.innerHTML = verifs.map(v => `
+            <div class="p-3 rounded-xl ${v.ok ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}">
+              <span class="material-symbols-outlined ${v.ok ? 'text-green-600' : 'text-red-600'}">${v.ok ? 'check_circle' : 'cancel'}</span>
+              <span class="text-xs font-bold ${v.ok ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}">${v.label}</span>
+            </div>
+          `).join('');
+          
         } catch (err) {
           validation.textContent = "✗ Erro: " + err.message;
           validation.className = "mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium";
         } finally {
           btnRun.disabled = false;
-          btnRun.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Importar';
+          btnRun.innerHTML = '<span class="material-symbols-outlined">auto_fix_high</span> Scrape & Import';
         }
       });
 
-      // Sample run
-      btnRunSample.addEventListener("click", () => {
-        document.getElementById("q-query").value = "pasta";
-        document.getElementById("q-diet").value = "vegetarian";
-        document.getElementById("q-type").value = "main course";
-        document.getElementById("q-maxReadyTime").value = "30";
-        document.getElementById("q-pages").value = "1";
-        document.getElementById("q-number").value = "10";
-        btnRun.click();
+      // Sample runs
+      btnRunSampleContinente.addEventListener("click", () => {
+        document.getElementById("q-url").value = "https://feed.continente.pt/receitas/arroz-de-pato";
+        document.getElementById("q-store").value = "continente";
+      });
+
+      btnRunSamplePD.addEventListener("click", () => {
+        document.getElementById("q-url").value = "https://www.pingodoce.pt/receitas/arroz-de-pato-a-antiga/";
+        document.getElementById("q-store").value = "pingodoce";
       });
 
       // Logout (original button)

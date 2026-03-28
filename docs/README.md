@@ -8,13 +8,14 @@ NannyMeal is a **Smart Meal Planner PWA** designed for busy families. It automat
 
 ### 1. **Inteligência de Planeamento**
 - **Algoritmo Adaptativo**: Sugere refeições baseadas no perfil da família (adultos/crianças), tempo disponível e nível de cozinha.
-- **Auto-Discovery (Spoonacular)**: Se não houver receitas locais suficientes para a sua dieta (ex: Vegan), a app procura e importa automaticamente novas opções da API Spoonacular.
+- **Sugestões da Despensa**: O algoritmo prioriza receitas com base nos ingredientes que já tens em stock (>60% match).
+- **Importador Inteligente (Scraper)**: Substituímos a dependência de APIs externas por um sistema de scraping direto dos maiores supermercados portugueses (**Continente** e **Pingo Doce**).
 - **Smart Swaps**: Troca qualquer refeição por uma alternativa sugerida pelo algoritmo que respeite as tuas restrições.
 
 ### 2. **Gestão de Compras (Grocery Intelligence)**
 - **Agregação Inteligente**: Soma quantidades automaticamente (ex: 200g + 300g = 500g) e agrupa por categorias de supermercado (Talho, Hortifrutis, Laticínios).
-- **Estimativa de Custos**: Calcula o custo total aproximado da ida ao supermercado com base em preços reais da Spoonacular.
-- **Scanner de Alergénios (Open Food Facts)**: Permite simular o scan de um código de barras para verificar se um produto no supermercado é seguro para a tua família.
+- **Estimativa de Custos Reais**: Calcula o custo total da lista de compras com base em preços reais consultados em tempo real nos sites do Continente e Pingo Doce.
+- **Scanner de Alergénios (Open Food Facts)**: Permite verificar se um produto no supermercado é seguro para a tua família através do código de barras.
 
 ### 3. **Perfil & Feedback**
 - **Onboarding 4 Passos**: Configuração completa de alergias (Glúten, Lactose, etc.), estilo alimentar e agenda semanal.
@@ -28,13 +29,15 @@ NannyMeal is a **Smart Meal Planner PWA** designed for busy families. It automat
 ### Arquitetura Atualizada
 A arquitetura da app foi reorganizada em três camadas:
 
-1. **API Control Layer** _(Firebase Cloud Functions)_
-   - Todas as chamadas à Spoonacular só podem ser feitas por `spoonacularProxy`.
-   - O endereço `/spoonacularProxy` valida se `request.auth.token.email == "antonioappleton@gmail.com"`.
-   - Funções como `enrichAllRecipes` e ações de pesquisa são executadas aqui para proteger a chave e gerir limites.
+1. **Scraper Service Layer** _(Firebase Cloud Functions)_
+   - Substituição total da Spoonacular por extração direta via `importFromUrlHttp`.
+   - O endpoint valida se `request.auth.token.email == "antonioappleton@gmail.com"`.
+   - Inclui lógica de normalização de ingredientes e matching de preços em tempo real.
 
 2. **Base de Dados** _(Firestore)_
-   - Coleção `recipes` global que apenas o administrador pode escrever.
+   - Coleção `recipes` global (Admin-only write).
+   - Gestão de inventário na coleção `pantry` com sincronização automática para a `groceryList`.
+   - Regras de segurança rigorosas em `firebase/firestore.rules`.
    - Nova coleção `userRecipes` para receitas pessoais, com campos customizáveis.
    - Regras documentadas no arquivo `firebase/firestore.rules`.
 
@@ -77,73 +80,29 @@ Utilizador autenticado
 
 ---
 
-## 🔌 API Spoonacular: Dados & Fluxo
+## 🔌 Supermarket Scraper: Dados & Fluxo
 
-### Que Dados Fornece?
+### Como Funciona?
 
-A **Spoonacular API** fornece informações enriquecidas sobre receitas:
+O sistema utiliza a Cloud Function `importFromUrlHttp` para processar URLs de receitas de supermercados portugueses.
 
-#### A. Busca de Receitas (complexSearch)
-```json
-{
-  "id": 123456,
-  "title": "Pasta Carbonara",
-  "readyInMinutes": 30,
-  "dishTypes": ["pasta"],
-  "vegetarian": false,
-  "vegan": false,
-  "extendedIngredients": [
-    {
-      "name": "pasta",
-      "amount": 400,
-      "unit": "g",
-      "original": "400g pasta"
-    }
-  ],
-  "pricePerServing": 250,  /* em cêntimos */
-  "image": "https://...",
-  "sourceUrl": "https://..."
-}
-```
+#### A. Extração Inteligente
+- **Continente Feed**: Captura automática de doses, tempo, ingredientes e passos.
+- **Pingo Doce**: Extração estruturada de detalhes da receita e imagens.
 
-#### B. Enriquecimento de Receitas (information)
-```json
-{
-  "nutrition": {
-    "nutrients": [
-      { "name": "Calories", "amount": 450 },
-      { "name": "Protein", "amount": 22 },
-      { "name": "Carbohydrates", "amount": 65 },
-      { "name": "Fat", "amount": 8 }
-    ]
-  },
-  "healthScore": 75,
-  "servings": 4
-}
-```
+#### B. Matching de Preços
+Para cada ingrediente extraído, o sistema realiza uma pesquisa heurística nos catálogos online:
+1. Limpeza do nome do ingrediente (ex: "350g de arroz" -> "arroz").
+2. Query ao motor de busca do supermercado escolhido.
+3. Seleção do melhor preço para estimar o custo total da receita.
 
-### Fluxo de Chamadas (Admin Only)
+### Fluxo de Importação (Admin Only)
 
-1. **Frontend** → solicita enriquecimento de receitas
-2. **Cloud Function `spoonacularProxy`** → valida que é admin (email == "antonioappleton@gmail.com")
-3. **Se validado** → chama Spoonacular API com a chave privada
-4. **Retorna dados** → para o frontend
-5. **Firebase salva** → em `recipes` collection
-
-```javascript
-// Frontend (seguro)
-const proxy = httpsCallable(functions, "spoonacularProxy");
-const resp = await proxy({
-  action: "enrichByName",
-  params: { recipeName: "Carbonara" }
-});
-
-// Backend (funções/index.ts, com autenticação)
-if (!request.auth.token.email == "antonioappleton@gmail.com") {
-  throw new HttpsError("permission-denied", "Admin only");
-}
-const result = await fetchSpoonacular("/recipes/complexSearch?query=Carbonara&...");
-```
+1. **Admin** cola o URL no ecrã de importação.
+2. **Cloud Function** valida a identidade (`antonioappleton@gmail.com`).
+3. **Scraper** obtém o HTML e converte para o formato NannyMeals.
+4. **Calculadora** enriquece os ingredientes com preços locais.
+5. **Firebase** guarda a nova receita na coleção `recipes`.
 
 ---
 
@@ -413,28 +372,21 @@ await submitMealFeedback(planId, mealIndex, feedbackData);
 
 ---
 
-## 🔐 Segurança & Limites
+## 🔐 Acesso Administrativo
 
-### Proteção da API Key
-- ✅ Armazenada **apenas** no backend (Cloud Functions)
-- ✅ Nunca viaja no frontend
-- ✅ Nunca é exposta em logs públicos
-- ✅ Cada chamada validada com `request.auth`
+O acesso às ferramentas de gestão de receitas e migração de sistema é restrito ao administrador principal.
 
-### Proteção de Dados Utilizador
-- ✅ Cada utilizador só vê as suas próprias `userRecipes`
-- ✅ Cada utilizador só vê `weeklyPlans` da sua família
-- ✅ Rate limits automáticos pela Firestore
-- ✅ Planos expiram automaticamente (30 dias) via Cloud Job
-
-### Limites da API (Spoonacular)
-- 🎯 Plano Gratuito: 150 chamadas/dia
-- 📊 Admin pode ver histórico em Firebase Logs
-- ⏰ Delay de 500ms entre chamadas evita throttling
+### Como aceder?
+1. Faça login na aplicação usando a conta Google: **antonioappleton@gmail.com**.
+2. No menu de navegação lateral (ou nas definições de perfil), clique em **Admin Import**.
+3. Apenas esta conta tem permissões para:
+   - Utilizar o **Importador Inteligente** via URL.
+   - Executar scripts de **Migração de Dados**.
+   - Atualizar a coleção global de receitas.
 
 ---
 
-## 🛠️ Próximos Passos (Roadmap)
+## 🛠️ Tecnologias Principais
 
 - **Frontend**: HTML5, Vanilla JavaScript (ES Modules), Tailwind CSS.
 - **Backend/Hosting**: Firebase (Auth, Firestore, Cloud Functions).
@@ -446,10 +398,10 @@ await submitMealFeedback(planId, mealIndex, feedbackData);
 
 ## � Próximos Passos (Roadmap)
 
-- [ ] **Integração com Continente/Pingo Doce**: Carrinho de compras direto nos supermercados locais.
-- [ ] **NannyBot AI**: Chatbot para ajudar a substituir ingredientes em tempo real (ex: "Não tenho ovos, o que uso?").
-- [ ] **Modo Offline**: Sincronização avançada para usar a lista de compras sem internet dentro do supermercado.
-- [ ] **Gamificação**: Medalhas por redução de desperdício e poupança mensal.
+- [x] **Integração com Continente/Pingo Doce**: Web scraping de receitas e preços reais.
+- [ ] **NannyBot AI**: Chatbot para ajudar a substituir ingredientes em tempo real.
+- [ ] **Modo Offline**: Sincronização avançada para usar a lista de compras sem internet.
+- [ ] **Gamificação**: Medalhas por redução de desperdício.
 
 ---
 
