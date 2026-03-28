@@ -187,7 +187,26 @@ function extractFromHtml(html, url = '') {
         return parsePingoDoce($, url);
     if (html.includes('auchan.pt') || $('.recipe-ingredients__item').length)
         return parseAuchan($, url);
-    return parseGenericText($('body').text() || html);
+    const generic = parseGenericText($('body').text() || html);
+    if (!generic.image) {
+        const metaImg = $('meta[property="og:image"]').attr('content') ||
+            $('meta[name="twitter:image"]').attr('content');
+        if (metaImg) {
+            generic.image = metaImg;
+        }
+        else {
+            const imgs = $('img').map((_, el) => ({
+                src: $(el).attr('src'),
+                width: parseInt($(el).attr('width') || '0'),
+                alt: $(el).attr('alt') || ''
+            })).get();
+            const likely = imgs.find(i => i.src && !i.src.includes('logo') && !i.src.includes('icon') &&
+                (i.width > 200 || (i.alt && i.alt.toLowerCase().includes(generic.name.split(' ')[0].toLowerCase()))));
+            if (likely && likely.src)
+                generic.image = likely.src;
+        }
+    }
+    return generic;
 }
 async function extractFromContinente(url) {
     const { data: html } = await axios_1.default.get(url, {
