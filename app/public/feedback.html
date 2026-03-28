@@ -4,140 +4,88 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>NannyMeal - Feedback Refeição</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <title>NannyMeal - Avaliação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="src/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/global.css" />
     <link rel="manifest" href="manifest.json" />
     <style>
-        body {
-            min-height: 100dvh;
+        body { min-height: 100dvh; }
+        .star-rating { display: flex; gap: 8px; justify-content: center; }
+        .star-item { cursor: pointer; transition: all 200ms ease; font-size: 48px; color: #e2e8f0; }
+        .star-item.active { color: #f59e0b; transform: scale(1.1); font-variation-settings: 'FILL' 1; }
+        .star-item:hover { transform: scale(1.15); }
+
+        .f-card {
+            background: white; border-radius: 24px; border: 1.5px solid #e4ede7;
+            padding: 24px; transition: all 200ms ease;
         }
+        html.dark .f-card { background: #111a14; border-color: #1e2d22; }
     </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-    <div class="app-container glass-effect">
+    <div class="app-container">
         <!-- Header -->
-        <header
-            class="flex items-center px-4 pt-8 pb-4 justify-between sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
-            <button onclick="history.back()"
-                class="size-12 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex items-center justify-center text-slate-400">
+        <header class="flex items-center px-4 pt-8 pb-4 justify-between sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+            <button onclick="history.back()" class="size-12 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex items-center justify-center text-slate-400">
                 <span class="material-symbols-outlined text-2xl">close</span>
             </button>
-            <h2 class="text-lg font-bold flex-1 text-center pr-12">Feedback Mensal</h2>
+            <h2 class="text-lg font-black tracking-tight flex-1 text-center pr-12">Avaliar Refeição</h2>
         </header>
 
-        <!-- Progress Indicator -->
-        <div class="px-4 py-2 space-y-3">
-            <div class="flex justify-between items-end">
-                <p class="text-base font-bold">Ajude-nos a melhorar</p>
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Check-in de 30s</p>
-            </div>
-            <div class="rounded-full bg-slate-200 dark:bg-slate-800 h-2 w-full overflow-hidden">
-                <div id="progress-bar" class="h-2 rounded-full bg-primary transition-all duration-500"
-                    style="width: 33%;"></div>
+        <!-- Progress -->
+        <div class="px-4 py-2 space-y-2">
+            <div id="progress-bar-container" class="rounded-full bg-slate-100 dark:bg-slate-800 h-1.5 w-full overflow-hidden">
+                <div id="progress-bar" class="h-full bg-primary transition-all duration-500" style="width: 0%;"></div>
             </div>
         </div>
 
-        <main class="flex-1 px-4 py-8 space-y-12 pb-32">
+        <main class="flex-1 px-4 py-8 space-y-8 pb-32 max-w-lg mx-auto">
             <div class="text-center space-y-2">
-                <h3 class="text-3xl font-extrabold tracking-tight" id="meal-name-display">Como correu hoje?</h3>
-                <p class="text-sm text-slate-500">O seu feedback ajuda-nos a planear melhor a próxima semana.</p>
+                <h3 class="text-2xl font-black tracking-tight" id="meal-name-display">Como correu hoje?</h3>
+                <p class="text-sm text-slate-500">O seu feedback ajuda-nos a sugerir receitas que a família realmente gosta.</p>
             </div>
 
-            <!-- Question 1: Kids Liked It? -->
-            <section
-                class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-premium border border-slate-100 dark:border-slate-800">
-                <h4 class="text-lg font-bold mb-6 text-center flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-primary">child_care</span>
-                    As crianças gostaram?
-                </h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <button data-type="kids" data-val="classic"
-                        class="feedback-btn flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800 hover:bg-primary/10 border-2 border-transparent hover:border-primary transition-all p-5 rounded-2xl group">
-                        <div
-                            class="rounded-full bg-white dark:bg-slate-700 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-3xl">sentiment_very_satisfied</span>
-                        </div>
-                        <p class="text-sm font-bold">Sucesso Total</p>
-                    </button>
-                    <button data-type="kids" data-val="no"
-                        class="feedback-btn flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 border-2 border-transparent hover:border-red-400 transition-all p-5 rounded-2xl group">
-                        <div
-                            class="rounded-full bg-white dark:bg-slate-700 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-3xl">sentiment_dissatisfied</span>
-                        </div>
-                        <p class="text-sm font-bold">Não gostaram</p>
-                    </button>
+            <!-- Question 1: Cooked? -->
+            <section class="f-card space-y-6">
+                <h4 class="text-sm font-black uppercase tracking-[0.2em] text-muted text-center">Cozinhou esta receita?</h4>
+                <div class="flex gap-3">
+                    <button data-type="cooked" data-val="yes" class="feedback-btn-alt flex-1 py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-sm transition-all hover:bg-primary/5 active:scale-95">SIM</button>
+                    <button data-type="cooked" data-val="no" class="feedback-btn-alt flex-1 py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-sm transition-all hover:bg-red-500/5 active:scale-95">NÃO</button>
                 </div>
             </section>
 
-            <!-- Question 2: Easy to Cook? -->
-            <section
-                class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-premium border border-slate-100 dark:border-slate-800">
-                <h4 class="text-lg font-bold mb-6 text-center flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-primary">skillet</span>
-                    Fácil de cozinhar?
-                </h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <button data-type="ease" data-val="fast"
-                        class="feedback-btn flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800 hover:bg-primary/10 border-2 border-transparent hover:border-primary transition-all p-5 rounded-2xl group">
-                        <div
-                            class="rounded-full bg-white dark:bg-slate-700 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-3xl">bolt</span>
-                        </div>
-                        <p class="text-sm font-bold">Rápido e Fácil</p>
-                    </button>
-                    <button data-type="ease" data-val="effort"
-                        class="feedback-btn flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 border-2 border-transparent hover:border-amber-400 transition-all p-5 rounded-2xl group">
-                        <div
-                            class="rounded-full bg-white dark:bg-slate-700 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-3xl">restaurant</span>
-                        </div>
-                        <p class="text-sm font-bold">Muito trabalho</p>
-                    </button>
+            <!-- Question 2: Star Rating -->
+            <section id="rating-section" class="f-card space-y-6 hidden animate-fade-up">
+                <h4 class="text-sm font-black uppercase tracking-[0.2em] text-muted text-center">Que nota dá ao prato?</h4>
+                <div class="star-rating">
+                    <span class="star-item material-symbols-outlined" data-star="1">star</span>
+                    <span class="star-item material-symbols-outlined" data-star="2">star</span>
+                    <span class="star-item material-symbols-outlined" data-star="3">star</span>
+                    <span class="star-item material-symbols-outlined" data-star="4">star</span>
+                    <span class="star-item material-symbols-outlined" data-star="5">star</span>
                 </div>
+                <p id="star-label" class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest h-4"></p>
             </section>
 
-            <!-- Question 3: Any Waste? -->
-            <section
-                class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-premium border border-slate-100 dark:border-slate-800">
-                <h4 class="text-lg font-bold mb-6 text-center flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-primary">delete_outline</span>
-                    Houve desperdício?
-                </h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <button data-type="waste" data-val="none"
-                        class="feedback-btn flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800 hover:bg-primary/10 border-2 border-transparent hover:border-primary transition-all p-5 rounded-2xl group">
-                        <div
-                            class="rounded-full bg-white dark:bg-slate-700 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-3xl">check_circle</span>
-                        </div>
-                        <p class="text-sm font-bold">Pratos limpos</p>
-                    </button>
-                    <button data-type="waste" data-val="leftovers"
-                        class="feedback-btn flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-2 border-transparent hover:border-orange-400 transition-all p-5 rounded-2xl group">
-                        <div
-                            class="rounded-full bg-white dark:bg-slate-700 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-3xl">delete_sweep</span>
-                        </div>
-                        <p class="text-sm font-bold">Sobras / Lixo</p>
-                    </button>
-                </div>
+            <!-- Qualitative -->
+            <section id="extra-section" class="f-card space-y-6 hidden animate-fade-up">
+                 <h4 class="text-sm font-black uppercase tracking-[0.2em] text-muted text-center">Destaques (Opcional)</h4>
+                 <div class="flex flex-wrap gap-2 justify-center">
+                    <button data-type="extra" data-val="kids" class="extra-btn px-4 py-2 rounded-full border border-slate-100 dark:border-slate-800 text-sm font-bold flex items-center gap-2">👶 Crianças adoraram</button>
+                    <button data-type="extra" data-val="fast" class="extra-btn px-4 py-2 rounded-full border border-slate-100 dark:border-slate-800 text-sm font-bold flex items-center gap-2">⚡ Super rápido</button>
+                    <button data-type="extra" data-val="leftovers" class="extra-btn px-4 py-2 rounded-full border border-slate-100 dark:border-slate-800 text-sm font-bold flex items-center gap-2">🗑️ Sobras/Lixo</button>
+                 </div>
             </section>
 
             <div class="space-y-4 pt-4">
-                <button id="btn-submit"
-                    class="w-full bg-primary text-slate-900 font-bold py-5 rounded-2xl shadow-premium hover:scale-[0.98] active:scale-[0.95] transition-all">
+                <button id="btn-submit" disabled class="w-full bg-slate-100 dark:bg-slate-800 text-slate-400 font-black py-5 rounded-2xl transition-all cursor-not-allowed uppercase tracking-widest text-xs">
                     Submeter Feedback
                 </button>
-                <button onclick="history.back()"
-                    class="w-full bg-transparent text-slate-400 font-bold py-3 uppercase tracking-widest text-[10px] hover:text-slate-600 transition-colors">
+                <button onclick="history.back()" class="w-full bg-transparent text-slate-400 font-bold py-3 uppercase tracking-widest text-[10px] hover:text-slate-600 transition-colors">
                     Saltar por agora
                 </button>
             </div>
@@ -153,37 +101,79 @@
         const mealIndex = parseInt(urlParams.get('meal')) || 0;
 
         let currentPlan = null;
-        let selectedFeedback = { kidsLiked: null, easyToCook: null, wasteLevel: null };
+        let feedback = { cooked: null, starRating: 0, kidsLiked: false, easyToCook: false, wasteLevel: 0 };
 
         const mealNameDisplay = document.getElementById("meal-name-display");
         const btnSubmit = document.getElementById("btn-submit");
 
-        const buttons = document.querySelectorAll(".feedback-btn");
-        buttons.forEach(btn => {
+        // Cooked Toggle logic
+        document.querySelectorAll('[data-type="cooked"]').forEach(btn => {
             btn.onclick = () => {
-                const type = btn.getAttribute("data-type");
-                const val = btn.getAttribute("data-val");
-
-                document.querySelectorAll(`[data-type="${type}"]`).forEach(b => {
-                    b.classList.remove("border-primary", "bg-primary/10", "border-red-400", "bg-red-50", "border-amber-400", "bg-amber-50", "border-orange-400", "bg-orange-50");
+                const val = btn.dataset.val;
+                feedback.cooked = (val === 'yes');
+                
+                document.querySelectorAll('[data-type="cooked"]').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-slate-900', 'border-primary', 'bg-red-500', 'text-white', 'border-red-500');
                 });
 
-                const activeClass = (type === 'kids' && val === 'no') ? 'border-red-400 bg-red-50'
-                    : (type === 'ease' && val === 'effort') ? 'border-amber-400 bg-amber-50'
-                        : (type === 'waste' && val === 'leftovers') ? 'border-orange-400 bg-orange-50'
-                            : 'border-primary bg-primary/10';
-
-                btn.classList.add(...activeClass.split(' '));
-
-                // Map UI values to DB structure
-                if (type === 'kids') selectedFeedback.kidsLiked = (val === 'classic');
-                if (type === 'ease') selectedFeedback.easyToCook = (val === 'fast');
-                if (type === 'waste') selectedFeedback.wasteLevel = (val === 'leftovers' ? 3 : 0);
-
-                const count = Object.values(selectedFeedback).filter(v => v !== null).length;
-                document.getElementById("progress-bar").style.width = (count * 33) + "%";
+                if (val === 'yes') {
+                    btn.classList.add('bg-primary', 'text-slate-900', 'border-primary');
+                    document.getElementById('rating-section').classList.remove('hidden');
+                    document.getElementById('extra-section').classList.remove('hidden');
+                } else {
+                    btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+                    document.getElementById('rating-section').classList.add('hidden');
+                    document.getElementById('extra-section').classList.add('hidden');
+                    feedback.starRating = 0;
+                }
+                updateProgress();
             };
         });
+
+        // Stars Logic
+        const starLabels = ["Terrível", "Não gostámos", "Normal", "Muito bom", "Excelente! 🤩"];
+        document.querySelectorAll('.star-item').forEach(star => {
+            star.onclick = () => {
+                const rating = parseInt(star.dataset.star);
+                feedback.starRating = rating;
+                document.querySelectorAll('.star-item').forEach(s => {
+                    s.classList.toggle('active', parseInt(s.dataset.star) <= rating);
+                });
+                document.getElementById('star-label').textContent = starLabels[rating-1];
+                updateProgress();
+            };
+        });
+
+        // Extra Logic
+        document.querySelectorAll('.extra-btn').forEach(btn => {
+            btn.onclick = () => {
+                const val = btn.dataset.val;
+                btn.classList.toggle('bg-primary/10');
+                btn.classList.toggle('border-primary');
+                btn.classList.toggle('text-primary');
+                if (val === 'kids') feedback.kidsLiked = !feedback.kidsLiked;
+                if (val === 'fast') feedback.easyToCook = !feedback.easyToCook;
+                if (val === 'leftovers') feedback.wasteLevel = feedback.wasteLevel === 3 ? 0 : 3;
+            };
+        });
+
+        function updateProgress() {
+            let p = 0;
+            if (feedback.cooked !== null) p += 50;
+            if (feedback.cooked === false || (feedback.cooked === true && feedback.starRating > 0)) p += 50;
+            
+            document.getElementById('progress-bar').style.width = p + "%";
+            
+            if (p === 100) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'cursor-not-allowed');
+                btnSubmit.classList.add('bg-primary', 'text-slate-900', 'shadow-glow');
+            } else {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'cursor-not-allowed');
+                btnSubmit.classList.remove('bg-primary', 'text-slate-900', 'shadow-glow');
+            }
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -191,26 +181,19 @@
                 if (currentPlan && currentPlan.meals[mealIndex]) {
                     mealNameDisplay.textContent = `Feedback: ${currentPlan.meals[mealIndex].recipeName}`;
                 }
-            } else {
-                window.location.href = "index.html";
-            }
+            } else { window.location.href = "index.html"; }
         });
 
         btnSubmit.onclick = async () => {
-            if (Object.values(selectedFeedback).some(v => v === null)) {
-                alert("Por favor, responda a todas as perguntas.");
-                return;
-            }
-
             if (currentPlan) {
                 btnSubmit.disabled = true;
-                btnSubmit.textContent = "A guardar...";
-                await submitMealFeedback(currentPlan.id, mealIndex, selectedFeedback);
-                alert("Feedback enviado! Obrigado por nos ajudar a melhorar.");
+                btnSubmit.textContent = "A SABOREAR...";
+                await submitMealFeedback(currentPlan.id, mealIndex, feedback);
                 window.location.href = "dashboard.html";
             }
         };
     </script>
 </body>
+</html>
 
 </html>

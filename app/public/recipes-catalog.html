@@ -147,6 +147,10 @@
       <!-- Filters -->
       <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
         <button class="filter-btn filter-chip filter-chip-active shrink-0" data-filter="all">Todas</button>
+        <button class="filter-btn filter-chip filter-chip-inactive shrink-0 flex items-center gap-1.5" data-filter="pantry">
+          <span class="material-symbols-outlined text-sm">inventory_2</span>
+          Minha Despensa
+        </button>
         <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="fast">⚡ Rápidas</button>
         <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="vegetarian">🥦 Veg.</button>
         <button class="filter-btn filter-chip filter-chip-inactive shrink-0" data-filter="kid-friendly">👶 Crianças</button>
@@ -276,7 +280,7 @@
   <script type="module">
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { auth } from "./src/firebase-init.js";
-    import { getAllRecipes, saveUserRecipe } from "./src/db.js";
+    import { getAllRecipes, saveUserRecipe, getPantry, normalizeIngredientName } from "./src/db.js";
     import { logout } from "./src/auth.js";
 
     const loadingState = document.getElementById("loading-state");
@@ -286,7 +290,7 @@
     const filterButtons = document.querySelectorAll(".filter-btn");
     const recipeModal = document.getElementById("recipe-modal");
 
-    let allRecipes = [], currentFilter = "all", currentSearchTerm = "", selectedRecipe = null;
+    let allRecipes = [], currentFilter = "all", currentSearchTerm = "", selectedRecipe = null, pantryData = { items: {} };
 
     // Category image mapping
     const categoryImages = {
@@ -340,9 +344,42 @@
 
     const filterRecipes = () => {
       let filtered = allRecipes;
-      if (currentFilter !== "all") filtered = filtered.filter(r => r.tags && r.tags.includes(currentFilter));
-      if (currentSearchTerm) filtered = filtered.filter(r => r.name.toLowerCase().includes(currentSearchTerm) || (r.tags && r.tags.some(t => t.toLowerCase().includes(currentSearchTerm))));
+      
+      if (currentFilter === "pantry") {
+        // Compute matches for all and filter/sort
+        filtered = filtered.map(r => ({ ...r, _match: calcMatch(r) }));
+        filtered = filtered.sort((a,b) => (b._match || 0) - (a._match || 0));
+      } else if (currentFilter !== "all") {
+        filtered = filtered.filter(r => r.tags && r.tags.includes(currentFilter));
+      }
+
+      if (currentSearchTerm) {
+        filtered = filtered.filter(r => 
+          r.name.toLowerCase().includes(currentSearchTerm) || 
+          (r.tags && r.tags.some(t => t.toLowerCase().includes(currentSearchTerm))) ||
+          (r.ingredients && r.ingredients.some(i => (typeof i === 'string' ? i : i.name||'').toLowerCase().includes(currentSearchTerm)))
+        );
+      }
       return filtered;
+    };
+
+    const calcMatch = (recipe) => {
+      const items = pantryData.items || {};
+      const pantryKeys = Object.keys(items).map(k => normalizeIngredientName(k));
+      const recipeIngs = (recipe.ingredients || []).map(i => normalizeIngredientName(typeof i === 'string' ? i : i.name));
+      
+      if (recipeIngs.length === 0) return null;
+      
+      let matches = 0;
+      recipeIngs.forEach(ing => {
+        // Find if any pantry key matches
+        if (pantryKeys.some(pk => ing.includes(pk) || pk.includes(ing)) && 
+            items[Object.keys(items).find(k => normalizeIngredientName(k).includes(ing) || ing.includes(normalizeIngredientName(k)))] !== 'out') {
+          matches++;
+        }
+      });
+      
+      return Math.round((matches / recipeIngs.length) * 100);
     };
 
     const renderRecipes = () => {
@@ -361,16 +398,30 @@
         const imgHtml = imgData.type === 'img'
           ? `<img src="${imgData.src}" alt="${recipe.name}" class="recipe-card-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'recipe-card-img-placeholder cat-default\'>🍽️</div>'">`
           : `<div class="recipe-card-img-placeholder ${categoryBg[(recipe.tags||[])[0]] || 'cat-default'}">${categoryEmoji[(recipe.tags||[])[0]] || '🍽️'}</div>`;
-        const time = recipe.prepTime ? `<span class="text-[10px] font-bold text-muted">${recipe.prepTime}min</span>` : '';
-        const tags = (recipe.tags||[]).slice(0,2).map(t => `<span class="tag-badge ${getTagStyle(t)}">${t}</span>`).join('');
+        
+        // Use pre-computed match if available (from pantry filter) or calculate fresh
+        const matchPct = recipe._match !== undefined ? recipe._match : calcMatch(recipe);
+        const matchBar = matchPct !== null 
+          ? `<div class="mt-2">
+              <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-muted mb-1">
+                <span>Match em casa</span>
+                <span class="${matchPct >= 80 ? 'text-primary' : matchPct >= 50 ? 'text-amber-500' : 'text-slate-400'}">${matchPct}%</span>
+              </div>
+              <div class="h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full ${matchPct >= 80 ? 'bg-primary' : matchPct >= 50 ? 'bg-amber-500' : 'bg-slate-400'}" style="width: ${matchPct}%"></div>
+              </div>
+            </div>` 
+          : '';
+
         return `<div class="recipe-card" onclick="openRecipeDetail('${recipe.id}')">
           ${imgHtml}
           <div class="p-3 space-y-2">
             <h3 class="font-black text-sm leading-tight line-clamp-2">${recipe.name}</h3>
             <div class="flex items-center justify-between">
               ${time}
+              <div class="flex flex-wrap gap-1 justify-end">${tags}</div>
             </div>
-            <div class="flex flex-wrap gap-1">${tags}</div>
+            ${matchBar}
           </div>
         </div>`;
       }).join('');
@@ -437,7 +488,12 @@
     onAuthStateChanged(auth, async user => {
       if (!user) { window.location.href = "index.html"; return; }
       try {
-        allRecipes = await getAllRecipes(user.uid);
+        const [recipes, pantry] = await Promise.all([
+          getAllRecipes(user.uid),
+          getPantry(user.uid)
+        ]);
+        allRecipes = recipes;
+        pantryData = pantry;
         loadingState.classList.add("hidden");
         renderRecipes();
       } catch(e) { console.error(e); loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }

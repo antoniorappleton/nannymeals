@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NannyMeals — Despensa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/images/hero.webp" />
+  <style>
+    body { min-height: 100dvh; }
+    
+    .pantry-card {
+      background: white;
+      border-radius: 20px;
+      border: 1.5px solid #e4ede7;
+      box-shadow: 0 4px 20px -4px rgba(19,236,91,0.08);
+      transition: all 180ms ease;
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      gap: 16px;
+    }
+    html.dark .pantry-card { background: #111a14; border-color: #1e2d22; }
+    
+    .status-btn {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 200ms ease;
+      border: 1.5px solid #e4ede7;
+      background: #f8faf8;
+      color: #94a3b8;
+    }
+    html.dark .status-btn { background: #1a2e1f; border-color: #1e2d22; }
+
+    .status-btn.active.ok { border-color: #13ec5b; background: #f0fdf4; color: #15803d; }
+    .status-btn.active.low { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+    .status-btn.active.out { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+    
+    html.dark .status-btn.active.ok { background: #052e10; border-color: #13ec5b; }
+    html.dark .status-btn.active.low { background: #451a03; border-color: #f59e0b; }
+    html.dark .status-btn.active.out { background: #450a0a; border-color: #ef4444; }
+
+    .pantry-input {
+      background: transparent;
+      border: none;
+      font-weight: 800;
+      font-size: 16px;
+      outline: none;
+      width: 100%;
+    }
+  </style>
+  <script>
+    (function() {
+      const saved = localStorage.getItem('nm_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
+    })();
+  </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div class="app-container">
+
+    <!-- ── Header ──────────────────────────────── -->
+    <header class="sticky top-0 z-20 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-100 dark:border-border-dark px-4 lg:px-6 pt-5 pb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted">Gestão de Stock</p>
+          <h1 class="text-xl font-black tracking-tight mt-0.5">A Minha Despensa</h1>
+        </div>
+        <div class="flex gap-2">
+           <button id="btn-add-item" class="size-10 rounded-full bg-primary/15 text-primary flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+             <span class="material-symbols-outlined font-black">add</span>
+           </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Main ──────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto px-4 lg:px-6 py-5 pb-safe space-y-4" id="pantry-container">
+      
+      <!-- Search -->
+      <div class="relative mb-6">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+        <input type="text" id="pantry-search" placeholder="Procurar ingrediente..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark font-bold text-sm outline-none focus:border-primary transition-all shadow-sm" />
+      </div>
+
+      <!-- Loading State -->
+      <div id="pantry-loading" class="flex flex-col items-center justify-center py-20 text-muted gap-4">
+        <div class="size-16 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-bounce-slow">
+          <span class="material-symbols-outlined text-4xl">inventory_2</span>
+        </div>
+        <p class="font-bold">A carregar stock...</p>
+      </div>
+
+      <!-- Items List -->
+      <div id="items-list" class="space-y-3"></div>
+
+    </main>
+  </div>
+
+  <!-- Bottom Nav Loader -->
+  <script>
+    fetch('bottom-nav.html').then(r => r.text()).then(html => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+  </script>
+
+  <script type="module">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { auth } from "./src/firebase-init.js";
+    import { getPantry, updatePantryItem, removePantryItem } from "./src/db.js";
+
+    let pantryData = { items: {} };
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) { window.location.href='index.html'; return; }
+      currentUser = user;
+      await loadPantry();
+    });
+
+    async function loadPantry() {
+      try {
+        pantryData = await getPantry(currentUser.uid);
+        renderPantry();
+      } catch (err) { console.error("Load Pantry Error:", err); }
+      finally { document.getElementById('pantry-loading').classList.add('hidden'); }
+    }
+
+    function renderPantry(filter = '') {
+      const list = document.getElementById('items-list');
+      const items = pantryData.items || {};
+      const sortedKeys = Object.keys(items).sort().filter(k => k.toLowerCase().includes(filter.toLowerCase()));
+
+      if (sortedKeys.length === 0 && !filter) {
+        list.innerHTML = `<div class="text-center py-20 text-muted">
+          <p class="font-black">Despensa vazia</p>
+          <p class="text-xs uppercase tracking-widest mt-2">Clica no + para adicionar itens</p>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = sortedKeys.map(name => {
+        const status = items[name];
+        return `
+          <div class="pantry-card animate-fade-up">
+            <div class="flex-1 min-w-0">
+               <p class="font-black text-slate-700 dark:text-slate-200">${name}</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+               <button onclick="toggleStatus('${name}', 'ok')" class="status-btn ${status === 'ok' ? 'active ok' : ''}" title="Tenho">
+                  <span class="material-symbols-outlined text-base">check_circle</span>
+               </button>
+               <button onclick="toggleStatus('${name}', 'low')" class="status-btn ${status === 'low' ? 'active low' : ''}" title="Pouco">
+                  <span class="material-symbols-outlined text-base">warning</span>
+               </button>
+               <button onclick="toggleStatus('${name}', 'out')" class="status-btn ${status === 'out' ? 'active out' : ''}" title="Esgotado">
+                  <span class="material-symbols-outlined text-base">cancel</span>
+               </button>
+               <button onclick="deleteItem('${name}')" class="ml-2 size-10 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
+                  <span class="material-symbols-outlined text-xl">delete</span>
+               </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleStatus = async (name, status) => {
+      const current = pantryData.items[name];
+      const newStatus = current === status ? null : status; // toggle off if same
+      if (!newStatus) return; // For pantry, we probably always want one status
+
+      pantryData.items[name] = status;
+      renderPantry(document.getElementById('pantry-search').value);
+      await updatePantryItem(currentUser.uid, name, status);
+    };
+
+    window.deleteItem = async (name) => {
+      if (confirm(`Remover "${name}" da despensa?`)) {
+        delete pantryData.items[name];
+        renderPantry(document.getElementById('pantry-search').value);
+        await removePantryItem(currentUser.uid, name);
+      }
+    };
+
+    document.getElementById('pantry-search').oninput = (e) => {
+      renderPantry(e.target.value);
+    };
+
+    document.getElementById('btn-add-item').onclick = () => {
+      const name = prompt("Nome do ingrediente:");
+      if (name && name.trim()) {
+        const cleanName = name.trim().charAt(0).toUpperCase() + name.trim().slice(1);
+        pantryData.items[cleanName] = 'ok';
+        renderPantry();
+        updatePantryItem(currentUser.uid, cleanName, 'ok');
+      }
+    };
+  </script>
+</body>
+</html>

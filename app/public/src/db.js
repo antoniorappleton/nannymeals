@@ -131,6 +131,17 @@ export const submitMealFeedback = async (planId, mealIndex, feedback) => {
   });
 };
 
+export const updateMealStatus = async (planId, mealIndex, completed) => {
+  const planRef = doc(db, "weeklyPlans", planId);
+  const planSnap = await getDoc(planRef);
+  if (!planSnap.exists()) return;
+  const meals = planSnap.data().meals || [];
+  if (meals[mealIndex]) {
+    meals[mealIndex].completed = completed;
+    await updateDoc(planRef, { meals });
+  }
+};
+
 export const swapMeal = async (planId, mealIndex, newRecipeId, reason) => {
   const recipe = await getRecipe(newRecipeId);
   if (!recipe) return;
@@ -250,6 +261,39 @@ export const getHouseholdStats = async (uid) => {
       ],
     };
   }
+};
+
+// ── Pantry Management ────────────────────────
+export const getPantry = async (uid) => {
+  const household = await getHousehold(uid);
+  if (!household) return { items: {} };
+  const hid = household.id;
+  const pSnap = await getDoc(doc(db, "households", hid, "pantry", "current"));
+  return pSnap.exists() ? pSnap.data() : { items: {} };
+};
+
+export const updatePantryItem = async (uid, name, status) => {
+  const household = await getHousehold(uid);
+  if (!household) return;
+  const hid = household.id;
+  const pantryRef = doc(db, "households", hid, "pantry", "current");
+  const pSnap = await getDoc(pantryRef);
+  const items = pSnap.exists() ? pSnap.data().items || {} : {};
+  
+  items[name] = status; // 'ok', 'low', 'out'
+  await setDoc(pantryRef, { items, updatedAt: serverTimestamp() }, { merge: true });
+};
+
+export const removePantryItem = async (uid, name) => {
+  const household = await getHousehold(uid);
+  if (!household) return;
+  const hid = household.id;
+  const pantryRef = doc(db, "households", hid, "pantry", "current");
+  const pSnap = await getDoc(pantryRef);
+  if (!pSnap.exists()) return;
+  const items = pSnap.data().items || {};
+  delete items[name];
+  await setDoc(pantryRef, { items, updatedAt: serverTimestamp() }, { merge: true });
 };
 
 export const getRecipe = async (rid) => {
@@ -657,7 +701,7 @@ const formatQuantity = (qty, baseUnit) => {
  * @param {string} name - nome do ingrediente
  * @returns {string} - nome normalizado
  */
-const normalizeIngredientName = (name) => {
+export const normalizeIngredientName = (name) => {
   if (!name) return '';
   
   return name
@@ -838,6 +882,32 @@ export const generateGroceryListFromPlan = async (planId) => {
       aggregator[normalizedName].qty += convertedQty;
     });
   });
+
+  // ── Pantry Integration ──────────────────────
+  try {
+    const householdId = data.householdId;
+    if (householdId) {
+      const pSnap = await getDoc(doc(db, "households", householdId, "pantry", "current"));
+      if (pSnap.exists()) {
+        const pantryItems = pSnap.data().items || {};
+        Object.entries(pantryItems).forEach(([pName, pStatus]) => {
+          if (pStatus === 'out' || pStatus === 'low') {
+            const pNorm = normalizeIngredientName(pName);
+            // If not already in list from recipes, or explicitly for replenishment
+            if (!aggregator[pNorm]) {
+              aggregator[pNorm] = {
+                name: (pName.charAt(0).toUpperCase() + pName.slice(1)) + (pStatus === 'low' ? ' (Pouco Stock)' : ' (Esgotado)'),
+                qty: 1,
+                baseUnit: 'unid',
+                category: '🔄 Reabastecer Despensa',
+                checked: false
+              };
+            }
+          }
+        });
+      }
+    }
+  } catch (err) { console.warn("Pantry sync to grocery failed:", err); }
 
   // Convert map to categorized array with better formatting
   const categoriesMap = {};

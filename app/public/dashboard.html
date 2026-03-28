@@ -192,6 +192,15 @@
             </div>
           </div>
         </div>
+
+        <!-- NEW: Pantry Match Suggestions -->
+        <div id="pantry-suggestions" class="mt-6 hidden animate-fade-up">
+           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-muted mb-3 flex items-center gap-2">
+             <span class="material-symbols-outlined text-xs">inventory_2</span>
+             O que podes cozinhar agora?
+           </p>
+           <div id="pantry-suggestions-grid" class="flex gap-3 overflow-x-auto no-scrollbar pb-2"></div>
+        </div>
       </div>
 
       <!-- ── WEEK STRIP ────────────────────────────── -->
@@ -256,6 +265,12 @@
             </div>
             <span class="text-[10px] font-black text-muted leading-tight text-center">Compras</span>
           </a>
+          <a href="pantry.html" class="quick-action">
+            <div class="size-10 rounded-xl bg-blue-400/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-blue-500 text-lg" style="font-variation-settings:'FILL' 1">inventory_2</span>
+            </div>
+            <span class="text-[10px] font-black text-muted leading-tight text-center">Despensa</span>
+          </a>
           <a href="perfil.html" class="quick-action">
             <div class="size-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
               <span class="material-symbols-outlined text-purple-500 text-lg" style="font-variation-settings:'FILL' 1">manage_accounts</span>
@@ -290,218 +305,217 @@
   <script type="module">
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { auth } from "./src/firebase-init.js";
-    import { getAllRecipes, getUserRecipes, getHousehold, getAllPlans } from "./src/db.js";
+    import { 
+      getAllRecipes, 
+      getUserRecipes, 
+      getHousehold, 
+      getAllPlans, 
+      updateMealStatus,
+      getPantry,
+      normalizeIngredientName
+    } from "./src/db.js";
     import { logout } from "./src/auth.js";
+    import { showToast } from "./src/ui-helper.js";
 
     document.getElementById("btn-logout").onclick = () => logout();
 
-    // ── Greeting dinâmico ─────────────────────────────
+    // ── Greeting & Date ───────────────────────────────
     const h = new Date().getHours();
     const greetEmoji = h < 12 ? '☀️' : h < 18 ? '🌤️' : '🌙';
     const greetWord  = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-
-    // ── Week label ────────────────────────────────────
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0=Sun
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const todayIndex = (now.getDay() + 6) % 7; // Mon=0 ... Sun=6
+    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+    const mondayOffset = (now.getDay() === 0 ? -6 : 1 - now.getDay());
     const monday = new Date(now); monday.setDate(now.getDate() + mondayOffset);
     const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
     const fmt = d => `${d.getDate()} ${d.toLocaleDateString('pt-PT', {month:'short'}).toUpperCase().replace('.', '')}`;
+    
     document.getElementById("hero-week-label").textContent = `${fmt(monday)} – ${fmt(sunday)}`;
-
-    // ── Month header ──────────────────────────────────
-    document.getElementById("current-month-header").textContent =
+    document.getElementById("current-month-header").textContent = 
       `RESUMO MENSAL • ${now.toLocaleDateString('pt-PT', {month:'long', year:'numeric'}).toUpperCase()}`;
 
-    // ── Category emoji map ────────────────────────────
-    const catEmoji = {
-      sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝',
-      vegetariano:'🥦', sobremesa:'🍮', default:'🍽️'
-    };
+    let currentActivePlanId = null;
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      document.getElementById('greeting-heading').textContent = `${greetWord}, ${greetEmoji}`;
+
+      try {
+        await Promise.all([
+          loadRecipeStats(user.uid),
+          loadPlanData(user.uid),
+          loadRecentFeedback(user.uid),
+          loadPantrySuggestions(user.uid)
+        ]);
+      } catch(e) { console.error("Error loading dashboard data:", e); }
+    });
+
+    // ── Data Loaders ──────────────────────────────────
+    async function loadRecipeStats(uid) {
+      const [all, saved] = await Promise.all([getAllRecipes(uid), getUserRecipes(uid)]);
+      document.getElementById("recipe-count").textContent = all.length;
+      document.getElementById("saved-recipes-count").textContent = saved.length;
+    }
+
+    async function loadPlanData(uid) {
+      const plans = await getAllPlans(uid);
+      const activePlan = (plans || []).find(p => p.status === 'active') || plans?.[0];
+      const todayCard = document.getElementById("today-meal-card");
+      const weekStrip = document.getElementById("week-strip");
+
+      if (!activePlan || !activePlan.meals?.length) {
+        todayCard.innerHTML = buildEmptyToday();
+        renderWeekStrip(weekStrip, [], todayIndex);
+        return;
+      }
+
+      currentActivePlanId = activePlan.id;
+      const meals = activePlan.meals;
+      const todayMeal = meals[todayIndex];
+
+      todayCard.innerHTML = todayMeal ? buildTodayCard(todayMeal) : buildEmptyToday();
+      renderWeekStrip(weekStrip, meals, todayIndex);
+    }
+
+    // ── UI Builders ───────────────────────────────────
+    const catEmoji = { sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝', vegetariano:'🥦', sobremesa:'🍮', default:'🍽️' };
     function recipeEmoji(name='', category='') {
       const key = (category || '').toLowerCase().trim();
       if (catEmoji[key]) return catEmoji[key];
       const n = name.toLowerCase();
-      if (n.includes('sopa') || n.includes('caldo') || n.includes('creme')) return '🥣';
-      if (n.includes('frango') || n.includes('carne') || n.includes('peru') || n.includes('vaca') || n.includes('porco')) return '🥩';
-      if (n.includes('salmão') || n.includes('bacalhau') || n.includes('peixe') || n.includes('atum')) return '🐟';
-      if (n.includes('massa') || n.includes('esparguete') || n.includes('lasanha')) return '🍝';
-      if (n.includes('salada') || n.includes('vegeta') || n.includes('tofu') || n.includes('lentil')) return '🥦';
+      if (n.includes('sopa')) return '🥣';
+      if (n.includes('frango') || n.includes('carne')) return '🥩';
+      if (n.includes('peixe') || n.includes('bacalhau')) return '🐟';
+      if (n.includes('massa')) return '🍝';
       return '🍽️';
-    }
-
-    // ── Today helper ─────────────────────────────────
-    // Returns 0=Mon, 1=Tue, …, 6=Sun (matches plan.meals[index])
-    const todayIndex = (now.getDay() + 6) % 7; // JS Sun=0 → Mon=0
-    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-    const planDayNames = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
-
-    // ── week strip label ──────────────────────────────
-    // The global plan days are indexed Mon=0…Sun=6
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) { window.location.href='index.html'; return; }
-
-      // Update greeting
-      document.getElementById('greeting-heading').textContent = `${greetWord}, ${greetEmoji}`;
-
-      await Promise.all([
-        loadRecipeStats(user.uid),
-        loadPlanData(user.uid),
-        loadRecentFeedback(user.uid),
-      ]);
-    });
-
-    // ── Recipe stats ──────────────────────────────────
-    async function loadRecipeStats(uid) {
-      try {
-        const all = await getAllRecipes(uid);
-        const el = document.getElementById("recipe-count");
-        if (el) el.textContent = all.length || 0;
-        const saved = await getUserRecipes(uid);
-        const sel = document.getElementById("saved-recipes-count");
-        if (sel) sel.textContent = saved.length || 0;
-      } catch(e) { console.error("Stats error:", e); }
-    }
-
-    // ── Plan data: Today's Meal + Week Strip ──────────
-    async function loadPlanData(uid) {
-      try {
-        const plans = await getAllPlans(uid);
-        const activePlan = (plans || []).find(p => p.status === 'active') || plans?.[0];
-
-        const todayCard = document.getElementById("today-meal-card");
-        const weekStrip = document.getElementById("week-strip");
-
-        if (!activePlan || !activePlan.meals?.length) {
-          todayCard.innerHTML = buildEmptyToday();
-          renderWeekStrip(weekStrip, [], todayIndex);
-          return;
-        }
-
-        const meals = activePlan.meals;
-
-        // Today's meal (index 0=Mon)
-        const todayMeal = meals[todayIndex] || null;
-        todayCard.innerHTML = todayMeal
-          ? buildTodayCard(todayMeal)
-          : buildEmptyToday();
-
-        // Week strip
-        renderWeekStrip(weekStrip, meals, todayIndex);
-
-      } catch(e) {
-        console.error("Plan data error:", e);
-        document.getElementById("today-meal-card").innerHTML = buildEmptyToday();
-      }
     }
 
     function buildTodayCard(meal) {
       const emoji = recipeEmoji(meal.recipeName, meal.category);
-      const cat = (meal.category || 'default').toLowerCase().trim();
-      const badgeClass = `badge-${cat}`;
-      const time = meal.prepTime ? `${meal.prepTime} min` : '';
-      const cost = meal.pricePerServing ? `${meal.pricePerServing} €/p.p.` : '';
+      const isDone = meal.completed === true;
+      const badgeCls = `badge-${(meal.category||'default').toLowerCase()}`;
+      
       return `
-        <a href="plan.html" class="today-card p-4 flex items-center gap-4 block hover:no-underline">
-          <div class="size-16 rounded-2xl bg-primary/10 dark:bg-primary/5 flex items-center justify-center shrink-0 text-3xl">${emoji}</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-start justify-between gap-2 mb-1.5">
-              <p class="font-black text-base leading-tight truncate">${meal.recipeName}</p>
-              <span class="meal-type-badge ${badgeClass} shrink-0">${meal.category || 'Receita'}</span>
-            </div>
-            <div class="flex items-center gap-3 text-xs text-muted font-bold">
-              ${time ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span>${time}</span>` : ''}
-              ${cost ? `<span class="text-primary">${cost}</span>` : ''}
-            </div>
+        <div class="today-card p-5 flex items-center gap-5 group">
+          <div class="size-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl shadow-sm shrink-0">
+            ${emoji}
           </div>
-        </a>`;
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="meal-type-badge ${badgeCls}">${meal.category || 'Receita'}</span>
+              ${isDone ? '<span class="meal-type-badge bg-primary text-slate-900">Cozinhado</span>' : ''}
+            </div>
+            <h3 class="text-xl font-black tracking-tight truncate ${isDone ? 'line-through opacity-50' : ''}">${meal.recipeName}</h3>
+            <p class="text-[10px] font-bold text-muted mt-1 uppercase tracking-widest flex items-center gap-2">
+              <span class="material-symbols-outlined text-xs">schedule</span> ${meal.prepTime || '--'} min
+              <span class="text-slate-300">|</span>
+              <span class="material-symbols-outlined text-xs">payments</span> ${meal.pricePerServing || '--'}€ p.p.
+            </p>
+          </div>
+          <div class="shrink-0 flex flex-col gap-2">
+            <button onclick="window.toggleMealDone(${todayIndex}, ${!isDone})" class="size-11 rounded-2xl ${isDone ? 'bg-primary text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'} flex items-center justify-center transition-all shadow-sm">
+              <span class="material-symbols-outlined font-black">${isDone ? 'check_circle' : 'circle'}</span>
+            </button>
+            <a href="plan.html" class="size-11 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      `;
     }
 
     function buildEmptyToday() {
       return `
-        <a href="plan.html" class="today-card p-5 flex flex-col items-center justify-center gap-3 min-h-[88px] block">
-          <div class="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl">🍽️</div>
-          <div class="text-center">
-            <p class="font-bold text-sm text-slate-700 dark:text-slate-300">Sem refeição planeada</p>
-            <p class="text-xs text-muted mt-0.5">Vai ao Plano para adicionar</p>
-          </div>
-        </a>`;
+        <div class="today-card p-5 flex items-center justify-center gap-3 border-dashed border-2 opacity-50">
+          <span class="material-symbols-outlined text-slate-400">event_busy</span>
+          <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Sem plano para hoje</p>
+        </div>
+      `;
     }
 
-    function renderWeekStrip(container, meals, todayIdx) {
-      const labels = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-      container.innerHTML = labels.map((lbl, i) => {
-        const meal = meals[i] || null;
-        const isToday = i === todayIdx;
-        const emoji = meal ? recipeEmoji(meal.recipeName, meal.category) : null;
-        const bubbleCls = [
-          'week-day-bubble',
-          meal ? 'has-meal' : '',
-          isToday ? 'is-today' : ''
-        ].filter(Boolean).join(' ');
-        const labelCls = `week-day-label${isToday ? ' is-today' : ''}`;
+    function renderWeekStrip(container, meals, activeIdx) {
+      container.innerHTML = dayNames.map((name, i) => {
+        const meal = meals[i];
+        const isToday = i === activeIdx;
+        const emoji = meal ? recipeEmoji(meal.recipeName, meal.category) : '·';
         return `
-          <div class="week-day">
-            <div class="${bubbleCls}">
-              ${emoji
-                ? `<span style="font-size:16px" title="${meal.recipeName}">${emoji}</span>`
-                : `<span class="text-slate-300 dark:text-slate-600" style="font-size:10px">·</span>`}
+          <div class="week-day text-center">
+            <div class="week-day-bubble ${meal ? 'has-meal' : ''} ${isToday ? 'is-today' : ''}">
+              <span class="${meal ? '' : 'text-slate-300 dark:text-slate-600 text-xs'}">${emoji}</span>
             </div>
-            <span class="${labelCls}">${lbl}</span>
-          </div>`;
+            <span class="week-day-label ${isToday ? 'is-today' : ''}">${name}</span>
+          </div>
+        `;
       }).join('');
     }
 
-    // ── Recent feedback ───────────────────────────────
-    async function loadRecentFeedback(uid) {
+    window.toggleMealDone = async (index, status) => {
+      if (!currentActivePlanId) return;
       try {
-        const plans = await getAllPlans(uid);
-        const feedbackList = [];
-        for (const plan of (plans || [])) {
-          (plan.meals || []).forEach((meal, i) => {
-            if (meal.feedback) feedbackList.push({ recipeName: meal.recipeName, feedback: meal.feedback, planId: plan.id, mealIndex: i });
-          });
-        }
-        feedbackList.sort((a, b) => {
-          const tA = a.feedback.timestamp ? new Date(a.feedback.timestamp).getTime() : 0;
-          const tB = b.feedback.timestamp ? new Date(b.feedback.timestamp).getTime() : 0;
-          return tB - tA;
+        await updateMealStatus(currentActivePlanId, index, status);
+        if (status) showToast("Bom apetite! 🍽️", "check_circle");
+        else showToast("Plano atualizado", "info");
+        await loadPlanData(auth.currentUser.uid);
+      } catch(e) { console.error(e); }
+    };
+
+    async function loadRecentFeedback(uid) {
+      const plans = await getAllPlans(uid);
+      const list = document.getElementById("feedback-list");
+      let feed = [];
+      plans.forEach(p => {
+        (p.meals || []).forEach(m => {
+          if (m.feedback) feed.push({ name: m.recipeName, f: m.feedback });
         });
-        const recent = feedbackList.slice(0, 5);
-        const container = document.getElementById("feedback-list");
-        if (!container || recent.length === 0) return;
-
-        const starRating = (r) => r ? '★'.repeat(r) + '☆'.repeat(5-r) : '';
-
-        container.innerHTML = recent.map(item => {
-          const kidsIcon = item.feedback.kidsLiked
-            ? '<span class="material-symbols-outlined text-green-500 text-base" style="font-variation-settings:\'FILL\' 1">sentiment_very_satisfied</span>'
-            : '<span class="material-symbols-outlined text-red-400 text-base" style="font-variation-settings:\'FILL\' 1">sentiment_dissatisfied</span>';
-          const easeIcon = item.feedback.easyToCook === true
-            ? '<span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:\'FILL\' 1">bolt</span>'
-            : '<span class="material-symbols-outlined text-amber-500 text-base">restaurant</span>';
-          const wasteIcon = item.feedback.wasteLevel > 0
-            ? '<span class="material-symbols-outlined text-orange-400 text-base">delete_sweep</span>'
-            : '<span class="material-symbols-outlined text-green-500 text-base" style="font-variation-settings:\'FILL\' 1">check_circle</span>';
-          const stars = item.feedback.starRating
-            ? `<span class="text-xs font-black text-amber-400 tracking-tight">${starRating(item.feedback.starRating)}</span>` : '';
-          return `<div class="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-            <div class="flex-1 min-w-0">
-              <p class="font-bold text-sm truncate">${item.recipeName}</p>
-              ${stars}
+      });
+      feed.sort((a,b) => new Date(b.f.timestamp) - new Date(a.f.timestamp));
+      const recent = feed.slice(0, 3);
+      if (recent.length > 0) {
+        list.innerHTML = recent.map(item => `
+          <div class="p-4 flex items-center justify-between">
+            <div class="min-w-0">
+              <p class="font-bold text-sm truncate">${item.name}</p>
+              <div class="flex items-center gap-1 mt-0.5">
+                ${'★'.repeat(item.f.starRating || 0).split('').map(() => `<span class="material-symbols-outlined text-[10px] text-amber-500" style="font-variation-settings:'FILL' 1">star</span>`).join('')}
+                <span class="text-[9px] text-muted ml-1">${new Date(item.f.timestamp).toLocaleDateString()}</span>
+              </div>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-              <div title="Crianças gostaram">${kidsIcon}</div>
-              <div title="Fácil de cozinhar">${easeIcon}</div>
-              <div title="Desperdício">${wasteIcon}</div>
-            </div>
-          </div>`;
-        }).join('');
-      } catch(e) { console.error("Feedback error:", e); }
+            <span class="material-symbols-outlined text-primary text-xl">${item.f.kidsLiked ? 'child_care' : 'sentiment_satisfied'}</span>
+          </div>
+        `).join('');
+      }
     }
 
-    console.log("Dashboard [v29 — Today + Week Strip]");
+    async function loadPantrySuggestions(uid) {
+      try {
+        const [all, pantry] = await Promise.all([getAllRecipes(uid), getPantry(uid)]);
+        const items = pantry.items || {};
+        const pantryKeys = Object.keys(items).map(k => normalizeIngredientName(k));
+
+        const scored = all.map(recipe => {
+          const recipeIngs = (recipe.ingredients || []).map(i => normalizeIngredientName(typeof i === 'string' ? i : (i.name || '')));
+          if (!recipeIngs.length) return { ...recipe, match: 0 };
+          let matches = 0;
+          recipeIngs.forEach(ing => {
+            if (pantryKeys.some(pk => ing.includes(pk) || pk.includes(ing)) && items[Object.keys(items).find(k => normalizeIngredientName(k).includes(ing) || ing.includes(normalizeIngredientName(k)))] !== 'out') matches++;
+          });
+          return { ...recipe, match: Math.round((matches/recipeIngs.length)*100) };
+        }).filter(r => r.match > 60).sort((a,b) => b.match - a.match).slice(0, 5);
+
+        if (scored.length > 0) {
+          document.getElementById('pantry-suggestions').classList.remove('hidden');
+          document.getElementById('pantry-suggestions-grid').innerHTML = scored.map(r => `
+            <a href="recipes-catalog.html?id=${r.id}" class="flex-none w-36 bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-border-dark p-3 space-y-2">
+              <div class="h-20 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl">${recipeEmoji(r.name, (r.tags||[])[0])}</div>
+              <p class="text-[10px] font-black line-clamp-1">${r.name}</p>
+              <div class="flex items-center justify-between"><span class="text-[8px] font-black text-primary">${r.match}% MATCH</span></div>
+            </a>
+          `).join('');
+        }
+      } catch(e) { console.error(e); }
+    }
   </script>
   <script>
     fetch('bottom-nav.html').then(r => r.text()).then(html => {

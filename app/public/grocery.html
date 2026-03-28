@@ -210,11 +210,20 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { auth } from "./src/firebase-init.js";
     import { logout } from "./src/auth.js";
-    import { getLastPlan, getHousehold, getPlanById, generateGroceryListFromPlan, generateWeeklyPlan } from "./src/db.js";
+    import { 
+      getLastPlan, 
+      getHousehold, 
+      getPlanById, 
+      generateGroceryListFromPlan, 
+      generateWeeklyPlan,
+      getPantry,
+      normalizeIngredientName
+    } from "./src/db.js";
     import { generateSupermarketLink } from "./src/supermarket-links.js";
 
     let currentGroceryList = [], currentIngredients = [];
     let totalItems = 0, checkedItems = 0;
+    let pantryData = {};
 
     const groceryContainer = document.getElementById("grocery-list-container");
     const loadingState = document.getElementById("loading-state");
@@ -245,59 +254,40 @@
       progressLabel.textContent = `${checkedItems} / ${totalItems}`;
     }
 
-    const categoryIcon = {
-      // Firestore portuguese categories
-      'Frutas e Legumes':'🥦', 'Hortofrutícolas':'🥦', 'Hortifrutis':'🥦', 'Hortofruticolas':'🥦',
-      'Legumes e Frutas':'🥦', 'Verduras':'🥦', 'Vegetais':'🥦', 'Frutas':'🍎',
-      'Carnes e Peixes':'🥩', 'Carnes':'🥩', 'Carne':'🥩', 'Peixes':'🐟', 'Peixe':'🐟',
-      'Peixe e Marisco':'🐟', 'Carnes, Peixes e Ovos':'🥩',
-      'Lacticínios':'🥛', 'Lacticinios':'🥛', 'Laticínios':'🥛', 'Laticínios e Ovos':'🥛',
-      'Lacticínios e Ovos':'🥛', 'Ovos':'🥚', 'Queijos e Iogurtes':'🧀',
-      'Mercearia':'🛒', 'Despensa':'🫙', 'Mercearia Seca':'🛒', 'Enlatados':'🥫',
-      'Padaria':'🍞', 'Pão e Padaria':'🍞', 'Cereais e Pão':'🍞', 'Cereais':'🌾',
-      'Massas e Arroz':'🍝', 'Massa':'🍝', 'Arroz':'🍚',
-      'Condimentos':'🧂', 'Temperos':'🧂', 'Especiarias':'🌶️',
-      'Bebidas':'🥤', 'Óleos e Gorduras':'🫒', 'Azeite e Óleos':'🫒',
-      'Congelados':'🧊', 'Sobremesas':'🍮', 'Doces e Sobremesas':'🍮',
-      'Outros':'📦', 'Geral':'🛍️', 'Miscelânea':'📦',
-      // English fallbacks
-      'Produce':'🥦', 'Meat':'🥩', 'Fish':'🐟', 'Dairy':'🥛', 'Bakery':'🍞',
-      'Pantry':'🛒', 'Frozen':'🧊', 'Beverages':'🥤', 'Other':'📦',
-    };
     const getCategoryIcon = (name) => {
       if (!name) return '📦';
-      // Exact match
+      if (name.includes('Reabastecer')) return '🔄';
+      const categoryIcon = {
+        'Frutas e Legumes':'🥦', 'Hortofrutícolas':'🥦', 'Hortifrutis':'🥦', 'Hortofruticolas':'🥦',
+        'Legumes e Frutas':'🥦', 'Verduras':'🥦', 'Vegetais':'🥦', 'Frutas':'🍎',
+        'Carnes e Peixes':'🥩', 'Carnes':'🥩', 'Carne':'🥩', 'Peixes':'🐟', 'Peixe':'🐟',
+        'Peixe e Marisco':'🐟', 'Carnes, Peixes e Ovos':'🥩',
+        'Lacticínios':'🥛', 'Lacticinios':'🥛', 'Laticínios':'🥛', 'Ovos':'🥚',
+        'Mercearia':'🛒', 'Despensa':'🫙', 'Enlatados':'🥫', 'Padaria':'🍞',
+        'Massas e Arroz':'🍝', 'Condimentos':'🧂', 'Bebidas':'🥤', 'Congelados':'🧊', 'Geral':'🛍️'
+      };
       if (categoryIcon[name]) return categoryIcon[name];
-      // Case-insensitive fuzzy match
       const lower = name.toLowerCase();
-      if (lower.includes('horto') || lower.includes('legum') || lower.includes('vegeta') || lower.includes('fruta')) return '🥦';
-      if (lower.includes('carne') || lower.includes('peixe') || lower.includes('ovo')) return '🥩';
-      if (lower.includes('lactic') || lower.includes('latici') || lower.includes('leite') || lower.includes('queijo')) return '🥛';
-      if (lower.includes('pão') || lower.includes('pao') || lower.includes('padari') || lower.includes('cereal')) return '🍞';
-      if (lower.includes('merceari') || lower.includes('despensa') || lower.includes('enlatad')) return '🛒';
-      if (lower.includes('bebida') || lower.includes('suco') || lower.includes('sumo')) return '🥤';
-      if (lower.includes('massa') || lower.includes('arroz')) return '🍝';
-      if (lower.includes('congelad')) return '🧊';
-      if (lower.includes('sobremesa') || lower.includes('doce')) return '🍮';
+      if (lower.includes('horto') || lower.includes('legum') || lower.includes('fruta')) return '🥦';
+      if (lower.includes('carne') || lower.includes('peixe')) return '🥩';
+      if (lower.includes('leite') || lower.includes('queijo')) return '🥛';
+      if (lower.includes('pão') || lower.includes('padari')) return '🍞';
       return '📦';
     };
 
     function renderGroceryList(categories) {
       loadingState.classList.add("hidden");
       emptyState.classList.add("hidden");
-      const prevSections = groceryContainer.querySelectorAll("section[data-category]");
-      prevSections.forEach(el => el.remove());
       const wrapper = groceryContainer.querySelector("div");
-      if (!wrapper) return;
+      wrapper.innerHTML = ""; // Clear existing
 
       totalItems = categories.reduce((a, c) => a + c.items.length, 0);
       checkedItems = 0;
 
       categories.forEach((cat, idx) => {
         const section = document.createElement("section");
-        section.setAttribute("data-category", idx);
-
         const icon = getCategoryIcon(cat.category);
+        
         section.innerHTML = `
           <div class="category-header">
             <span class="text-lg">${icon}</span>
@@ -309,19 +299,26 @@
 
         const itemsContainer = section.querySelector(`#cat-items-${idx}`);
         cat.items.forEach(item => {
+          const normName = normalizeIngredientName(item.name);
+          const pantryStatus = pantryData[normName] || pantryData[Object.keys(pantryData).find(k => normName.includes(k) || k.includes(normName))];
+          const hasInPantry = pantryStatus === 'ok';
+
           const itemEl = document.createElement("div");
-          itemEl.className = "grocery-item";
+          itemEl.className = `grocery-item ${hasInPantry ? 'opacity-60 bg-slate-50 dark:bg-slate-900/40' : ''}`;
           itemEl.setAttribute("data-checked", item.checked ? "true" : "false");
           if (item.checked) checkedItems++;
+          
           itemEl.innerHTML = `
             <div class="grocery-checkbox">
               <span class="material-symbols-outlined text-white text-base check-icon" style="font-variation-settings:'FILL' 1">check</span>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-bold text-sm item-name">${item.name}</p>
-              <div class="flex items-center gap-3 mt-0.5 flex-wrap">
+              <div class="flex items-center gap-2">
+                <p class="font-bold text-sm item-name">${item.name}</p>
+                ${hasInPantry ? '<span class="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 uppercase tracking-widest">Já tens</span>' : ''}
+              </div>
+              <div class="flex items-center gap-3 mt-0.5">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-muted">${item.quantity || ''}</span>
-                ${item.bestPrice?.price ? `<span class="text-[10px] font-bold text-green-600">${item.bestPrice.price.toFixed(2)}€ (${item.bestPrice.store})</span>` : item.price ? `<span class="text-[10px] font-bold text-primary">${item.price}€</span>` : ''}
               </div>
             </div>`;
           itemEl.onclick = () => {
@@ -333,50 +330,33 @@
           itemsContainer.appendChild(itemEl);
         });
       });
-
       updateProgress();
     }
 
     onAuthStateChanged(auth, async user => {
       if (!user) { window.location.href = "index.html"; return; }
       try {
-        let plan = await getLastPlan(user.uid);
+        const [plan, pantry] = await Promise.all([getLastPlan(user.uid), getPantry(user.uid)]);
+        pantryData = pantry.items || {};
+
         if (plan) {
           let list = plan.groceryList || [];
-          if (list.length === 0) { list = await generateGroceryListFromPlan(plan.id); try { const u = await getPlanById(plan.id); if (u) plan = u; } catch(e) {} }
+          if (list.length === 0) list = await generateGroceryListFromPlan(plan.id);
+          
           if (list?.length > 0) {
-            const itemCount = list.reduce((a, c) => a + c.items.length, 0);
-            document.getElementById("current-grocery-header").textContent = `${itemCount} ITENS · ESTIMATIVA ATIVA`;
             currentGroceryList = list;
             currentIngredients = list.flatMap(c => c.items.map(i => i.name));
-            if (plan.totalEstimatedCost) {
-              const cb = document.getElementById("cost-badge");
-              if (cb) { cb.classList.remove("hidden"); document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost; }
-            }
             renderGroceryList(list);
-          } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS"; }
-        } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); document.getElementById("current-grocery-header").textContent = "SEM ITENS ATIVOS"; }
+            document.getElementById("current-grocery-header").textContent = `${list.reduce((a,c)=>a+c.items.length,0)} ITENS · ESTIMATIVA ATIVA`;
+          } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
+        } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
 
-        const autoBtnEl = document.getElementById("btn-generate-auto");
-        if (autoBtnEl) autoBtnEl.onclick = async () => {
-          try {
-            autoBtnEl.disabled = true; autoBtnEl.textContent = "A gerar...";
-            const created = await generateWeeklyPlan(user.uid);
-            if (created) {
-              const refreshed = await getPlanById(created.id);
-              const grocery = (refreshed?.groceryList?.length > 0) ? refreshed.groceryList : created.groceryList || [];
-              if (grocery.length > 0) {
-                currentGroceryList = grocery;
-                currentIngredients = grocery.flatMap(c => c.items.map(i => i.name));
-                renderGroceryList(grocery);
-                document.getElementById("current-grocery-header").textContent = `${grocery.reduce((a,c)=>a+c.items.length,0)} ITENS · ESTIMATIVA ATIVA`;
-                const cost = refreshed?.totalEstimatedCost || created.totalEstimatedCost;
-                if (cost) { const cb = document.getElementById("cost-badge"); if (cb) { cb.classList.remove("hidden"); document.getElementById("total-cost-display").textContent = cost; } }
-                loadingState.classList.add("hidden"); emptyState.classList.add("hidden");
-              }
-            }
-          } catch(err) { console.error(err); alert("Erro ao gerar plano."); }
-          finally { autoBtnEl.disabled = false; autoBtnEl.textContent = "Gerar Plano"; }
+        document.getElementById("btn-generate-auto").onclick = async () => {
+           const btn = document.getElementById("btn-generate-auto");
+           btn.disabled = true; btn.textContent = "A gerar...";
+           const created = await generateWeeklyPlan(user.uid);
+           if (created) window.location.reload();
+           btn.disabled = false; btn.textContent = "Gerar Plano";
         };
       } catch(err) { console.error(err); loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
     });
