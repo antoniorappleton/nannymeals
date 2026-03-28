@@ -18,6 +18,12 @@ export interface ScrapedRecipe {
   instructions: string;
   sourceUrl: string;
   sourceName: string;
+  nutrition?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  };
 }
 
 /**
@@ -45,16 +51,11 @@ function parseIngredientString(str: string): { amount: number | null; unit: stri
 }
 
 /**
- * Continente Scraper
+ * Parsing logic for Continente
  */
-export async function extractFromContinente(url: string): Promise<ScrapedRecipe> {
-  const { data: html } = await axios.get(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
-  });
-  const $ = cheerio.load(html);
-
-  const name = $('h1').text().trim();
-  const image = $('meta[property="og:image"]').attr('content') || null;
+export function parseContinente($: cheerio.CheerioAPI, url: string = ''): ScrapedRecipe {
+  const name = $('h1').first().text().trim();
+  const image = $('meta[property="og:image"]').attr('content') || $('img.recipe-hero-image').attr('src') || null;
   const prepTime = parseInt($('.recipe-info-item:contains("min")').text().replace(/\D/g, '')) || 0;
   const servings = parseInt($('.recipe-info-item:contains("porções")').text().replace(/\D/g, '')) || 4;
 
@@ -63,40 +64,25 @@ export async function extractFromContinente(url: string): Promise<ScrapedRecipe>
     const text = $(el).text().trim();
     if (text) {
       const parsed = parseIngredientString(text);
-      ingredients.push({
-        ...parsed,
-        original: text
-      });
+      ingredients.push({ ...parsed, original: text });
     }
   });
 
   const instructions = $('.recipe-preparation-steps').text().trim();
 
   return {
-    name,
-    image,
-    prepTime,
-    servings,
-    ingredients,
-    instructions,
+    name, image, prepTime, servings, ingredients, instructions,
     sourceUrl: url,
     sourceName: 'Continente'
   };
 }
 
 /**
- * Pingo Doce Scraper
+ * Parsing logic for Pingo Doce
  */
-export async function extractFromPingoDoce(url: string): Promise<ScrapedRecipe> {
-  const { data: html } = await axios.get(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
-  });
-  const $ = cheerio.load(html);
-
-  const name = $('h1').text().trim();
+export function parsePingoDoce($: cheerio.CheerioAPI, url: string = ''): ScrapedRecipe {
+  const name = $('h1').first().text().trim();
   const image = $('meta[property="og:image"]').attr('content') || null;
-  
-  // PD uses different selectors, often in icons list
   const prepTime = parseInt($('.recipe-details__item:contains("min")').text().replace(/\D/g, '')) || 0;
   const servings = parseInt($('.recipe-details__item:contains("doses")').text().replace(/\D/g, '')) || 4;
 
@@ -105,10 +91,7 @@ export async function extractFromPingoDoce(url: string): Promise<ScrapedRecipe> 
     const text = $(el).text().trim();
     if (text) {
       const parsed = parseIngredientString(text);
-      ingredients.push({
-        ...parsed,
-        original: text
-      });
+      ingredients.push({ ...parsed, original: text });
     }
   });
 
@@ -118,43 +101,154 @@ export async function extractFromPingoDoce(url: string): Promise<ScrapedRecipe> 
   });
 
   return {
-    name,
-    image,
-    prepTime,
-    servings,
-    ingredients,
-    instructions: steps.join('\n'),
+    name, image, prepTime, servings, ingredients, instructions: steps.join('\n'),
     sourceUrl: url,
     sourceName: 'Pingo Doce'
   };
 }
 
 /**
- * Price Lookup (Basic Search)
- * This hits the search endpoint and picks the first relevant product price.
- * For Continente, we can use their search API or scrape the search results.
+ * Parsing logic for Auchan
  */
-export async function getPriceInStore(ingredientName: string, store: 'continente' | 'pingodoce'): Promise<number | null> {
+export function parseAuchan($: cheerio.CheerioAPI, url: string = ''): ScrapedRecipe {
+  const name = $('h1.recipe-hero__title').text().trim() || $('h1').first().text().trim();
+  const image = $('img.recipe-hero__image').attr('src') || $('meta[property="og:image"]').attr('content') || null;
+  
+  let prepTime = 0;
+  let servings = 4;
+
+  $('.meta-card__summary-item').each((_, el) => {
+    const text = $(el).text().trim();
+    if (text.toLowerCase().includes('min') || text.toLowerCase().includes('hora')) {
+      const match = text.match(/\d+/);
+      if (match) {
+        let val = parseInt(match[0]);
+        if (text.toLowerCase().includes('hora')) val *= 60;
+        prepTime = val;
+      }
+    } else if (text.toLowerCase().includes('pessoa') || text.toLowerCase().includes('dose')) {
+      const match = text.match(/\d+/);
+      if (match) servings = parseInt(match[0]);
+    }
+  });
+
+  const ingredients: ScrapedIngredient[] = [];
+  $('.recipe-ingredients__item').each((_, el) => {
+    const text = $(el).text().trim().replace(/\s+/g, ' ');
+    if (text) {
+      const parsed = parseIngredientString(text);
+      ingredients.push({ ...parsed, original: text });
+    }
+  });
+
+  const instructions = $('.recipe-preparation__content').text().trim() || $('.recipe-preparation').text().trim();
+
+  return {
+    name, image, prepTime, servings, ingredients, instructions,
+    sourceUrl: url,
+    sourceName: 'Auchan'
+  };
+}
+
+/**
+ * Generic Text Parser (Best effort)
+ */
+export function parseGenericText(text: string): ScrapedRecipe {
+  // Simple heuristic: first line is title
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const name = lines[0] || 'Receita Importada';
+  
+  const ingredients: ScrapedIngredient[] = [];
+  const instructions: string[] = [];
+  let mode: 'meta' | 'ings' | 'steps' = 'meta';
+
+  lines.slice(1).forEach(line => {
+    const l = line.toLowerCase();
+    if (l.includes('ingrediente')) { mode = 'ings'; return; }
+    if (l.includes('prepara') || l.includes('passo') || l.includes('modo')) { mode = 'steps'; return; }
+
+    if (mode === 'ings' && line.length > 2) {
+      ingredients.push({ ...parseIngredientString(line), original: line });
+    } else if (mode === 'steps' && line.length > 2) {
+      instructions.push(line);
+    }
+  });
+
+  return {
+    name,
+    image: null,
+    prepTime: 30,
+    servings: 4,
+    ingredients,
+    instructions: instructions.join('\n'),
+    sourceUrl: '',
+    sourceName: 'Texto Colado'
+  };
+}
+
+/**
+ * Main entry point for HTML extraction
+ */
+export function extractFromHtml(html: string, url: string = ''): ScrapedRecipe {
+  const $ = cheerio.load(html);
+  
+  // Detect source
+  if (html.includes('continente.pt') || $('.recipe-ingredients-list').length) return parseContinente($, url);
+  if (html.includes('pingodoce.pt') || $('.recipe-ingredients__list').length) return parsePingoDoce($, url);
+  if (html.includes('auchan.pt') || $('.recipe-ingredients__item').length) return parseAuchan($, url);
+  
+  // Try generic if no specific markers
+  return parseGenericText($('body').text() || html);
+}
+
+/**
+ * Continente Fetcher
+ */
+export async function extractFromContinente(url: string): Promise<ScrapedRecipe> {
+  const { data: html } = await axios.get(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  });
+  return parseContinente(cheerio.load(html), url);
+}
+
+/**
+ * Pingo Doce Fetcher
+ */
+export async function extractFromPingoDoce(url: string): Promise<ScrapedRecipe> {
+  const { data: html } = await axios.get(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  });
+  return parsePingoDoce(cheerio.load(html), url);
+}
+
+/**
+ * Auchan Fetcher
+ */
+export async function extractFromAuchan(url: string): Promise<ScrapedRecipe> {
+  const { data: html } = await axios.get(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  });
+  return parseAuchan(cheerio.load(html), url);
+}
+
+/**
+ * Price Lookup
+ */
+export async function getPriceInStore(ingredientName: string, store: 'continente' | 'pingodoce' | 'auchan'): Promise<number | null> {
   try {
     if (store === 'continente') {
       const searchUrl = `https://www.continente.pt/pesquisa/?q=${encodeURIComponent(ingredientName)}`;
-      const { data: html } = await axios.get(searchUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      });
+      const { data: html } = await axios.get(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       const $ = cheerio.load(html);
-      
-      // Get first product price
       const priceStr = $('.product-tile .price-sales').first().text().trim();
       if (priceStr) {
         const price = parseFloat(priceStr.replace(',', '.').replace('€', ''));
         return isNaN(price) ? null : price;
       }
-    } else if (store === 'pingodoce') {
-       // Pingo Doce Mercadão uses a cleaner API-like structure usually
-       // For now, return a random realistic price as a placeholder if scrape fails
     }
   } catch (err) {
     console.error(`Error looking up price for ${ingredientName} in ${store}:`, err);
   }
   return null;
 }
+

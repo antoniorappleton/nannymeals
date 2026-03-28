@@ -156,8 +156,14 @@ export const swapMeal = async (planId, mealIndex, newRecipeId, reason) => {
   meals[mealIndex] = {
     recipeId: newRecipeId,
     recipeName: recipe.name,
+    image: recipe.image || null,
     prepTime: recipe.prepTime,
     completed: false,
+    ingredients: recipe.ingredients || [],
+    calories: recipe.calories || null,
+    nutrition: recipe.nutrition || null,
+    pricePerServing: recipe.pricePerServing || null,
+    servings: recipe.servings || 4,
     isReplacement: true,
     replacedReason: reason,
     originalRecipeId: oldMeal.recipeId,
@@ -377,11 +383,14 @@ export const generateWeeklyPlan = async (id) => {
     meals.push({
       recipeId: recipe.id,
       recipeName: recipe.name,
+      image: recipe.image || null,
       prepTime: recipe.prepTime,
       completed: false,
       ingredients: recipe.ingredients || [],
       calories: recipe.calories || null,
+      nutrition: recipe.nutrition || null,
       pricePerServing: recipe.pricePerServing || null,
+      servings: recipe.servings || 4, // Original recipe servings
     });
   }
 
@@ -823,10 +832,18 @@ export const generateGroceryListFromPlan = async (planId) => {
   const aggregator = {};
   let totalEstimatedCost = 0;
 
+  const household = await getHousehold(data.householdId);
+  const adults = household?.adults || 2;
+  const children = (household?.children || []).length;
+  const totalPersons = adults + children;
+
   meals.forEach((meal) => {
     if (meal.pricePerServing) {
-      totalEstimatedCost += parseFloat(meal.pricePerServing);
+      totalEstimatedCost += parseFloat(meal.pricePerServing) * totalPersons;
     }
+
+    const recipeServings = meal.servings || 4;
+    const personFactor = totalPersons / recipeServings;
 
     (meal.ingredients || []).forEach((ingredient) => {
       let ingredientText = "";
@@ -839,7 +856,7 @@ export const generateGroceryListFromPlan = async (planId) => {
           ingredient.originalString ||
           JSON.stringify(ingredient);
 
-      // Enhanced regex to handle fractions and more units
+      // Enhanced regex
       const match = ingredientText.match(
         /^([\d.,/]+(?:\s+\d+\/\d+)?)?\s*(g|kg|ml|l|unid|colher|chá|sopa|cup|tbsp|tsp|oz|lb|dente|fatia|filé|un|pcs)?s?\s*(.*)$/i,
       );
@@ -849,7 +866,6 @@ export const generateGroceryListFromPlan = async (planId) => {
       let name = ingredientText.toLowerCase().trim();
 
       if (match && (match[1] || match[2])) {
-        // Use parseFraction for better quantity parsing
         qty = parseFraction(match[1]?.replace(",", ".")) || 1;
         unit = (match[2] || "unid").toLowerCase();
         name = match[3]?.toLowerCase().trim() || name;
@@ -857,11 +873,11 @@ export const generateGroceryListFromPlan = async (planId) => {
         name = ingredientText.toLowerCase().trim();
       }
 
-      // Normalize ingredient name for better aggregation
+      // SCALE QUANTITY BY PERSONS
+      qty = qty * personFactor;
+
       const normalizedName = normalizeIngredientName(name);
       const displayName = normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1);
-      
-      // Get normalized unit info
       const unitInfo = normalizeUnit(unit);
       
       if (!aggregator[normalizedName]) {
@@ -876,7 +892,6 @@ export const generateGroceryListFromPlan = async (planId) => {
         };
       }
 
-      // Convert to base unit and add
       const convertedQty = qty * unitInfo.factor;
       aggregator[normalizedName].rawQty += qty;
       aggregator[normalizedName].qty += convertedQty;
@@ -1328,11 +1343,14 @@ export const swapMealImproved = async (
     meals[mealIndex] = {
       recipeId: newRecipeId,
       recipeName: recipe.name,
+      image: recipe.image || null,
       prepTime: recipe.prepTime,
       completed: false,
       ingredients: recipe.ingredients || [],
       calories: recipe.calories || null,
+      nutrition: recipe.nutrition || null,
       pricePerServing: recipe.pricePerServing || null,
+      servings: recipe.servings || 4,
       isReplacement: true,
       replacedReason: reason,
       originalRecipeId: oldMeal.recipeId,

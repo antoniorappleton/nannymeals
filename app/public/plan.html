@@ -59,8 +59,8 @@
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
       })();
-      if (localStorage.getItem('app_version') !== 'v28') {
-        localStorage.setItem('app_version', 'v28');
+      if (localStorage.getItem('app_version') !== 'v29') {
+        localStorage.setItem('app_version', 'v29');
         if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
         if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
       }
@@ -393,9 +393,6 @@
                 >
                   --
                 </ol>
-              </div>
-
-              <!-- Nutrition Info (if available) -->
               <div id="nutrition-section" class="hidden">
                 <h3
                   class="font-bold text-sm uppercase tracking-widest text-slate-500 mb-3"
@@ -574,6 +571,18 @@
       const generateModal = document.getElementById("generate-plan-modal");
       let currentHousehold = null;
 
+      const catEmoji = { sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝', vegetariano:'🥦', sobremesa:'🍮', default:'🍽️' };
+      function recipeEmoji(name='', category='') {
+        const key = (category || '').toLowerCase().trim();
+        if (catEmoji[key]) return catEmoji[key];
+        const n = name.toLowerCase();
+        if (n.includes('sopa')) return '🥣';
+        if (n.includes('frango') || n.includes('carne')) return '🥩';
+        if (n.includes('peixe') || n.includes('bacalhau')) return '🐟';
+        if (n.includes('massa')) return '🍝';
+        return '🍽️';
+      }
+
       const days = [
         "Segunda-feira",
         "Terça-feira",
@@ -607,12 +616,18 @@
             "modal-image-container",
           );
           const recipeImage = document.getElementById("modal-recipe-image");
-          if (recipe.image) {
+          const emoji = recipeEmoji(meal.recipeName, meal.category);
+          
+          if (meal.image) {
             imageContainer.classList.remove("hidden");
-            recipeImage.src = recipe.image;
+            recipeImage.src = meal.image;
             recipeImage.alt = meal.recipeName;
+            recipeImage.onerror = () => {
+              imageContainer.innerHTML = `<div class="w-full h-40 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-5xl shadow-lg">${emoji}</div>`;
+            };
           } else {
-            imageContainer.classList.add("hidden");
+            imageContainer.classList.remove("hidden");
+            imageContainer.innerHTML = `<div class="w-full h-40 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-5xl shadow-lg">${emoji}</div>`;
           }
 
           // Tags
@@ -702,38 +717,38 @@
 
           // Nutrition
           const nutritionSection = document.getElementById("nutrition-section");
-          const nutrition = recipe.nutrition;
-          if (
-            nutrition &&
-            (nutrition.calories ||
-              nutrition.protein ||
-              nutrition.carbs ||
-              nutrition.fat)
-          ) {
+          const nutrition = meal.nutrition || recipe.nutrition;
+          
+          if (nutrition) {
             nutritionSection.classList.remove("hidden");
             const nutritionEl = document.getElementById("modal-nutrition");
-            const nutrients = nutrition.nutrients || [];
-            const getNutrient = (name) => {
-              const n = nutrients.find((x) => x.name === name);
-              return n ? Math.round(n.amount) : "--";
+            
+            // Helper to get nutrition value from either object format
+            const getVal = (key, fallback) => {
+              if (nutrition[key.toLowerCase()]) return Math.round(nutrition[key.toLowerCase()].amount || nutrition[key.toLowerCase()]);
+              if (nutrition.nutrients) {
+                 const n = nutrition.nutrients.find(x => x.name === key || x.name.toLowerCase() === key.toLowerCase());
+                 return n ? Math.round(n.amount) : fallback;
+              }
+              return fallback;
             };
 
             nutritionEl.innerHTML = `
               <div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl text-center">
-                <p class="text-xs font-bold text-orange-600 uppercase">Cal</p>
-                <p class="text-lg font-black text-orange-600">${getNutrient("Calories")}</p>
+                <p class="text-[10px] font-bold text-orange-600 uppercase">Cal</p>
+                <p class="text-lg font-black text-orange-600">${getVal("Calories", "--")}</p>
               </div>
               <div class="bg-red-50 dark:bg-red-900/20 p-2 rounded-xl text-center">
-                <p class="text-xs font-bold text-red-600 uppercase">Prot</p>
-                <p class="text-lg font-black text-red-600">${getNutrient("Protein")}g</p>
+                <p class="text-[10px] font-bold text-red-600 uppercase">Prot</p>
+                <p class="text-lg font-black text-red-600">${getVal("Protein", "--")}g</p>
               </div>
               <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-xl text-center">
-                <p class="text-xs font-bold text-blue-600 uppercase">Carb</p>
-                <p class="text-lg font-black text-blue-600">${getNutrient("Carbohydrates")}g</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase">Carb</p>
+                <p class="text-lg font-black text-blue-600">${getVal("Carbohydrates", "--")}g</p>
               </div>
               <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-xl text-center">
-                <p class="text-xs font-bold text-yellow-600 uppercase">Gord</p>
-                <p class="text-lg font-black text-yellow-600">${getNutrient("Fat")}g</p>
+                <p class="text-[10px] font-bold text-yellow-600 uppercase">Gord</p>
+                <p class="text-lg font-black text-yellow-600">${getVal("Fat", "--")}g</p>
               </div>
             `;
           } else {
@@ -930,13 +945,24 @@
           updateBudgetBar(plan.meals, currentHousehold);
           updateBalancePills(plan.meals);
         }
-
         mealsContainer.innerHTML = plan.meals
           .map(
-            (meal, index) => `
+            (meal, index) => {
+              const emoji = recipeEmoji(meal.recipeName, meal.category);
+              const imageHtml = meal.image 
+                ? `<img src="${meal.image}" class="w-full h-40 object-cover" alt="${meal.recipeName}" onerror="this.outerHTML='<div class=\'w-full h-40 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-4xl\'>${emoji}</div>'">`
+                : `<div class="w-full h-40 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-4xl">${emoji}</div>`;
+
+              return `
         <div class="space-y-3">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">${days[index] || "Dia extra"}</p>
           <div class="flex flex-col rounded-3xl overflow-hidden shadow-premium bg-white dark:bg-slate-900 border ${meal.isReplacement ? "border-primary/40 ring-4 ring-primary/5" : "border-slate-100 dark:border-slate-800"} cursor-pointer hover:scale-[1.02] transition-all" data-meal-index="${index}">
+            <div class="relative">
+              ${imageHtml}
+              <div class="absolute bottom-3 left-3 flex gap-2">
+                 <span class="meal-type-badge bg-white/90 dark:bg-slate-900/90 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg shadow-sm">${meal.category || 'Receita'}</span>
+              </div>
+            </div>
             <div class="p-6 space-y-4">
               <div class="flex justify-between items-start">
                 <h4 class="text-xl font-extrabold tracking-tight">${meal.recipeName}</h4>
@@ -961,7 +987,8 @@
             </div>
           </div>
         </div>
-      `,
+      `;
+            }
           )
           .join("");
 

@@ -21,7 +21,8 @@ import {
  * Com suporte para linking de contas (Google + Email)
  */
 
-console.log("Módulo de autenticação ativo. [V19]");
+console.log("Módulo de autenticação ativo. [V20]");
+window.firebaseAuth = auth;
 
 // Helper para evitar redirecionamentos redundantes e loops
 const safeReplace = (url) => {
@@ -229,6 +230,7 @@ onAuthStateChanged(auth, async (user) => {
     path.includes("grocery");
 
   if (user) {
+    localStorage.setItem('nm_user_email', user.email);
     try {
       await syncUserProfile(user);
       const profile = await getUserProfile(user.uid);
@@ -253,6 +255,7 @@ onAuthStateChanged(auth, async (user) => {
       console.error("Erro no fluxo auth:", error);
     }
   } else {
+    localStorage.removeItem('nm_user_email');
     // Se não há user e não estamos no login, expulsa
     if (
       !isCheckingRedirect &&

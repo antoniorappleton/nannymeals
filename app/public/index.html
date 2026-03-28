@@ -86,8 +86,8 @@
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
     // Cache bust
-    if (localStorage.getItem('app_version') !== 'v28') {
-      localStorage.setItem('app_version', 'v28');
+    if (localStorage.getItem('app_version') !== 'v29') {
+      localStorage.setItem('app_version', 'v29');
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
       if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 600); });
     }
@@ -248,7 +248,7 @@
     </div>
   </div>
 
-  <script type="module" src="src/auth.js?v=28"></script>
+  <script type="module" src="src/auth.js?v=29"></script>
   <script type="module">
     // Password visibility toggles
     const setupToggle = (btnId, inputId) => {
@@ -273,7 +273,7 @@
         const email = prompt('Insira o seu email para recuperar a palavra-passe:');
         if (email) {
           try {
-            const { resetPassword } = await import('./src/auth.js?v=28');
+            const { resetPassword } = await import('./src/auth.js?v=29');
             await resetPassword(email);
             alert('Email de recuperação enviado! Verifique a sua caixa de entrada.');
           } catch (err) { alert('Erro: ' + err.message); }

@@ -60,6 +60,11 @@
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
+    if (localStorage.getItem('app_version') !== 'v29') {
+      localStorage.setItem('app_version', 'v29');
+      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
+    }
   </script>
 </head>
 
@@ -191,6 +196,25 @@
             <button id="theme-toggle" onclick="toggleTheme()" class="toggle-switch" aria-label="Alternar tema">
               <div class="toggle-knob"></div>
             </button>
+          </div>
+        </div>
+
+        <!-- Área Administrativa -->
+        <div id="admin-panel" class="profile-section animate-fade-up delay-400 hidden">
+          <div class="flex items-center gap-3 p-4 border-b border-slate-50 dark:border-border-dark">
+            <div class="size-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-amber-600 text-base" style="font-variation-settings:'FILL' 1">admin_panel_settings</span>
+            </div>
+            <h3 class="font-black text-amber-600">Área Administrativa</h3>
+          </div>
+          <div class="p-4 space-y-3">
+            <a href="admin-import.html" class="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-all border border-amber-200 dark:border-amber-800/40 no-underline">
+               <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-amber-600">auto_fix_high</span>
+                  <span class="font-bold text-sm text-amber-800 dark:text-amber-200">Importador Inteligente</span>
+               </div>
+               <span class="material-symbols-outlined text-amber-600 text-sm">arrow_forward_ios</span>
+            </a>
           </div>
         </div>
 
@@ -351,10 +375,16 @@
       await loadHousehold(user.uid);
       await loadPlans();
       await loadStats();
+
+      // Show admin tools for the designated administrator
+      if (user.email === 'antonioappleton@gmail.com') {
+        document.getElementById('admin-panel')?.classList.remove('hidden');
+      }
+
       loading.classList.add("hidden");
       content.classList.remove("hidden");
     });
-    console.log("Perfil [v28]");
+    console.log("Perfil [v29]");
   </script>
 
   <script>

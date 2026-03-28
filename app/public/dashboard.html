@@ -127,8 +127,8 @@
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
-    if (localStorage.getItem('app_version') !== 'v28') {
-      localStorage.setItem('app_version', 'v28');
+    if (localStorage.getItem('app_version') !== 'v29') {
+      localStorage.setItem('app_version', 'v29');
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
       if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
     }
@@ -397,22 +397,31 @@
       const isDone = meal.completed === true;
       const badgeCls = `badge-${(meal.category||'default').toLowerCase()}`;
       
+      const imageHtml = meal.image 
+        ? `<img src="${meal.image}" class="size-16 rounded-2xl object-cover shadow-sm shrink-0" alt="${meal.recipeName}" onerror="this.outerHTML='<div class=\'size-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl shrink-0\'>${emoji}</div>'">`
+        : `<div class="size-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl shadow-sm shrink-0">${emoji}</div>`;
+
       return `
         <div class="today-card p-5 flex items-center gap-5 group">
-          <div class="size-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl shadow-sm shrink-0">
-            ${emoji}
-          </div>
+          ${imageHtml}
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
               <span class="meal-type-badge ${badgeCls}">${meal.category || 'Receita'}</span>
               ${isDone ? '<span class="meal-type-badge bg-primary text-slate-900">Cozinhado</span>' : ''}
             </div>
             <h3 class="text-xl font-black tracking-tight truncate ${isDone ? 'line-through opacity-50' : ''}">${meal.recipeName}</h3>
-            <p class="text-[10px] font-bold text-muted mt-1 uppercase tracking-widest flex items-center gap-2">
-              <span class="material-symbols-outlined text-xs">schedule</span> ${meal.prepTime || '--'} min
-              <span class="text-slate-300">|</span>
-              <span class="material-symbols-outlined text-xs">payments</span> ${meal.pricePerServing || '--'}€ p.p.
-            </p>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+              <p class="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">schedule</span> ${meal.prepTime || '--'} min
+              </p>
+              <p class="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">payments</span> ${meal.pricePerServing || '--'}€ p.p.
+              </p>
+              ${meal.calories ? `
+              <p class="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">bolt</span> ${meal.calories} KCAL
+              </p>` : ''}
+            </div>
           </div>
           <div class="shrink-0 flex flex-col gap-2">
             <button onclick="window.toggleMealDone(${todayIndex}, ${!isDone})" class="size-11 rounded-2xl ${isDone ? 'bg-primary text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'} flex items-center justify-center transition-all shadow-sm">
@@ -506,13 +515,20 @@
 
         if (scored.length > 0) {
           document.getElementById('pantry-suggestions').classList.remove('hidden');
-          document.getElementById('pantry-suggestions-grid').innerHTML = scored.map(r => `
-            <a href="recipes-catalog.html?id=${r.id}" class="flex-none w-36 bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-border-dark p-3 space-y-2">
-              <div class="h-20 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl">${recipeEmoji(r.name, (r.tags||[])[0])}</div>
-              <p class="text-[10px] font-black line-clamp-1">${r.name}</p>
-              <div class="flex items-center justify-between"><span class="text-[8px] font-black text-primary">${r.match}% MATCH</span></div>
-            </a>
-          `).join('');
+          document.getElementById('pantry-suggestions-grid').innerHTML = scored.map(r => {
+            const emoji = recipeEmoji(r.name, (r.tags||[])[0]);
+            const imageHtml = r.image 
+              ? `<img src="${r.image}" class="h-20 w-full rounded-xl object-cover" alt="${r.name}" onerror="this.outerHTML='<div class=\'h-20 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl\'>${emoji}</div>'">`
+              : `<div class="h-20 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl">${emoji}</div>`;
+              
+            return `
+              <a href="recipes-catalog.html?id=${r.id}" class="flex-none w-36 bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-border-dark p-3 space-y-2">
+                ${imageHtml}
+                <p class="text-[10px] font-black line-clamp-1">${r.name}</p>
+                <div class="flex items-center justify-between"><span class="text-[8px] font-black text-primary">${r.match}% MATCH</span></div>
+              </a>
+            `;
+          }).join('');
         }
       } catch(e) { console.error(e); }
     }

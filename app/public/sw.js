@@ -1,4 +1,4 @@
-// Service Worker Neutralizado para v21 - Estabilização Urgente
+// Service Worker Neutralizado para v29 - Estabilização Urgente
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => {
   event.waitUntil(

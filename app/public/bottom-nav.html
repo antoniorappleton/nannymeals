@@ -42,6 +42,10 @@
       <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 0">person</span>
       <span>Perfil</span>
     </a>
+    <a href="admin-import.html" id="nav-admin" class="sidebar-nav-item nav-item flex items-center gap-3 px-3 py-3 rounded-2xl font-bold text-sm text-amber-600 dark:text-amber-500 hover:bg-amber-100/20 transition-all hidden" data-page="admin-import.html">
+      <span class="material-symbols-outlined text-xl">admin_panel_settings</span>
+      <span>Admin Import</span>
+    </a>
   </nav>
 
   <!-- Dark Mode Toggle -->
@@ -87,6 +91,10 @@
     <a href="perfil.html" class="nav-item flex flex-col items-center justify-center gap-0.5 text-slate-400 dark:text-slate-500 hover:text-primary transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl" data-page="perfil.html">
       <span class="material-symbols-outlined text-[22px] leading-none" style="font-variation-settings:'FILL' 0">person</span>
       <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
+    </a>
+    <a href="admin-import.html" id="bottom-nav-admin" class="nav-item flex flex-col items-center justify-center gap-0.5 text-amber-500 hover:text-amber-600 transition-all min-h-[56px] flex-1 px-1 py-2 rounded-xl hidden" data-page="admin-import.html">
+      <span class="material-symbols-outlined text-[22px] leading-none">admin_panel_settings</span>
+      <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">Admin</span>
     </a>
   </nav>
 </div>
@@ -136,5 +144,34 @@
       applyTheme(!isDark);
     });
   }
+  // ── Admin Visibility ─────────────────────────
+  const checkAdmin = () => {
+    // We try to listen to auth if firebase is present, or check storage if we saved it there
+    // For simplicity, we can also check if the user is already logged in via a custom event or waiting a bit
+    const revealAdmin = () => {
+      // In NannyMeals, we can check if the current user object exists in a global scope or wait for Firebase
+      // But since this script runs independently, we'll try to use the Firebase Auth instance if available
+      try {
+        const auth = window.firebaseAuth; // We might need to expose this in firebase-init
+        if (auth && auth.currentUser && auth.currentUser.email === 'antonioappleton@gmail.com') {
+          document.getElementById('nav-admin')?.classList.remove('hidden');
+          document.getElementById('bottom-nav-admin')?.classList.remove('hidden');
+        } else {
+          // Fallback: check localStorage where we might have cached the email
+          const cachedUser = localStorage.getItem('nm_user_email');
+          if (cachedUser === 'antonioappleton@gmail.com') {
+              document.getElementById('nav-admin')?.classList.remove('hidden');
+              document.getElementById('bottom-nav-admin')?.classList.remove('hidden');
+          }
+        }
+      } catch (e) {}
+    };
+    
+    revealAdmin();
+    // Re-check after a delay to account for auth lag
+    setTimeout(revealAdmin, 1000);
+    setTimeout(revealAdmin, 3000);
+  };
+  checkAdmin();
 })();
 </script>

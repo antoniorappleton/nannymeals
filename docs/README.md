@@ -9,12 +9,12 @@ NannyMeal is a **Smart Meal Planner PWA** designed for busy families. It automat
 ### 1. **Inteligência de Planeamento**
 - **Algoritmo Adaptativo**: Sugere refeições baseadas no perfil da família (adultos/crianças), tempo disponível e nível de cozinha.
 - **Sugestões da Despensa**: O algoritmo prioriza receitas com base nos ingredientes que já tens em stock (>60% match).
-- **Importador Inteligente (Scraper)**: Substituímos a dependência de APIs externas por um sistema de scraping direto dos maiores supermercados portugueses (**Continente** e **Pingo Doce**).
+- **Importador Inteligente (Scraper)**: Substituímos a dependência de APIs externas por um sistema de scraping direto dos maiores supermercados portugueses (**Continente**, **Pingo Doce** e **Auchan**).
 - **Smart Swaps**: Troca qualquer refeição por uma alternativa sugerida pelo algoritmo que respeite as tuas restrições.
 
 ### 2. **Gestão de Compras (Grocery Intelligence)**
 - **Agregação Inteligente**: Soma quantidades automaticamente (ex: 200g + 300g = 500g) e agrupa por categorias de supermercado (Talho, Hortifrutis, Laticínios).
-- **Estimativa de Custos Reais**: Calcula o custo total da lista de compras com base em preços reais consultados em tempo real nos sites do Continente e Pingo Doce.
+- **Estimativa de Custos Reais**: Calcula o custo total da lista de compras com base em preços reais consultados em tempo real nos sites do Continente, Pingo Doce e Auchan.
 - **Scanner de Alergénios (Open Food Facts)**: Permite verificar se um produto no supermercado é seguro para a tua família através do código de barras.
 
 ### 3. **Perfil & Feedback**
@@ -89,6 +89,7 @@ O sistema utiliza a Cloud Function `importFromUrlHttp` para processar URLs de re
 #### A. Extração Inteligente
 - **Continente Feed**: Captura automática de doses, tempo, ingredientes e passos.
 - **Pingo Doce**: Extração estruturada de detalhes da receita e imagens.
+- **Auchan**: Novo suporte para extração de receitas do site receitas.auchan.pt.
 
 #### B. Matching de Preços
 Para cada ingrediente extraído, o sistema realiza uma pesquisa heurística nos catálogos online:
@@ -398,7 +399,7 @@ O acesso às ferramentas de gestão de receitas e migração de sistema é restr
 
 ## � Próximos Passos (Roadmap)
 
-- [x] **Integração com Continente/Pingo Doce**: Web scraping de receitas e preços reais.
+- [x] **Integração com Continente/Pingo Doce/Auchan**: Web scraping de receitas e preços reais.
 - [ ] **NannyBot AI**: Chatbot para ajudar a substituir ingredientes em tempo real.
 - [ ] **Modo Offline**: Sincronização avançada para usar a lista de compras sem internet.
 - [ ] **Gamificação**: Medalhas por redução de desperdício.

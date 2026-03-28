@@ -10,7 +10,7 @@
   <script src="src/tailwind-config.js"></script>
   <link rel="stylesheet" href="css/global.css" />
   <link rel="manifest" href="manifest.json" />
-  <script type="module" src="src/auth.js?v=28"></script>
+  <script type="module" src="src/auth.js?v=29"></script>
   <style>
     body { min-height: 100dvh; }
 
@@ -83,8 +83,8 @@
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
-    if (localStorage.getItem('app_version') !== 'v28') {
-      localStorage.setItem('app_version', 'v28');
+    if (localStorage.getItem('app_version') !== 'v29') {
+      localStorage.setItem('app_version', 'v29');
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
       if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
     }
@@ -348,6 +348,11 @@
             currentIngredients = list.flatMap(c => c.items.map(i => i.name));
             renderGroceryList(list);
             document.getElementById("current-grocery-header").textContent = `${list.reduce((a,c)=>a+c.items.length,0)} ITENS · ESTIMATIVA ATIVA`;
+            
+            if (plan.totalEstimatedCost) {
+               document.getElementById("cost-badge").classList.remove("hidden");
+               document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost;
+            }
           } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
         } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
 
