@@ -380,18 +380,6 @@
     }
 
     // ── UI Builders ───────────────────────────────────
-    const catEmoji = { sopa:'🥣', carne:'🥩', peixe:'🐟', massa:'🍝', vegetariano:'🥦', sobremesa:'🍮', default:'🍽️' };
-    function recipeEmoji(name='', category='') {
-      const key = (category || '').toLowerCase().trim();
-      if (catEmoji[key]) return catEmoji[key];
-      const n = name.toLowerCase();
-      if (n.includes('sopa')) return '🥣';
-      if (n.includes('frango') || n.includes('carne')) return '🥩';
-      if (n.includes('peixe') || n.includes('bacalhau')) return '🐟';
-      if (n.includes('massa')) return '🍝';
-      return '🍽️';
-    }
-
     const categoryImages = {
       sopa: 'assets/images/recipe_sopa.png',
       carne: 'assets/images/recipe_carne.png',
@@ -403,7 +391,6 @@
     };
 
     function buildTodayCard(meal) {
-      const emoji = recipeEmoji(meal.recipeName, meal.category);
       const isDone = meal.completed === true;
       const badgeCls = `badge-${(meal.category||'default').toLowerCase()}`;
       const fallbackImg = categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default;

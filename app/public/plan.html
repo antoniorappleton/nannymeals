@@ -582,17 +582,6 @@
         default: 'assets/images/recipe_default.png'
       };
 
-      function recipeEmoji(name='', category='') {
-        const key = (category || '').toLowerCase().trim();
-        if (catEmoji[key]) return catEmoji[key];
-        const n = name.toLowerCase();
-        if (n.includes('sopa')) return '🥣';
-        if (n.includes('frango') || n.includes('carne')) return '🥩';
-        if (n.includes('peixe') || n.includes('bacalhau')) return '🐟';
-        if (n.includes('massa')) return '🍝';
-        return '🍽️';
-      }
-
       const days = [
         "Segunda-feira",
         "Terça-feira",
@@ -625,20 +614,13 @@
           const imageContainer = document.getElementById(
             "modal-image-container",
           );
-          const recipeImage = document.getElementById("modal-recipe-image");
-          const emoji = recipeEmoji(meal.recipeName, meal.category);
+          const fallbackImg = categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default;
           
-          if (meal.image) {
-            imageContainer.classList.remove("hidden");
-            recipeImage.src = meal.image;
-            recipeImage.alt = meal.recipeName;
-            recipeImage.onerror = () => {
-              imageContainer.innerHTML = `<div class="w-full h-40 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-5xl shadow-lg">${emoji}</div>`;
-            };
-          } else {
-            imageContainer.classList.remove("hidden");
-            imageContainer.innerHTML = `<div class="w-full h-40 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-5xl shadow-lg">${emoji}</div>`;
-          }
+          imageContainer.classList.remove("hidden");
+          const imgSrc = meal.image || fallbackImg;
+          recipeImage.src = imgSrc;
+          recipeImage.alt = meal.recipeName;
+          recipeImage.onerror = () => { recipeImage.src = fallbackImg; };
 
           // Tags
           const tagsContainer = document.getElementById("modal-tags-container");
