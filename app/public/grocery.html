@@ -83,8 +83,8 @@
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
-    if (localStorage.getItem('app_version') !== 'v29') {
-      localStorage.setItem('app_version', 'v29');
+    if (localStorage.getItem('app_version') !== 'v30') {
+      localStorage.setItem('app_version', 'v30');
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
       if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
     }
