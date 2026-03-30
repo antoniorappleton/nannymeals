@@ -41,6 +41,7 @@ const functions = __importStar(require("firebase-functions"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
+const https_2 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const cors_1 = __importDefault(require("cors"));
 const corsHandler = (0, cors_1.default)({ origin: true });
@@ -93,22 +94,22 @@ exports.onFeedbackWrite = (0, firestore_1.onDocumentCreated)("feedback/{fid}", a
         t.set(stateRef, state, { merge: true });
     });
 });
-exports.buildGroceryList = (0, https_1.onCall)(async (request) => {
+exports.buildGroceryList = (0, https_2.onCall)(async (request) => {
     const { planId } = request.data;
     if (!request.auth) {
-        throw new https_1.HttpsError("unauthenticated", "User must be logged in.");
+        throw new https_2.HttpsError("unauthenticated", "User must be logged in.");
     }
     const planDoc = await db.collection("weeklyPlans").doc(planId).get();
     if (!planDoc.exists) {
-        throw new https_1.HttpsError("not-found", "Plan not found.");
+        throw new https_2.HttpsError("not-found", "Plan not found.");
     }
     return { items: {} };
 });
-exports.exportHouseholdData = (0, https_1.onCall)(async (request) => {
+exports.exportHouseholdData = (0, https_2.onCall)(async (request) => {
     var _a;
     const uid = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid;
     if (!uid)
-        throw new https_1.HttpsError("unauthenticated", "Auth required.");
+        throw new https_2.HttpsError("unauthenticated", "Auth required.");
     const household = await db.collection("households").doc(uid).get();
     const plans = await db.collection("weeklyPlans").where("householdId", "==", uid).get();
     return {
@@ -117,79 +118,84 @@ exports.exportHouseholdData = (0, https_1.onCall)(async (request) => {
     };
 });
 const scraper_service_1 = require("./scraper-service");
-exports.importFromUrlHttp = functions.https.onRequest((req, res) => {
-    return corsHandler(req, res, async () => {
-        try {
-            const authHeader = (req.headers.authorization || '').toString();
-            if (!authHeader.startsWith('Bearer ')) {
-                res.status(401).json({ error: 'Missing Authorization header' });
-                return;
-            }
-            const idToken = authHeader.split(' ')[1];
-            const decoded = await admin.auth().verifyIdToken(idToken);
-            if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
-                res.status(403).json({ error: 'Forbidden' });
-                return;
-            }
-            const { url, content, storePreference, save = false } = req.body || {};
-            if (!url && !content) {
-                res.status(400).json({ error: 'URL or content is required' });
-                return;
-            }
-            let recipe;
-            if (content) {
-                recipe = (0, scraper_service_1.extractFromHtml)(content, url || '');
-            }
-            else if (url) {
-                if (url.includes('continente.pt')) {
-                    recipe = await (0, scraper_service_1.extractFromContinente)(url);
-                }
-                else if (url.includes('pingodoce.pt')) {
-                    recipe = await (0, scraper_service_1.extractFromPingoDoce)(url);
-                }
-                else if (url.includes('auchan.pt')) {
-                    recipe = await (0, scraper_service_1.extractFromAuchan)(url);
-                }
-                else {
-                    res.status(400).json({ error: 'Unsupported URL source for automatic fetch' });
-                    return;
-                }
-            }
-            if (!recipe) {
-                res.status(500).json({ error: 'Failed to extract recipe data' });
-                return;
-            }
-            if (storePreference) {
-                let totalCost = 0;
-                for (const ing of recipe.ingredients) {
-                    const price = await (0, scraper_service_1.getPriceInStore)(ing.name, storePreference);
-                    if (price) {
-                        ing.price = price;
-                        totalCost += price;
-                    }
-                }
-                recipe.totalCost = totalCost > 0 ? totalCost.toFixed(2) : null;
-                recipe.pricePerServing = totalCost > 0 ? (totalCost / recipe.servings).toFixed(2) : null;
-            }
-            const finalRecipe = {
-                ...recipe,
-                id: `scraped_${Date.now()}`,
-                createdAt: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
-                createdAtTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                importSource: 'scraper',
-                searchText: `${recipe.name} ${recipe.sourceName}`,
-            };
-            if (save) {
-                await db.collection("recipes").doc(finalRecipe.id).set(finalRecipe);
-            }
-            res.status(200).json(finalRecipe);
+exports.importFromUrlHttp = (0, https_1.onRequest)({ cors: true, timeoutSeconds: 300, memory: "256MiB" }, async (req, res) => {
+    try {
+        const authHeader = (req.headers.authorization || '').toString();
+        if (!authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ error: 'Missing Authorization header' });
+            return;
         }
-        catch (err) {
-            console.error('importFromUrlHttp error:', err);
-            res.status(500).json({ error: err.message || String(err) });
+        const idToken = authHeader.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
         }
-    });
+        const { url, content, storePreference, save = false } = req.body || {};
+        if (!url && !content) {
+            res.status(400).json({ error: 'URL or content is required' });
+            return;
+        }
+        let recipe;
+        if (content) {
+            recipe = (0, scraper_service_1.extractFromHtml)(content, url || '');
+        }
+        else if (url) {
+            if (url.includes('continente.pt')) {
+                recipe = await (0, scraper_service_1.extractFromContinente)(url);
+            }
+            else if (url.includes('pingodoce.pt')) {
+                recipe = await (0, scraper_service_1.extractFromPingoDoce)(url);
+            }
+            else if (url.includes('auchan.pt')) {
+                recipe = await (0, scraper_service_1.extractFromAuchan)(url);
+            }
+            else if (url.includes('minipreco.pt')) {
+                recipe = await (0, scraper_service_1.extractFromMiniPreco)(url);
+            }
+            else if (url.includes('lidl.pt')) {
+                recipe = await (0, scraper_service_1.extractFromLidl)(url);
+            }
+            else {
+                res.status(400).json({ error: 'Unsupported URL source for automatic fetch' });
+                return;
+            }
+        }
+        if (!recipe) {
+            res.status(500).json({ error: 'Failed to extract recipe data' });
+            return;
+        }
+        if (storePreference && Array.isArray(recipe.ingredients)) {
+            let totalCost = 0;
+            const pricePromises = recipe.ingredients.map(async (ing) => {
+                const price = await (0, scraper_service_1.getPriceInStore)(ing.name, storePreference);
+                if (price) {
+                    ing.price = price;
+                    totalCost += price;
+                }
+            });
+            await Promise.all(pricePromises);
+            recipe.totalCost = totalCost > 0 ? totalCost.toFixed(2) : null;
+            recipe.pricePerServing = totalCost > 0 ? (totalCost / recipe.servings).toFixed(2) : null;
+        }
+        const finalRecipe = {
+            ...recipe,
+            id: `scraped_${Date.now()}`,
+            createdAt: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+            createdAtTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            importSource: 'scraper',
+            searchText: `${recipe.name} ${recipe.sourceName}`,
+        };
+        if (save) {
+            await db.collection("recipes").doc(finalRecipe.id).set(finalRecipe);
+        }
+        res.status(200).json(finalRecipe);
+    }
+    catch (err) {
+        console.error('importFromUrlHttp error:', err);
+        res.status(500).json({ error: err.message || String(err) });
+    }
 });
 exports.migrateWeeklyPlansMembers = functions.https.onRequest((req, res) => {
     return corsHandler(req, res, async () => {

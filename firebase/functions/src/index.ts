@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onRequest } from "firebase-functions/v2/https";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import cors from "cors";
@@ -111,91 +112,92 @@ export const exportHouseholdData = onCall(async (request) => {
 
 // --------- SUPERMARKET SCRAPER & ADMIN HELPERS ---------
 
-import { extractFromContinente, extractFromPingoDoce, extractFromAuchan, extractFromHtml, getPriceInStore } from "./scraper-service";
+import { extractFromContinente, extractFromPingoDoce, extractFromAuchan, extractFromMiniPreco, extractFromLidl, extractFromHtml, getPriceInStore } from "./scraper-service";
 
 /**
  * ADMIN endpoint: Scrape a recipe from a URL or pasted content.
  */
-export const importFromUrlHttp = functions.https.onRequest((req, res) => {
-  return corsHandler(req, res, async () => {
-    try {
-      const authHeader = (req.headers.authorization || '').toString();
-      if (!authHeader.startsWith('Bearer ')) { 
-        res.status(401).json({ error: 'Missing Authorization header' }); 
-        return; 
-      }
-      
-      const idToken = authHeader.split(' ')[1];
-      const decoded = await admin.auth().verifyIdToken(idToken);
-      if (!decoded || decoded.email !== 'antonioappleton@gmail.com') { 
-        res.status(403).json({ error: 'Forbidden' }); 
-        return; 
-      }
+export const importFromUrlHttp = onRequest({ cors: true, timeoutSeconds: 300, memory: "256MiB" }, async (req, res) => {
+  try {
+    const authHeader = (req.headers.authorization || '').toString();
+    if (!authHeader.startsWith('Bearer ')) { 
+      res.status(401).json({ error: 'Missing Authorization header' }); 
+      return; 
+    }
+    
+    const idToken = authHeader.split(' ')[1];
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    if (!decoded || decoded.email !== 'antonioappleton@gmail.com') { 
+      res.status(403).json({ error: 'Forbidden' }); 
+      return; 
+    }
 
-      const { url, content, storePreference, save = false } = req.body || {};
-      
-      if (!url && !content) { 
-        res.status(400).json({ error: 'URL or content is required' }); 
-        return; 
-      }
+    const { url, content, storePreference, save = false } = req.body || {};
+    
+    if (!url && !content) { 
+      res.status(400).json({ error: 'URL or content is required' }); 
+      return; 
+    }
 
-      let recipe: any;
-      if (content) {
-        // Option 1: Pasted HTML/Text
-        recipe = extractFromHtml(content, url || '');
-      } else if (url) {
-        // Option 2: URL Fetch
-        if (url.includes('continente.pt')) {
-          recipe = await extractFromContinente(url);
-        } else if (url.includes('pingodoce.pt')) {
-          recipe = await extractFromPingoDoce(url);
-        } else if (url.includes('auchan.pt')) {
-          recipe = await extractFromAuchan(url);
-        } else {
-          res.status(400).json({ error: 'Unsupported URL source for automatic fetch' });
-          return;
-        }
-      }
-
-      if (!recipe) {
-        res.status(500).json({ error: 'Failed to extract recipe data' });
+    let recipe: any;
+    if (content) {
+      recipe = extractFromHtml(content, url || '');
+    } else if (url) {
+      if (url.includes('continente.pt')) {
+        recipe = await extractFromContinente(url);
+      } else if (url.includes('pingodoce.pt')) {
+        recipe = await extractFromPingoDoce(url);
+      } else if (url.includes('auchan.pt')) {
+        recipe = await extractFromAuchan(url);
+      } else if (url.includes('minipreco.pt')) {
+        recipe = await extractFromMiniPreco(url);
+      } else if (url.includes('lidl.pt')) {
+        recipe = await extractFromLidl(url);
+      } else {
+        res.status(400).json({ error: 'Unsupported URL source for automatic fetch' });
         return;
       }
-
-      // Price matching
-      if (storePreference) {
-        let totalCost = 0;
-        for (const ing of recipe.ingredients) {
-          const price = await getPriceInStore(ing.name, storePreference);
-          if (price) {
-            ing.price = price;
-            totalCost += price;
-          }
-        }
-        recipe.totalCost = totalCost > 0 ? totalCost.toFixed(2) : null;
-        recipe.pricePerServing = totalCost > 0 ? (totalCost / recipe.servings).toFixed(2) : null;
-      }
-
-      const finalRecipe = {
-        ...recipe,
-        id: `scraped_${Date.now()}`,
-        createdAt: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        createdAtTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        importSource: 'scraper',
-        searchText: `${recipe.name} ${recipe.sourceName}`,
-      };
-
-      if (save) {
-        await db.collection("recipes").doc(finalRecipe.id).set(finalRecipe);
-      }
-
-      res.status(200).json(finalRecipe);
-    } catch (err: any) {
-      console.error('importFromUrlHttp error:', err);
-      res.status(500).json({ error: err.message || String(err) });
     }
-  });
+
+    if (!recipe) {
+      res.status(500).json({ error: 'Failed to extract recipe data' });
+      return;
+    }
+
+    // Price matching with Parallelism
+    if (storePreference && Array.isArray(recipe.ingredients)) {
+      let totalCost = 0;
+      const pricePromises = recipe.ingredients.map(async (ing: any) => {
+        const price = await getPriceInStore(ing.name, storePreference);
+        if (price) {
+          ing.price = price;
+          totalCost += price;
+        }
+      });
+      await Promise.all(pricePromises);
+      recipe.totalCost = totalCost > 0 ? totalCost.toFixed(2) : null;
+      recipe.pricePerServing = totalCost > 0 ? (totalCost / recipe.servings).toFixed(2) : null;
+    }
+
+    const finalRecipe = {
+      ...recipe,
+      id: `scraped_${Date.now()}`,
+      createdAt: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+      createdAtTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      importSource: 'scraper',
+      searchText: `${recipe.name} ${recipe.sourceName}`,
+    };
+
+    if (save) {
+      await db.collection("recipes").doc(finalRecipe.id).set(finalRecipe);
+    }
+
+    res.status(200).json(finalRecipe);
+  } catch (err: any) {
+    console.error('importFromUrlHttp error:', err);
+    res.status(500).json({ error: err.message || String(err) });
+  }
 });
 
 
