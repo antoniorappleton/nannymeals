@@ -102,7 +102,7 @@ function parseLidl($, url = '') {
             ingredients.push({ ...parsed, original: text });
         }
     });
-    const instructions = $('h2:contains("Passo a Passo")').nextAll('p, ol, li').text().trim() || $('.recipe-preparation').text().trim();
+    const instructions = $('h2:contains("Passo a Passo")').nextAll('p, ol, li, .list-decimal').text().trim() || $('.recipe-preparation').text().trim();
     return {
         name, image, prepTime: 45, servings: 4, ingredients, instructions,
         sourceUrl: url,
@@ -114,24 +114,29 @@ function parseContinente($, url = '') {
     const image = $('meta[property="og:image"]').attr("content") ||
         $("img.recipe-hero-image").attr("src") ||
         null;
-    let prepTime = 0;
-    const timeText = $('.recipe-info-item:contains("min"), .recipe-hero__info-item:contains("min"), .recipe-info__item:contains("min")').first().text();
-    prepTime = parseInt(timeText.replace(/\D/g, '')) || 0;
-    let servings = 4;
-    const servingsText = $('.recipe-info-item:contains("porções"), .recipe-hero__info-item:contains("porções"), .recipe-info-item:contains("doses"), .recipe-info__item:contains("doses")').first().text();
-    const servingsMatch = servingsText.match(/\d+/);
-    if (servingsMatch)
-        servings = parseInt(servingsMatch[0]);
+    const ldJson = parseLdJson($.html());
+    let prepTime = (ldJson === null || ldJson === void 0 ? void 0 : ldJson.prepTime) || 0;
+    let servings = (ldJson === null || ldJson === void 0 ? void 0 : ldJson.servings) || 4;
+    if (!prepTime) {
+        const timeText = $('.recipe-info-item:contains("min"), .recipe-hero__info-item:contains("min"), .recipe-info__item:contains("min")').first().text();
+        prepTime = parseInt(timeText.replace(/\D/g, '')) || 0;
+    }
+    if (!servings || servings === 4) {
+        const servingsText = $('.recipe-info-item:contains("porções"), .recipe-hero__info-item:contains("porções"), .recipe-info-item:contains("doses"), .recipe-info__item:contains("doses")').first().text();
+        const servingsMatch = servingsText.match(/\d+/);
+        if (servingsMatch)
+            servings = parseInt(servingsMatch[0]);
+    }
     const ingredients = [];
-    const ingSelector = '.recipe-ingredients-list li, .ingredientList__body li, .recipe-ingredients__item';
+    const ingSelector = '.recipe-ingredients-list li, .ingredientList__body li, .recipe-ingredients__item, .ingredients__item';
     $(ingSelector).each((_, el) => {
-        const text = $(el).text().trim();
+        const text = $(el).text().trim().replace(/\s+/g, ' ');
         if (text) {
             const parsed = parseIngredientString(text);
             ingredients.push({ ...parsed, original: text });
         }
     });
-    const stepSelector = '.recipe-preparation-steps, .recipeSteps__body li, .recipe-preparation__content';
+    const stepSelector = '.recipe-preparation-steps, .recipeSteps__body li, .recipe-preparation__content, .preparation__step';
     const steps = [];
     $(stepSelector).each((_, el) => {
         const text = $(el).text().trim();
@@ -174,41 +179,52 @@ function parsePingoDoce($, url = "") {
     };
 }
 function parseAuchan($, url = "") {
-    const name = $("h1.recipe-hero__title").text().trim() || $("h1").first().text().trim();
+    const name = $("h1.recipe-hero__title").text().trim() ||
+        $("h1.entry-title").text().trim() ||
+        $("h1").first().text().trim();
     const image = $("img.recipe-hero__image").attr("src") ||
+        $(".post-thumbnail img").attr("src") ||
         $('meta[property="og:image"]').attr("content") ||
         null;
-    let prepTime = 0;
-    let servings = 4;
-    $(".meta-card__summary-item").each((_, el) => {
-        const text = $(el).text().trim();
-        if (text.toLowerCase().includes("min") ||
-            text.toLowerCase().includes("hora")) {
-            const match = text.match(/\d+/);
-            if (match) {
-                let val = parseInt(match[0]);
-                if (text.toLowerCase().includes("hora"))
-                    val *= 60;
-                prepTime = val;
+    const ldJson = parseLdJson($.html());
+    let prepTime = (ldJson === null || ldJson === void 0 ? void 0 : ldJson.prepTime) || 0;
+    let servings = (ldJson === null || ldJson === void 0 ? void 0 : ldJson.servings) || 4;
+    if (!prepTime) {
+        $(".meta-card__summary-item").each((_, el) => {
+            const text = $(el).text().trim();
+            if (text.toLowerCase().includes("min") ||
+                text.toLowerCase().includes("hora")) {
+                const match = text.match(/\d+/);
+                if (match) {
+                    let val = parseInt(match[0]);
+                    if (text.toLowerCase().includes("hora"))
+                        val *= 60;
+                    prepTime = val;
+                }
             }
-        }
-        else if (text.toLowerCase().includes("pessoa") ||
-            text.toLowerCase().includes("dose")) {
-            const match = text.match(/\d+/);
-            if (match)
-                servings = parseInt(match[0]);
-        }
-    });
+            else if (text.toLowerCase().includes("pessoa") ||
+                text.toLowerCase().includes("dose")) {
+                const match = text.match(/\d+/);
+                if (match)
+                    servings = parseInt(match[0]);
+            }
+        });
+    }
     const ingredients = [];
-    $(".recipe-ingredients__item").each((_, el) => {
+    $(".recipe-ingredients__item, .ingredients__item").each((_, el) => {
         const text = $(el).text().trim().replace(/\s+/g, " ");
         if (text) {
             const parsed = parseIngredientString(text);
             ingredients.push({ ...parsed, original: text });
         }
     });
-    const instructions = $(".recipe-preparation__content").text().trim() ||
-        $(".recipe-preparation").text().trim();
+    const steps = [];
+    $(".recipe-preparation__content p, .recipe-preparation p, .preparation__step").each((_, el) => {
+        const text = $(el).text().trim();
+        if (text)
+            steps.push(text);
+    });
+    const instructions = steps.length > 0 ? steps.join('\n') : ($(".recipe-preparation__content").text().trim() || $(".recipe-preparation").text().trim());
     return {
         name,
         image,
@@ -258,28 +274,37 @@ function parseGenericText(text) {
     };
 }
 function parseLdJson(html) {
-    var _a;
+    var _a, _b;
     try {
         const $ = cheerio.load(html);
         let recipeData = null;
         $('script[type="application/ld+json"]').each((_, el) => {
             try {
-                const json = JSON.parse($(el).html() || '');
+                const text = $(el).html() || '';
+                if (!text)
+                    return;
+                const json = JSON.parse(text);
                 const items = Array.isArray(json) ? json : [json];
-                for (const item of items) {
-                    const type = item['@type'];
+                const findRecipe = (obj) => {
+                    if (!obj)
+                        return null;
+                    const type = obj['@type'];
                     const types = Array.isArray(type) ? type : [type];
-                    if (types.includes('Recipe')) {
-                        recipeData = item;
+                    if (types.includes('Recipe'))
+                        return obj;
+                    if (obj['@graph'] && Array.isArray(obj['@graph'])) {
+                        return obj['@graph'].find((it) => {
+                            const itType = it['@type'];
+                            const itTypes = Array.isArray(itType) ? itType : [itType];
+                            return itTypes.includes('Recipe');
+                        });
+                    }
+                    return null;
+                };
+                for (const item of items) {
+                    recipeData = findRecipe(item);
+                    if (recipeData)
                         break;
-                    }
-                    if (item['@graph']) {
-                        const graphRecipe = item['@graph'].find((it) => it['@type'] === 'Recipe' || (Array.isArray(it['@type']) && it['@type'].includes('Recipe')));
-                        if (graphRecipe) {
-                            recipeData = graphRecipe;
-                            break;
-                        }
-                    }
                 }
             }
             catch (e) { }
@@ -289,23 +314,32 @@ function parseLdJson(html) {
         if (!recipeData)
             return null;
         const name = recipeData.name || '';
-        const image = Array.isArray(recipeData.image) ? recipeData.image[0] : (((_a = recipeData.image) === null || _a === void 0 ? void 0 : _a.url) || recipeData.image || null);
+        const image = Array.isArray(recipeData.image)
+            ? (typeof recipeData.image[0] === 'string' ? recipeData.image[0] : recipeData.image[0].url)
+            : (((_a = recipeData.image) === null || _a === void 0 ? void 0 : _a.url) || recipeData.image || null);
         const parseDuration = (d) => {
-            if (!d)
+            if (!d || typeof d !== 'string')
                 return 0;
-            const m = d.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+            const m = d.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
             if (!m)
                 return 0;
-            return (parseInt(m[1] || '0') * 60) + parseInt(m[2] || '0');
+            const hours = parseInt(m[1] || '0');
+            const minutes = parseInt(m[2] || '0');
+            return (hours * 60) + minutes;
         };
-        const prepTime = parseDuration(recipeData.prepTime) + parseDuration(recipeData.cookTime) || 30;
-        const servings = parseInt(recipeData.recipeYield) || 4;
-        const ingredients = (recipeData.recipeInstructions || []).length > 0 ? (recipeData.recipeIngredient || []).map((text) => ({
+        const prepTime = parseDuration(recipeData.prepTime) + parseDuration(recipeData.cookTime) + parseDuration(recipeData.totalTime) || 30;
+        const recipeYield = Array.isArray(recipeData.recipeYield) ? recipeData.recipeYield[0] : recipeData.recipeYield;
+        const servings = parseInt(((_b = String(recipeYield || '').match(/\d+/)) === null || _b === void 0 ? void 0 : _b[0]) || '4');
+        const ingredients = (recipeData.recipeIngredient || []).map((text) => ({
             ...parseIngredientString(text),
             original: text
-        })) : [];
+        }));
         const instructions = Array.isArray(recipeData.recipeInstructions)
-            ? recipeData.recipeInstructions.map((s) => s.text || s.name || String(s)).join('\n')
+            ? recipeData.recipeInstructions.map((s) => {
+                if (typeof s === 'string')
+                    return s;
+                return s.text || s.name || '';
+            }).filter(Boolean).join('\n')
             : String(recipeData.recipeInstructions || '');
         return {
             name, image, prepTime, servings, ingredients, instructions,
@@ -314,6 +348,7 @@ function parseLdJson(html) {
         };
     }
     catch (e) {
+        console.error('Error parsing LD+JSON:', e);
         return null;
     }
 }
@@ -399,9 +434,9 @@ async function getPriceInStore(ingredientName, store) {
             const searchUrl = `https://www.continente.pt/pesquisa/?q=${encodeURIComponent(ingredientName)}`;
             const { data: html } = await axios_1.default.get(searchUrl, { headers: { 'User-Agent': userAgent } });
             const $ = cheerio.load(html);
-            const priceStr = $('.product-tile .price-sales').first().text().trim();
+            const priceStr = $('.pwc-tile--price-primary').first().text().trim() || $('.product-tile .price-sales').first().text().trim();
             if (priceStr) {
-                const price = parseFloat(priceStr.replace(',', '.').replace('€', '').trim());
+                const price = parseFloat(priceStr.replace(',', '.').replace(/[^\d\.]/g, '').trim());
                 return isNaN(price) ? null : price;
             }
         }

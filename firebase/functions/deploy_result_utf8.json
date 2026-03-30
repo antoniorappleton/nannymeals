@@ -1,0 +1,8 @@
+﻿
+> build
+> tsc
+
+{
+  "status": "error",
+  "error": "[migrateWeeklyPlansMembers(us-central1)] Upgrading from 1st Gen to 2nd Gen is not yet supported. See https://firebase.google.com/docs/functions/2nd-gen-upgrade before migrating to 2nd Gen."
+}
