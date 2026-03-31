@@ -118,6 +118,26 @@ exports.exportHouseholdData = (0, https_2.onCall)(async (request) => {
     };
 });
 const scraper_service_1 = require("./scraper-service");
+function normalizeIngredientName(name) {
+    if (!name)
+        return "";
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/^(fresh |fresco |fresca |dry |seco |seca )/i, "")
+        .replace(/^(small |medium |large |pequeno |médio |grande )/i, "")
+        .replace(/^(boneless |skinless |sem pele |sem osso )/i, "")
+        .replace(/\s*\([^)]*\)\s*/g, " ")
+        .replace(/cebola[s]? (?:francesa|galega)?/i, "cebola")
+        .replace(/alho[s]? franc[e]?s/i, "alho")
+        .replace(/tomate[s]? cereja/i, "tomate cereja")
+        .replace(/batata[s]? doce[s]?/i, "batata doce")
+        .replace(/batata[s]?[/ ]?frita[s]?/i, "batata frita")
+        .replace(/pão[ -]?es?hambúrguer/i, "pão hambúrguer")
+        .replace(/pão[ -]?de[ -]?hambúrguer/i, "pão hambúrguer")
+        .replace(/filé[ -]?de[ -]?peixe/i, "filé de peixe")
+        .trim();
+}
 exports.importFromUrlHttp = (0, https_1.onRequest)({ cors: true, timeoutSeconds: 300, memory: "256MiB" }, async (req, res) => {
     try {
         const authHeader = (req.headers.authorization || '').toString();
@@ -167,12 +187,25 @@ exports.importFromUrlHttp = (0, https_1.onRequest)({ cors: true, timeoutSeconds:
         }
         if (storePreference && Array.isArray(recipe.ingredients)) {
             let totalCost = 0;
+            const stores = ['continente', 'pingodoce', 'auchan', 'lidl'];
             const pricePromises = recipe.ingredients.map(async (ing) => {
+                const normName = normalizeIngredientName(ing.name);
+                if (!normName)
+                    return;
                 const price = await (0, scraper_service_1.getPriceInStore)(ing.name, storePreference);
                 if (price) {
                     ing.price = price;
                     totalCost += price;
                 }
+                const docId = encodeURIComponent(normName).replace(/\./g, '%2E');
+                const ingRef = db.collection("ingredients").doc(docId);
+                const prices = {};
+                prices[storePreference] = price;
+                await ingRef.set({
+                    name: normName,
+                    prices,
+                    lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
             });
             await Promise.all(pricePromises);
             recipe.totalCost = totalCost > 0 ? totalCost.toFixed(2) : null;
@@ -270,8 +303,9 @@ exports.syncIngredientPrices = (0, https_1.onRequest)({ cors: true, timeoutSecon
                     else if (ing.name)
                         targetName = ing.name;
                     if (targetName) {
-                        const norm = targetName.toLowerCase().trim().replace(/^(fresh |fresco |fresca |dry |seco |seca |small |medium |large |pequeno |médio |grande )/i, '');
-                        uniqueIngredients.add(norm);
+                        const norm = normalizeIngredientName(targetName);
+                        if (norm)
+                            uniqueIngredients.add(norm);
                     }
                 });
             }
@@ -306,7 +340,7 @@ exports.syncIngredientPrices = (0, https_1.onRequest)({ cors: true, timeoutSecon
             }, { merge: true });
             results.push({ name, prices });
             processed++;
-            if (processed >= 15)
+            if (processed >= 30)
                 break;
         }
         res.status(200).json({ success: true, processed, totalUnique: ingredientsToSync.length, results });

@@ -365,8 +365,8 @@ export const syncIngredientPrices = onRequest({ cors: true, timeoutSeconds: 540,
       results.push({ name, prices });
       processed++;
       
-      // Strict limit per request to prevent timeouts
-      if (processed >= 15) break; 
+      // Strict limit per request to prevent timeouts (increased to 30)
+      if (processed >= 30) break; 
     }
 
     res.status(200).json({ success: true, processed, totalUnique: ingredientsToSync.length, results });

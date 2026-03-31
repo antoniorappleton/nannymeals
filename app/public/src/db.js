@@ -958,9 +958,15 @@ export const generateGroceryListFromPlan = async (planId) => {
             if (ingSnap.exists()) {
                const data = ingSnap.data();
                const prices = data.prices || {};
-               item.prices = prices; // Anexar à view
+               item.prices = prices; // Anexar à view para detalhe
                
-               // Somamos o preço unitário (simplificação da lógica: o preço obtido é geralmente do pack mais comum)
+               // Definir o preço principal da item (cheapest available ou de um supermercado preferido)
+               const availablePrices = Object.values(prices).filter(p => p > 0);
+               if (availablePrices.length > 0) {
+                  item.price = Math.min(...availablePrices).toFixed(2);
+               }
+               
+               // Somamos o preço unitário 
                ['continente', 'pingodoce', 'auchan', 'lidl'].forEach(store => {
                   if (prices[store] !== undefined && prices[store] > 0) {
                      supermarketTotals[store] += prices[store];

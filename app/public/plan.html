@@ -617,6 +617,7 @@
           const fallbackImg = categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default;
           
           imageContainer.classList.remove("hidden");
+          const recipeImage = document.getElementById("modal-recipe-image");
           const imgSrc = meal.image || fallbackImg;
           recipeImage.src = imgSrc;
           recipeImage.alt = meal.recipeName;
