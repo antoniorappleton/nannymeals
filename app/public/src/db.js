@@ -28,49 +28,37 @@ import { seedRecipes } from "./seed-recipes.js";
 
 export const getHousehold = async (id) => {
   try {
-    const userRef = doc(db, "users", id);
-    const userSnap = await getDoc(userRef);
+    if (!id) return null;
 
-    // Se o utilizador tem householdId registado
-    if (userSnap.exists() && userSnap.data().householdId) {
-      const hid = userSnap.data().householdId;
-      const householdRef = doc(db, "households", hid);
-      const householdSnap = await getDoc(householdRef);
-
-      if (householdSnap.exists()) {
-        return { id: householdSnap.id, ...householdSnap.data() };
-      }
+    // 1. Tentar ler a household diretamente (caso id já seja um HID)
+    const hhRef = doc(db, "households", id);
+    try {
+      const hhSnap = await getDoc(hhRef);
+      if (hhSnap.exists()) return { id: hhSnap.id, ...hhSnap.data() };
+    } catch (e) {
+      // Ignorar erros de permissão se o utilizador não pertencer a este ID ainda
     }
 
-    // Fallback: tentar directamente como householdId
-    const snap = await getDoc(doc(db, "households", id));
-    if (snap.exists()) {
-      return { id: snap.id, ...snap.data() };
+    // 2. Procurar onde o utilizador é owner
+    const qOwner = query(collection(db, "households"), where("ownerUid", "==", id), limit(1));
+    const snapOwner = await getDocs(qOwner);
+    if (!snapOwner.empty) {
+      const d = snapOwner.docs[0];
+      return { id: d.id, ...d.data() };
     }
 
-    // Se chegou aqui, não tem household - CRIAR AUTOMATICAMENTE
-    console.log(
-      "Nenhuma household encontrada. A criar uma nova automaticamente...",
-    );
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      throw new Error("Utilizador não autenticado");
+    // 3. Procurar onde o utilizador é membro
+    const qMember = query(collection(db, "households"), where("members", "array-contains", id), limit(1));
+    const snapMember = await getDocs(qMember);
+    if (!snapMember.empty) {
+      const d = snapMember.docs[0];
+      return { id: d.id, ...d.data() };
     }
 
-    const newHouseholdId = await createHousehold(currentUser.uid, {
-      name: `Família de ${currentUser.displayName || currentUser.email}`,
-      dietaryPreferences: [],
-      allergies: [],
-      members: [], // Será preenchido quando outros membros aderirem
-      createdAt: serverTimestamp(),
-    });
-
-    // Retornar a household recém criada
-    const newSnap = await getDoc(doc(db, "households", newHouseholdId));
-    return newSnap.exists() ? { id: newSnap.id, ...newSnap.data() } : null;
-  } catch (error) {
-    console.error("getHousehold error:", error);
-    throw error;
+    return null;
+  } catch (err) {
+    console.error("getHousehold error:", err);
+    return null; // Don't throw to avoid crashing the UI
   }
 };
 
@@ -832,7 +820,13 @@ export const generateGroceryListFromPlan = async (planId) => {
   const aggregator = {};
   let totalEstimatedCost = 0;
 
-  const household = await getHousehold(data.householdId);
+    // Fetch household data directly
+    const hhRef = doc(db, "households", data.householdId);
+    const hhSnap = await getDoc(hhRef);
+    if (!hhSnap.exists()) {
+      throw new Error("Casa (Household) não encontrada!");
+    }
+    const household = { id: hhSnap.id, ...hhSnap.data() };
   const adults = household?.adults || 2;
   const children = (household?.children || []).length;
   const totalPersons = adults + children;
@@ -1057,6 +1051,34 @@ export const enrichAllRecipes = async () => {
     return data.updated ? data.updated : 0;
   } catch (err) {
     console.error("Falha ao chamar enrichAllRecipes:", err);
+    throw err;
+  }
+};
+
+export const syncIngredientPrices = async () => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("Utilizador não autenticado.");
+
+    const idToken = await currentUser.getIdToken();
+    const SYNC_URL = "https://us-central1-nannymeal-d966b.cloudfunctions.net/syncIngredientPrices";
+
+    const resp = await fetch(SYNC_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + idToken,
+      },
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`HTTP ${resp.status}: ${text}`);
+    }
+
+    return await resp.json();
+  } catch (err) {
+    console.error("Falha ao sincronizar preços:", err);
     throw err;
   }
 };

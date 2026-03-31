@@ -115,6 +115,29 @@ export const exportHouseholdData = onCall(async (request) => {
 import { extractFromContinente, extractFromPingoDoce, extractFromAuchan, extractFromMiniPreco, extractFromLidl, extractFromHtml, getPriceInStore } from "./scraper-service";
 
 /**
+ * Normalizes ingredient names to match frontend logic.
+ */
+function normalizeIngredientName(name: string): string {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/^(fresh |fresco |fresca |dry |seco |seca )/i, "")
+    .replace(/^(small |medium |large |pequeno |médio |grande )/i, "")
+    .replace(/^(boneless |skinless |sem pele |sem osso )/i, "")
+    .replace(/\s*\([^)]*\)\s*/g, " ")
+    .replace(/cebola[s]? (?:francesa|galega)?/i, "cebola")
+    .replace(/alho[s]? franc[e]?s/i, "alho")
+    .replace(/tomate[s]? cereja/i, "tomate cereja")
+    .replace(/batata[s]? doce[s]?/i, "batata doce")
+    .replace(/batata[s]?[/ ]?frita[s]?/i, "batata frita")
+    .replace(/pão[ -]?es?hambúrguer/i, "pão hambúrguer")
+    .replace(/pão[ -]?de[ -]?hambúrguer/i, "pão hambúrguer")
+    .replace(/filé[ -]?de[ -]?peixe/i, "filé de peixe")
+    .trim();
+}
+
+/**
  * ADMIN endpoint: Scrape a recipe from a URL or pasted content.
  */
 export const importFromUrlHttp = onRequest({ cors: true, timeoutSeconds: 300, memory: "256MiB" }, async (req, res) => {
@@ -164,15 +187,35 @@ export const importFromUrlHttp = onRequest({ cors: true, timeoutSeconds: 300, me
       return;
     }
 
-    // Price matching with Parallelism
+    // Price matching with Parallelism & Persistence
     if (storePreference && Array.isArray(recipe.ingredients)) {
       let totalCost = 0;
+      const stores: ('continente'|'pingodoce'|'auchan'|'lidl')[] = ['continente', 'pingodoce', 'auchan', 'lidl'];
+      
       const pricePromises = recipe.ingredients.map(async (ing: any) => {
+        const normName = normalizeIngredientName(ing.name);
+        if (!normName) return;
+
+        // 1. Get current price for preferred store
         const price = await getPriceInStore(ing.name, storePreference);
         if (price) {
           ing.price = price;
           totalCost += price;
         }
+
+        // 2. Persist to 'ingredients' collection for global use
+        const docId = encodeURIComponent(normName).replace(/\./g, '%2E');
+        const ingRef = db.collection("ingredients").doc(docId);
+        
+        // We update all stores if we have a moment, but prioritize the current one
+        const prices: any = {};
+        prices[storePreference] = price;
+
+        await ingRef.set({
+          name: normName,
+          prices,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
       });
       await Promise.all(pricePromises);
       recipe.totalCost = totalCost > 0 ? totalCost.toFixed(2) : null;
@@ -279,9 +322,8 @@ export const syncIngredientPrices = onRequest({ cors: true, timeoutSeconds: 540,
            else if (ing.name) targetName = ing.name;
            
            if (targetName) {
-             // Basic normalization matches frontend
-             const norm = targetName.toLowerCase().trim().replace(/^(fresh |fresco |fresca |dry |seco |seca |small |medium |large |pequeno |médio |grande )/i, '');
-             uniqueIngredients.add(norm);
+             const norm = normalizeIngredientName(targetName);
+             if (norm) uniqueIngredients.add(norm);
            }
         });
       }
