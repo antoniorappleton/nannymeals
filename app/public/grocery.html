@@ -10,7 +10,7 @@
   <script src="src/tailwind-config.js"></script>
   <link rel="stylesheet" href="css/global.css" />
   <link rel="manifest" href="manifest.json" />
-  <script type="module" src="src/auth.js?v=29"></script>
+  <script type="module" src="src/auth.js?v=31"></script>
   <style>
     body { min-height: 100dvh; }
 
@@ -83,8 +83,8 @@
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
-    if (localStorage.getItem('app_version') !== 'v30') {
-      localStorage.setItem('app_version', 'v30');
+    if (localStorage.getItem('app_version') !== 'v31') {
+      localStorage.setItem('app_version', 'v31');
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
       if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
     }
