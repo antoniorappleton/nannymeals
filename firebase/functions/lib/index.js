@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.migrateWeeklyPlansMembers = exports.importFromUrlHttp = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
+exports.syncIngredientPrices = exports.migrateWeeklyPlansMembers = exports.importFromUrlHttp = exports.exportHouseholdData = exports.buildGroceryList = exports.onFeedbackWrite = exports.cleanupExpiredPlans = exports.weeklyPlanJob = void 0;
 const functions = __importStar(require("firebase-functions"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-functions/v2/firestore");
@@ -243,5 +243,77 @@ exports.migrateWeeklyPlansMembers = functions.https.onRequest((req, res) => {
             res.status(500).json({ error: err.message || String(err) });
         }
     });
+});
+exports.syncIngredientPrices = (0, https_1.onRequest)({ cors: true, timeoutSeconds: 540, memory: "512MiB" }, async (req, res) => {
+    var _a;
+    try {
+        const authHeader = (req.headers.authorization || '').toString();
+        if (!authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ error: 'Missing Auth' });
+            return;
+        }
+        const idToken = authHeader.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        if (!decoded || decoded.email !== 'antonioappleton@gmail.com') {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+        const recipesSnap = await db.collection("recipes").get();
+        const uniqueIngredients = new Set();
+        recipesSnap.forEach(doc => {
+            const recipe = doc.data();
+            if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+                recipe.ingredients.forEach((ing) => {
+                    let targetName = '';
+                    if (typeof ing === 'string')
+                        targetName = ing;
+                    else if (ing.name)
+                        targetName = ing.name;
+                    if (targetName) {
+                        const norm = targetName.toLowerCase().trim().replace(/^(fresh |fresco |fresca |dry |seco |seca |small |medium |large |pequeno |médio |grande )/i, '');
+                        uniqueIngredients.add(norm);
+                    }
+                });
+            }
+        });
+        const ingredientsToSync = Array.from(uniqueIngredients);
+        const results = [];
+        const stores = ['continente', 'pingodoce', 'auchan', 'lidl'];
+        let processed = 0;
+        for (const name of ingredientsToSync) {
+            if (!name)
+                continue;
+            const docId = encodeURIComponent(name).replace(/\./g, '%2E');
+            const ingRef = db.collection("ingredients").doc(docId);
+            const ingDoc = await ingRef.get();
+            if (ingDoc.exists) {
+                const data = ingDoc.data();
+                const lastUpdated = (_a = data === null || data === void 0 ? void 0 : data.lastUpdated) === null || _a === void 0 ? void 0 : _a.toDate();
+                if (lastUpdated && (new Date().getTime() - lastUpdated.getTime()) < 3 * 24 * 60 * 60 * 1000) {
+                    continue;
+                }
+            }
+            const prices = {};
+            for (const store of stores) {
+                const price = await (0, scraper_service_1.getPriceInStore)(name, store);
+                if (price !== null)
+                    prices[store] = price;
+            }
+            await ingRef.set({
+                name,
+                prices,
+                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            results.push({ name, prices });
+            processed++;
+            if (processed >= 15)
+                break;
+        }
+        res.status(200).json({ success: true, processed, totalUnique: ingredientsToSync.length, results });
+    }
+    catch (err) {
+        console.error('syncIngredientPrices error:', err);
+        res.status(500).json({ error: err.message || String(err) });
+    }
 });
 //# sourceMappingURL=index.js.map

@@ -177,28 +177,28 @@
         <button onclick="openSupermarket('continente')" class="supermarket-btn w-full" style="background:#0073A7">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
-            <div class="text-left"><p class="font-black text-lg">Continente</p><p class="text-xs opacity-80">Abrir no website</p></div>
+            <div class="text-left"><p class="font-black text-lg">Continente</p><p class="text-xs opacity-80" id="price-continente">Abrir no website</p></div>
           </div>
           <span class="material-symbols-outlined">arrow_forward_ios</span>
         </button>
         <button onclick="openSupermarket('pingodoce')" class="supermarket-btn w-full" style="background:#00A04A">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
-            <div class="text-left"><p class="font-black text-lg">Pingo Doce</p><p class="text-xs opacity-80">Abrir no website</p></div>
+            <div class="text-left"><p class="font-black text-lg">Pingo Doce</p><p class="text-xs opacity-80" id="price-pingodoce">Abrir no website</p></div>
           </div>
           <span class="material-symbols-outlined">arrow_forward_ios</span>
         </button>
         <button onclick="openSupermarket('auchan')" class="supermarket-btn w-full" style="background:#E30613">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
-            <div class="text-left"><p class="font-black text-lg">Auchan</p><p class="text-xs opacity-80">Abrir no website</p></div>
+            <div class="text-left"><p class="font-black text-lg">Auchan</p><p class="text-xs opacity-80" id="price-auchan">Abrir no website</p></div>
           </div>
           <span class="material-symbols-outlined">arrow_forward_ios</span>
         </button>
-        <button onclick="openSupermarket('intermarche')" class="supermarket-btn w-full" style="background:#FF6600">
+        <button onclick="openSupermarket('lidl')" class="supermarket-btn w-full" style="background:#0050A0">
           <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">shopping_cart</span>
-            <div class="text-left"><p class="font-black text-lg">Intermarché</p><p class="text-xs opacity-80">Abrir no website</p></div>
+            <span class="material-symbols-outlined text-2xl text-yellow-400" style="font-variation-settings:'FILL' 1">shopping_cart</span>
+            <div class="text-left"><p class="font-black text-lg">Lidl</p><p class="text-xs opacity-80" id="price-lidl">Abrir no website</p></div>
           </div>
           <span class="material-symbols-outlined">arrow_forward_ios</span>
         </button>
@@ -349,9 +349,21 @@
             renderGroceryList(list);
             document.getElementById("current-grocery-header").textContent = `${list.reduce((a,c)=>a+c.items.length,0)} ITENS · ESTIMATIVA ATIVA`;
             
+            // Render estimated total from plan options
             if (plan.totalEstimatedCost) {
                document.getElementById("cost-badge").classList.remove("hidden");
                document.getElementById("total-cost-display").textContent = plan.totalEstimatedCost;
+            }
+            
+            // Update individual supermarket modal prices
+            if (plan.supermarketTotals) {
+               const stores = ['continente', 'pingodoce', 'auchan', 'lidl'];
+               stores.forEach(store => {
+                  const el = document.getElementById(`price-${store}`);
+                  if (el && plan.supermarketTotals[store] > 0) {
+                     el.innerHTML = `Estimativa: <b>${plan.supermarketTotals[store]}€</b>`;
+                  }
+               });
             }
           } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }
         } else { loadingState.classList.add("hidden"); emptyState.classList.remove("hidden"); }

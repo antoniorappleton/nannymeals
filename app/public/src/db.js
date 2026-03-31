@@ -949,14 +949,65 @@ export const generateGroceryListFromPlan = async (planId) => {
     `generateGroceryListFromPlan: Geradas ${groceryList.length} categorias de compras.`,
   );
 
+  let supermarketTotals = { continente: 0, pingodoce: 0, auchan: 0, lidl: 0 };
+  let hasPrices = false;
+
+  try {
+    for (const cat of groceryList) {
+       for (const item of cat.items) {
+          const normName = normalizeIngredientName(item.name);
+          // O backend guarda usando o nome limpo e minúsculo. 
+          const docId = encodeURIComponent(normName).replace(/\./g, '%2E');
+          
+          try {
+            const ingSnap = await getDoc(doc(db, "ingredients", docId));
+            if (ingSnap.exists()) {
+               const data = ingSnap.data();
+               const prices = data.prices || {};
+               item.prices = prices; // Anexar à view
+               
+               // Somamos o preço unitário (simplificação da lógica: o preço obtido é geralmente do pack mais comum)
+               ['continente', 'pingodoce', 'auchan', 'lidl'].forEach(store => {
+                  if (prices[store] !== undefined && prices[store] > 0) {
+                     supermarketTotals[store] += prices[store];
+                     hasPrices = true;
+                  }
+               });
+            } else {
+               item.prices = null;
+            }
+          } catch(e) {
+            console.warn(`Could not get price for ${normName}`, e);
+          }
+       }
+    }
+  } catch(err) {
+    console.warn("Pricing enrichment failed:", err);
+  }
+
   // Update plan with total estimated cost and the list itself
   try {
+    const finalTotals = {
+      continente: supermarketTotals.continente.toFixed(2),
+      pingodoce: supermarketTotals.pingodoce.toFixed(2),
+      auchan: supermarketTotals.auchan.toFixed(2),
+      lidl: supermarketTotals.lidl.toFixed(2)
+    };
+    
+    // Se existir um supermercado com valor > 0, usamos esse como fallback
+    let fallbackCost = totalEstimatedCost.toFixed(2);
+    if (hasPrices) {
+       const sortedStores = Object.values(supermarketTotals).filter(v => v > 0).sort((a,b)=>a-b);
+       if (sortedStores.length > 0) fallbackCost = sortedStores[0].toFixed(2);
+    }
+
     await updateDoc(planRef, {
       groceryList,
-      totalEstimatedCost: totalEstimatedCost.toFixed(2),
+      supermarketTotals: finalTotals,
+      totalEstimatedCost: fallbackCost,
     });
     console.log(
-      "generateGroceryListFromPlan: Plano atualizado com sucesso no Firestore.",
+      "generateGroceryListFromPlan: Plano atualizado com sucesso no Firestore (com preços!).",
     );
   } catch (err) {
     console.error("generateGroceryListFromPlan: Erro ao atualizar plano:", err);

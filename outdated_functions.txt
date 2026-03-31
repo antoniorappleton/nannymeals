@@ -1,0 +1,7 @@
+Package             Current    Wanted  Latest  Location                         Depended by
+@types/node          25.3.3  20.19.37  25.5.0  node_modules/@types/node         functions
+axios               MISSING    1.14.0  1.14.0  -                                functions
+cheerio             MISSING     1.2.0   1.2.0  -                                functions
+firebase-admin      11.11.1    13.7.0  13.7.0  node_modules/firebase-admin      functions
+firebase-functions    4.9.0     7.2.2   7.2.2  node_modules/firebase-functions  functions
+typescript            4.9.5     5.9.3   6.0.2  node_modules/typescript          functions

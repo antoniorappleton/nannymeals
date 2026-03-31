@@ -254,3 +254,82 @@ export const migrateWeeklyPlansMembers = functions.https.onRequest((req, res) =>
     }
   });
 });
+
+/**
+ * ADMIN: Sync known ingredients with their real supermarket prices.
+ * Fetches unique ingredients from recipes and stores them in 'ingredients' collection.
+ */
+export const syncIngredientPrices = onRequest({ cors: true, timeoutSeconds: 540, memory: "512MiB" }, async (req, res) => {
+  try {
+    const authHeader = (req.headers.authorization || '').toString();
+    if (!authHeader.startsWith('Bearer ')) { res.status(401).json({ error: 'Missing Auth' }); return; }
+    const idToken = authHeader.split(' ')[1];
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    if (!decoded || decoded.email !== 'antonioappleton@gmail.com') { res.status(403).json({ error: 'Forbidden' }); return; }
+
+    const recipesSnap = await db.collection("recipes").get();
+    const uniqueIngredients = new Set<string>();
+
+    recipesSnap.forEach(doc => {
+      const recipe = doc.data();
+      if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+        recipe.ingredients.forEach((ing: any) => {
+           let targetName = '';
+           if (typeof ing === 'string') targetName = ing;
+           else if (ing.name) targetName = ing.name;
+           
+           if (targetName) {
+             // Basic normalization matches frontend
+             const norm = targetName.toLowerCase().trim().replace(/^(fresh |fresco |fresca |dry |seco |seca |small |medium |large |pequeno |médio |grande )/i, '');
+             uniqueIngredients.add(norm);
+           }
+        });
+      }
+    });
+
+    const ingredientsToSync = Array.from(uniqueIngredients);
+    const results = [];
+    const stores: ('continente'|'pingodoce'|'auchan'|'lidl')[] = ['continente', 'pingodoce', 'auchan', 'lidl'];
+    
+    let processed = 0;
+    for (const name of ingredientsToSync) {
+      if (!name) continue;
+      
+      const docId = encodeURIComponent(name).replace(/\./g, '%2E');
+      const ingRef = db.collection("ingredients").doc(docId);
+      const ingDoc = await ingRef.get();
+      
+      // Skip if updated recently (within last 3 days) to avoid rate limits
+      if (ingDoc.exists) {
+        const data = ingDoc.data();
+        const lastUpdated = data?.lastUpdated?.toDate();
+        if (lastUpdated && (new Date().getTime() - lastUpdated.getTime()) < 3 * 24 * 60 * 60 * 1000) {
+          continue;
+        }
+      }
+
+      const prices: any = {};
+      for (const store of stores) {
+        const price = await getPriceInStore(name, store);
+        if (price !== null) prices[store] = price;
+      }
+
+      await ingRef.set({
+        name,
+        prices,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      results.push({ name, prices });
+      processed++;
+      
+      // Strict limit per request to prevent timeouts
+      if (processed >= 15) break; 
+    }
+
+    res.status(200).json({ success: true, processed, totalUnique: ingredientsToSync.length, results });
+  } catch (err: any) {
+    console.error('syncIngredientPrices error:', err);
+    res.status(500).json({ error: err.message || String(err) });
+  }
+});
