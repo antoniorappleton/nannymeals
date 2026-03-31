@@ -105,6 +105,9 @@
           <div id="cost-badge" class="hidden bg-primary/15 text-primary font-black text-sm px-3 py-1.5 rounded-full">
             <span id="total-cost-display">0</span>€
           </div>
+          <button id="btn-refresh-prices" title="Recalcular Preços" class="size-10 rounded-full hover:bg-primary/10 text-primary flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-xl">refresh</span>
+          </button>
           <button id="btn-supermarkets" title="Supermercados" class="size-10 rounded-full bg-primary text-slate-900 hover:bg-primary-dark flex items-center justify-center shadow-glow transition-all">
             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">store</span>
           </button>
@@ -348,6 +351,24 @@
         pantryData = pantry.items || {};
 
         if (plan) {
+          const refreshBtn = document.getElementById("btn-refresh-prices");
+          if (refreshBtn) {
+            refreshBtn.onclick = async () => {
+              const icon = refreshBtn.querySelector("span");
+              icon.classList.add("animate-spin");
+              refreshBtn.disabled = true;
+              try {
+                await generateGroceryListFromPlan(plan.id);
+                window.location.reload();
+              } catch(e) {
+                console.error("Refresh failed:", e);
+                icon.classList.remove("animate-spin");
+                refreshBtn.disabled = false;
+                alert("Erro ao recalcular preços. Tenta novamente.");
+              }
+            };
+          }
+
           let list = plan.groceryList || [];
           if (list.length === 0) list = await generateGroceryListFromPlan(plan.id);
           
