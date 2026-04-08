@@ -29,9 +29,10 @@
     .my-recipe-card:active { transform: scale(0.98); }
 
     .recipe-avatar {
-      width: 52px; height: 52px; border-radius: 14px;
+      width: 64px; height: 64px; border-radius: 16px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0;
+      font-size: 24px; flex-shrink: 0;
+      overflow: hidden;
     }
   </style>
   <script>
@@ -186,11 +187,14 @@
         return `<div class="my-recipe-card animate-fade-up" style="animation-delay:${idx * 50}ms" data-recipe-id="${r.id}" onclick="editRecipe('${r.id}')">
           <div class="recipe-avatar ${av.bg}">${imageHtml}</div>
           <div class="flex-1 min-w-0">
-            <h3 class="font-black text-sm leading-tight truncate">${r.customName || r.name || 'Sem título'}</h3>
-            <p class="text-[10px] text-muted mt-1 font-bold uppercase tracking-widest">ID: ${r.recipeId}</p>
+            <h3 class="font-black text-sm leading-tight truncate px-1">${r.customName || r.name || 'Sem título'}</h3>
+            <div class="flex items-center gap-3 px-1 mt-2">
+              <p class="text-[9px] text-muted font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">ID: ${r.recipeId}</p>
+              ${r.category ? `<span class="text-[9px] text-primary/70 font-black uppercase tracking-widest">${r.category}</span>` : ''}
+            </div>
           </div>
-          <button data-recipe-id="${r.id}" onclick="event.stopPropagation(); confirmDelete('${r.id}')" class="size-9 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center shrink-0 transition-all">
-            <span class="material-symbols-outlined text-base">delete</span>
+          <button data-recipe-id="${r.id}" onclick="event.stopPropagation(); confirmDelete('${r.id}')" class="size-10 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center shrink-0 transition-all">
+            <span class="material-symbols-outlined text-lg">delete</span>
           </button>
         </div>`;
       }).join('');

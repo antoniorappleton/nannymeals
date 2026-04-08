@@ -84,17 +84,15 @@
             class="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 shadow-premium"
           >
             <div class="flex gap-4 items-center">
-              <div
-                id="old-meal-img"
-                class="size-20 rounded-2xl bg-cover bg-center shrink-0 grayscale opacity-50"
-                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPCFRIxTNEJgvU83hO7F2_r2NMj9TLmElgwxFKj3u10MxvyyDoOZkS3Diihb1D2vp2ARFC78b2cm2EiX-nx68bI4jUpyZYkVOah9ruEeDtP_gYviQAbOJ1zfBU3E1S6ttyTcRFgA05qYPprCMUzcrCD5F_dJWOeRHuSWk5Kk8BfMBBPMPJtoO0R8r4ajnuhA28rYH3cKJ0PobsjeltdByetQbSCz8lk6bvR-oztza4jXQBNdbfSTtWOLQuUVgIlWX4-cfk2ghmNeWY');"
-              ></div>
+              <div id="old-meal-img-container" class="size-20 rounded-2xl overflow-hidden shrink-0 grayscale opacity-60">
+                <img id="old-meal-img" class="size-full object-cover" src="" alt="">
+              </div>
               <div class="flex-1">
                 <div class="flex items-center gap-1.5 mb-1">
                   <span class="material-symbols-outlined text-[14px] text-red-500">heart_broken</span>
                   <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">A Substituir</span>
                 </div>
-                <h3 id="old-meal-name" class="font-bold text-slate-500 line-through">Chicken Stir Fry</h3>
+                <h3 id="old-meal-name" class="font-bold text-slate-500 line-through">---</h3>
                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Impopular com as crianças</p>
               </div>
           </div>
@@ -112,17 +110,15 @@
               class="swipe-card relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-primary p-5 shadow-premium ring-8 ring-primary/5 cursor-grab active:cursor-grabbing"
             >
               <div class="flex gap-4 items-start">
-                <div
-                  id="new-meal-img"
-                  class="size-24 rounded-2xl bg-cover bg-center shrink-0 shadow-lg"
-                  style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u');"
-                ></div>
+                <div id="new-meal-img-container" class="size-24 rounded-2xl overflow-hidden shrink-0 shadow-lg">
+                  <img id="new-meal-img" class="size-full object-cover" src="" alt="">
+                </div>
                 <div class="flex-1">
                   <div class="flex flex-wrap gap-2 mb-3" id="new-meal-tags">
                     <span class="px-2 py-0.5 bg-primary text-slate-900 text-[10px] font-black rounded-lg uppercase tracking-wider">Aprovado por Crianças</span>
                     <span class="px-2 py-0.5 bg-primary/20 text-primary dark:text-primary/80 text-[10px] font-black rounded-lg uppercase tracking-wider">Rápido</span>
                   </div>
-                  <h3 id="new-meal-name" class="font-extrabold text-lg leading-tight">Massa com Vegetais Escondidos</h3>
+                  <h3 id="new-meal-name" class="font-extrabold text-lg leading-tight">---</h3>
                   <p id="new-meal-info" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Pronto em 15 Minutos • 4 Pessoas</p>
                 </div>
             </div>
@@ -207,6 +203,16 @@
       let recommendations = [];
       let currentIndex = 0;
 
+      const categoryImages = {
+        sopa: 'assets/images/recipe_sopa.png',
+        carne: 'assets/images/recipe_carne.png',
+        peixe: 'assets/images/recipe_peixe.png',
+        massa: 'assets/images/recipe_massa.png',
+        vegetariano: 'assets/images/recipe_vegetariano.png',
+        sobremesa: 'assets/images/recipe_sobremesa.png',
+        default: 'assets/images/recipe_default.png'
+      };
+
       const oldMealName = document.getElementById("old-meal-name");
       const oldMealImg = document.getElementById("old-meal-img");
       const newMealName = document.getElementById("new-meal-name");
@@ -232,11 +238,10 @@
         newMealInfo.textContent = `Pronto em ${prepTime} Minutos • ${servings} Pessoas`;
         
         // Update image
-        if (recipe.image) {
-          newMealImg.style.backgroundImage = `url('${recipe.image}')`;
-        } else {
-          newMealImg.style.backgroundImage = "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbaPaZS_g5AIjNp27tmgKySGdpjcQkTM6_SwyXiK_ZkI8_ZjzyVo2DOzrXWaal5jK7Ud_7j82UjTpRpgdDyVZkqI2ng1qpfjeukJfNABHYACVPcW33m7lIGC-9dQV5uMCitB0S98P-rR9wls05_u_c-zjWsnkVe5FfzUGZdrPVfcQAb0g28KSShvIZEkeC9U0nvu9MZN-ea6GCu7S_eQPIlqiRfv9fnyuC_osCJ-v1njKzMFezPniVtgm8bt3CcXUswcTTtZ0Muv1u')";
-        }
+        const fallbackImg = categoryImages[(recipe.category||recipe.tags?.[0]||'').toLowerCase()] || categoryImages.default;
+        newMealImg.src = recipe.image || fallbackImg;
+        newMealImg.alt = recipe.name;
+        newMealImg.onerror = () => { if (newMealImg.src !== fallbackImg) newMealImg.src = fallbackImg; };
         
         // Update tags
         let tagsHtml = '';
@@ -252,7 +257,6 @@
         swipeCounter.textContent = `${index + 1} de ${recommendations.length}`;
         
         // Update analysis text
-        const timeSaved = oldMeal.prepTime ? oldMeal.prepTime - (recipe.prepTime || 0) : 15;
         analysisText.innerHTML = `"Substituímos <span class="text-slate-900 dark:text-white font-bold">${oldMeal.recipeName}</span> por <span class="text-slate-900 dark:text-white font-bold">${recipe.name}</span> - uma opção mais rápida e apreciada pela família."`;
       }
 
@@ -353,6 +357,13 @@
 
             oldMeal = currentPlan.meals[mealIndex];
             oldMealName.textContent = oldMeal.recipeName;
+            
+            // Set old meal image
+            const oldFallbackImg = categoryImages[(oldMeal.category||'').toLowerCase()] || categoryImages.default;
+            oldMealImg.src = oldMeal.image || oldFallbackImg;
+            oldMealImg.alt = oldMeal.recipeName;
+            oldMealImg.onerror = () => { if (oldMealImg.src !== oldFallbackImg) oldMealImg.src = oldFallbackImg; };
+            
             console.log("[SWAPS] Refeição atual:", oldMeal);
 
             // Fetch more recommendations for swipe

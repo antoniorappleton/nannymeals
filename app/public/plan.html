@@ -876,7 +876,8 @@
         mealsContainer.innerHTML = plan.meals
           .map(
             (meal, index) => {
-              const fallbackImg = categoryImages[(meal.category||'').toLowerCase()] || categoryImages.default;
+              const cat = (meal.category || '').toLowerCase();
+              const fallbackImg = categoryImages[cat] || categoryImages.default;
               const imageHtml = meal.image 
                 ? `<img src="${meal.image}" class="w-full h-40 object-cover" alt="${meal.recipeName}" onerror="this.src='${fallbackImg}'">`
                 : `<img src="${fallbackImg}" class="w-full h-40 object-cover" alt="${meal.recipeName}">`;
@@ -896,7 +897,7 @@
                 <h4 class="text-xl font-extrabold tracking-tight">${meal.recipeName}</h4>
                 <div class="flex flex-col items-end gap-1">
                   <span class="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-full uppercase tracking-widest">${meal.prepTime} MIN</span>
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${meal.calories || "---"} KCAL</span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${meal.calories ? meal.calories + ' KCAL' : '--- KCAL'}</span>
                 </div>
               </div>
               <div class="flex items-center justify-between py-1">
@@ -905,7 +906,7 @@
                   <p class="text-sm font-medium italic">${meal.replacedReason || "Sugestão inteligente"}</p>
                 </div>
                 <div class="text-xs font-black text-slate-900 dark:text-slate-200">
-                  CUSTO: <span class="text-primary">${meal.pricePerServing ? meal.pricePerServing + " €" : "---"}</span> / p.p.
+                  CUSTO: <span class="text-primary font-black">${meal.pricePerServing ? meal.pricePerServing + "€" : "---"}</span> <span class="text-[8px] text-slate-400">/ P.P.</span>
                 </div>
               </div>
               <div class="flex gap-3">

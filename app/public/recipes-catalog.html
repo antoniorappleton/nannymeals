@@ -397,9 +397,10 @@
       recipesGrid.innerHTML = filtered.map(recipe => {
         const primaryTag = (recipe.tags || [])[0] || 'default';
         const emoji = categoryEmoji[primaryTag] || '🍽️';
+        const fallbackImg = categoryImages[primaryTag] || categoryImages.default;
         const imgHtml = recipe.image 
-          ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-img" loading="lazy" onerror="this.outerHTML='<div class=\'recipe-card-img-placeholder ${categoryBg[primaryTag] || 'cat-default'}\'>${emoji}</div>'">`
-          : `<div class="recipe-card-img-placeholder ${categoryBg[primaryTag] || 'cat-default'}">${emoji}</div>`;
+          ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-img" loading="lazy" onerror="this.src='${fallbackImg}'">`
+          : `<img src="${fallbackImg}" alt="${recipe.name}" class="recipe-card-img" loading="lazy">`;
         
         // Use pre-computed match if available (from pantry filter) or calculate fresh
         const matchPct = recipe._match !== undefined ? recipe._match : calcMatch(recipe);

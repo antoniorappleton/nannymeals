@@ -481,15 +481,18 @@
       let feed = [];
       plans.forEach(p => {
         (p.meals || []).forEach(m => {
-          if (m.feedback) feed.push({ name: m.recipeName, f: m.feedback });
+          if (m.feedback) feed.push({ name: m.recipeName, f: m.feedback, img: m.image, cat: m.category });
         });
       });
       feed.sort((a,b) => new Date(b.f.timestamp) - new Date(a.f.timestamp));
       const recent = feed.slice(0, 3);
       if (recent.length > 0) {
-        list.innerHTML = recent.map(item => `
-          <div class="p-4 flex items-center justify-between">
-            <div class="min-w-0">
+        list.innerHTML = recent.map(item => {
+          const fallbackImg = categoryImages[(item.cat||'').toLowerCase()] || categoryImages.default;
+          return `
+          <div class="p-4 flex items-center gap-4">
+            <img src="${item.img || fallbackImg}" class="size-10 rounded-xl object-cover shrink-0 shadow-sm" onerror="this.src='${fallbackImg}'">
+            <div class="flex-1 min-w-0">
               <p class="font-bold text-sm truncate">${item.name}</p>
               <div class="flex items-center gap-1 mt-0.5">
                 ${'★'.repeat(item.f.starRating || 0).split('').map(() => `<span class="material-symbols-outlined text-[10px] text-amber-500" style="font-variation-settings:'FILL' 1">star</span>`).join('')}
@@ -498,7 +501,7 @@
             </div>
             <span class="material-symbols-outlined text-primary text-xl">${item.f.kidsLiked ? 'child_care' : 'sentiment_satisfied'}</span>
           </div>
-        `).join('');
+        `; }).join('');
       }
     }
 
