@@ -18,6 +18,11 @@
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
       })();
+      if (localStorage.getItem('app_version') !== 'v33') {
+        localStorage.setItem('app_version', 'v33');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+        if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
+      }
     </script>
     <style>
       body { overscroll-behavior-y: contain; }
@@ -458,14 +463,24 @@
       };
 
       function swipe(dir) {
+        if (!activeCard) {
+          activeCard = swipeContainer.querySelector('.swipe-card:last-child');
+        }
         if (!activeCard) return;
-        const cardToRemove = activeCard; // Capture reference
-        activeCard = null; // Clear global immediately to avoid double-processing
+
+        const cardToRemove = activeCard; 
+        activeCard = null; 
 
         const moveX = dir === 'right' ? 1000 : -1000;
         cardToRemove.style.transform = `translateX(${moveX}px) rotate(${dir === 'right' ? 45 : -45}deg)`;
         
         const removedRecipe = activeSuggestions.pop();
+        if (!removedRecipe) {
+           console.warn("[PLAN] No recipe to remove from suggestions.");
+           // Cleanup visual even if data is missing
+           setTimeout(() => { if (cardToRemove && cardToRemove.parentNode) cardToRemove.remove(); renderDayCards(); }, 300);
+           return;
+        }
         
         if (dir === 'right') {
           selectMeal(removedRecipe, cardToRemove);

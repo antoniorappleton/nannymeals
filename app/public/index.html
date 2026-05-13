@@ -86,10 +86,19 @@
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
     // Cache bust
-    if (localStorage.getItem('app_version') !== 'v31') {
-      localStorage.setItem('app_version', 'v31');
-      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-      if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 600); });
+    if (localStorage.getItem('app_version') !== 'v33') {
+      localStorage.setItem('app_version', 'v33');
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for(let reg of regs) reg.unregister();
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (let name of names) caches.delete(name);
+          setTimeout(() => window.location.reload(true), 500);
+        });
+      }
     }
   </script>
 </head>
