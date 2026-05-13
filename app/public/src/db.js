@@ -363,10 +363,18 @@ export const generateWeeklyPlan = async (id) => {
   }
 
   const meals = [];
+  
+  // Get some soups for the week
+  const soupPool = await getDocs(query(collection(db, "recipes"), where("tags", "array-contains", "sopa"), limit(3)));
+  const soups = soupPool.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  for (const r of selected) {
+  for (let i = 0; i < selected.length; i++) {
+    const r = selected[i];
     const recipe = await getRecipe(r.id);
     if (!recipe) continue;
+
+    // Cycle through available soups or pick random
+    const soup = soups.length > 0 ? soups[i % soups.length] : null;
 
     meals.push({
       recipeId: recipe.id,
@@ -378,7 +386,12 @@ export const generateWeeklyPlan = async (id) => {
       calories: recipe.calories || null,
       nutrition: recipe.nutrition || null,
       pricePerServing: recipe.pricePerServing || null,
-      servings: recipe.servings || 4, // Original recipe servings
+      servings: recipe.servings || 4,
+      soup: soup ? {
+        recipeId: soup.id,
+        name: soup.name,
+        ingredients: soup.ingredients || []
+      } : null
     });
   }
 
@@ -405,6 +418,38 @@ export const generateWeeklyPlan = async (id) => {
   const groceryList = await generateGroceryListFromPlan(docRef.id);
 
   return { id: docRef.id, ...newPlan, groceryList };
+};
+
+export const confirmPlan = async (householdId, selectedMeals) => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("Utilizador não autenticado");
+
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  
+  const finalMeals = selectedMeals.map(m => ({
+    ...m,
+    completed: false,
+    ingredients: m.ingredients || [],
+    servings: m.servings || 4,
+    soup: m.soup || null
+  }));
+
+  const newPlan = {
+    householdId,
+    members: [currentUser.uid],
+    createdAt: serverTimestamp(),
+    expiresAt,
+    locked: false,
+    status: "active",
+    meals: finalMeals,
+    name: `Plano de ${new Date().toLocaleDateString('pt-PT')}`
+  };
+
+  const docRef = await addDoc(collection(db, "weeklyPlans"), newPlan);
+  
+  // Trigger grocery list generation (could be via function or client-side)
+  // For now, return the ID
+  return docRef.id;
 };
 
 /**
@@ -899,10 +944,19 @@ export const generateGroceryListFromPlan = async (planId) => {
       const pSnap = await getDoc(doc(db, "households", householdId, "pantry", "current"));
       if (pSnap.exists()) {
         const pantryItems = pSnap.data().items || {};
+        
+        // 1. Mark items as "In Stock" and remove from grocery list if they are 'ok'
         Object.entries(pantryItems).forEach(([pName, pStatus]) => {
-          if (pStatus === 'out' || pStatus === 'low') {
-            const pNorm = normalizeIngredientName(pName);
-            // If not already in list from recipes, or explicitly for replenishment
+          const pNorm = normalizeIngredientName(pName);
+          
+          if (pStatus === 'ok') {
+            // Remove from aggregator if present
+            if (aggregator[pNorm]) {
+               console.log(`Deducting ${pNorm} from grocery list (In Stock)`);
+               delete aggregator[pNorm];
+            }
+          } else if (pStatus === 'out' || pStatus === 'low') {
+            // Add if missing, or label as replenishment
             if (!aggregator[pNorm]) {
               aggregator[pNorm] = {
                 name: (pName.charAt(0).toUpperCase() + pName.slice(1)) + (pStatus === 'low' ? ' (Pouco Stock)' : ' (Esgotado)'),
@@ -911,6 +965,8 @@ export const generateGroceryListFromPlan = async (planId) => {
                 category: '🔄 Reabastecer Despensa',
                 checked: false
               };
+            } else if (pStatus === 'low') {
+               aggregator[pNorm].name += ' (Baixo Stock)';
             }
           }
         });

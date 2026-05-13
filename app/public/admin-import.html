@@ -214,6 +214,10 @@
                   <span class="material-symbols-outlined">payments</span>
                   Sincronizar Preços
                 </button>
+                <button id="btn-sync-seed" type="button" class="flex-1 sm:flex-none bg-indigo-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[0.98] transition-all shadow-lg shadow-indigo-600/20 text-sm sm:text-base" disabled>
+                  <span class="material-symbols-outlined">refresh</span>
+                  Sincronizar Catálogo
+                </button>
                 <button id="btn-logout" type="button" class="ml-auto bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-4 py-3 sm:py-4 rounded-2xl font-bold flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
                   <span class="material-symbols-outlined">logout</span>
                 </button>
@@ -298,6 +302,7 @@
       const btnRunSampleAuchan = document.getElementById("btn-run-sample-auchan");
       const btnMigrate = document.getElementById("btn-migrate");
       const btnSyncPrices = document.getElementById("btn-sync-prices");
+      const btnSyncSeed = document.getElementById("btn-sync-seed");
       const logEl = document.getElementById("log");
       const resultEl = document.getElementById("result");
       const idsEl = document.getElementById("ids");
@@ -325,8 +330,10 @@
           mainCard.classList.add("hidden");
           userStatus.textContent = "Não autenticado";
           btnRun.disabled = true;
-          btnRunSample.disabled = true;
+          btnRunSampleContinente.disabled = true;
           btnMigrate.disabled = true;
+          btnSyncPrices.disabled = true;
+          btnSyncSeed.disabled = true;
         } else {
           log(`Autenticado: ${u.email}`);
           loginCard.classList.add("hidden");
@@ -338,6 +345,7 @@
           btnRunSampleAuchan.disabled = false;
           btnMigrate.disabled = false;
           btnSyncPrices.disabled = false;
+          btnSyncSeed.disabled = false;
           
           // Add logout button
           userArea.innerHTML = `
@@ -427,6 +435,28 @@
         } finally {
           btnSyncPrices.disabled = false;
           btnSyncPrices.innerHTML = '<span class="material-symbols-outlined">payments</span> Sincronizar Preços';
+        }
+      });
+
+      // Seed Sync
+      btnSyncSeed.addEventListener("click", async () => {
+        validation.className = "hidden";
+        btnSyncSeed.disabled = true;
+        btnSyncSeed.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> A atualizar...';
+        log("A sincronizar catálogo com ficheiro seed...");
+        try {
+          const { seedRecipes } = await import("./src/seed-recipes.js");
+          await seedRecipes();
+          log("Catálogo sincronizado com sucesso!");
+          validation.textContent = "✓ Catálogo atualizado!";
+          validation.className = "mt-4 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-sm font-medium";
+        } catch (err) {
+          log("Erro na sincronização: " + err.message);
+          validation.textContent = "✗ Erro: " + err.message;
+          validation.className = "mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium";
+        } finally {
+          btnSyncSeed.disabled = false;
+          btnSyncSeed.innerHTML = '<span class="material-symbols-outlined">refresh</span> Sincronizar Catálogo';
         }
       });
 

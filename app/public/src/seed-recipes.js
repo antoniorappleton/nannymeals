@@ -5,7 +5,7 @@ const recipes = [
   {
     id: "native_salmao_cozido",
     name: "Salmão Cozido",
-    image: null,
+    image: "assets/images/recipes/recipe_salmao_cozido.png",
     prepTime: 25,
     preparationMinutes: 15,
     cookingMinutes: 10,
@@ -74,7 +74,7 @@ const recipes = [
   {
     id: "native_salada_queijos",
     name: "Salada de Queijos",
-    image: null,
+    image: "assets/images/recipes/recipe_salada_queijos.png",
     prepTime: 15,
     preparationMinutes: 15,
     cookingMinutes: 0,
@@ -150,7 +150,7 @@ const recipes = [
   {
     id: "native_lasanha_espinafres_ricota",
     name: "Lasanha de Espinafres e Ricota",
-    image: null,
+    image: "assets/images/recipes/recipe_lasanha_espinafres.png",
     prepTime: 40,
     preparationMinutes: 25,
     cookingMinutes: 15,
@@ -222,7 +222,7 @@ const recipes = [
   {
     id: "native_sopa_tomate_ovo",
     name: "Sopa de Tomate com Ovo Escalfado",
-    image: null,
+    image: "assets/images/recipes/recipe_sopa_tomate_ovo.png",
     prepTime: 40,
     preparationMinutes: 31,
     cookingMinutes: 9,
@@ -293,7 +293,7 @@ const recipes = [
   {
     id: "native_bife_parmegiana",
     name: "Bife à Parmegiana",
-    image: null,
+    image: "assets/images/recipes/recipe_bife_parmegiana.png",
     prepTime: 35,
     preparationMinutes: 15,
     cookingMinutes: 20,
@@ -365,7 +365,7 @@ const recipes = [
   {
     id: "native_pao_de_lo_soure",
     name: "Pão-de-ló de Soure",
-    image: null,
+    image: "assets/images/recipes/recipe_pao_de_lo_soure.png",
     prepTime: 56,
     preparationMinutes: 26,
     cookingMinutes: 30,
@@ -434,7 +434,7 @@ const recipes = [
   {
     id: "native_crumble_marmelo",
     name: "Crumble de Marmelo",
-    image: null,
+    image: "assets/images/recipes/recipe_crumble_marmelo.png",
     prepTime: 45,
     preparationMinutes: 10,
     cookingMinutes: 25,
@@ -504,7 +504,7 @@ const recipes = [
   {
     id: "native_risoto_marisco",
     name: "Risoto de Marisco",
-    image: null,
+    image: "assets/images/recipes/recipe_risoto_marisco.png",
     prepTime: 35,
     preparationMinutes: 15,
     cookingMinutes: 20,
@@ -579,7 +579,7 @@ const recipes = [
   {
     id: "native_creme_feijao_espinafres",
     name: "Creme de Feijão Branco e Espinafres",
-    image: null,
+    image: "assets/images/recipes/recipe_creme_feijao_espinafres.png",
     prepTime: 20,
     preparationMinutes: 16,
     cookingMinutes: 4,
@@ -646,7 +646,7 @@ const recipes = [
   {
     id: "native_massa_espinafres",
     name: "Massa com Espinafres",
-    image: null,
+    image: "assets/images/recipes/recipe_massa_espinafres.png",
     prepTime: 30,
     preparationMinutes: 15,
     cookingMinutes: 15,

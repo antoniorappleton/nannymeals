@@ -329,3 +329,159 @@ html.dark .toast { background: rgba(17, 26, 20, 0.9); border-color: rgba(19, 236
 @keyframes slide-up { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes fade-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .animate-fade-up { animation: fade-up 400ms cubic-bezier(0.4,0,0.2,1) forwards; }
+
+/* ── Instagram Style Header ──────────────── */
+.header-ig {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(var(--bg-light-rgb), 0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border-light);
+}
+html.dark .header-ig {
+  background: rgba(10, 26, 14, 0.85);
+  border-bottom-color: var(--border-dark);
+}
+
+/* ── Day Navigation Strip ────────────────── */
+.day-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 16px 20px;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.day-strip::-webkit-scrollbar { display: none; }
+
+.day-chip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.day-chip-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--surface-light);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+html.dark .day-chip-circle {
+  background: var(--surface-dark);
+  border-color: var(--border-dark);
+}
+.day-chip.active .day-chip-circle {
+  border-color: var(--primary);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-glow);
+}
+.day-chip.completed .day-chip-circle {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #0a1a0e;
+}
+.day-chip-label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.day-chip.active .day-chip-label {
+  color: var(--primary);
+}
+
+/* ── Swipe Cards ─────────────────────────── */
+.swipe-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+}
+.swipe-card {
+  position: absolute;
+  width: calc(100% - 40px);
+  max-width: 400px;
+  height: 80dvh;
+  max-height: 600px;
+  background: var(--surface-light);
+  border-radius: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  touch-action: none;
+}
+html.dark .swipe-card {
+  background: var(--surface-dark);
+  border-color: var(--border-dark);
+}
+
+.swipe-card-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 10;
+}
+.swipe-card-overlay.like { background: rgba(19, 236, 91, 0.2); }
+.swipe-card-overlay.skip { background: rgba(239, 68, 68, 0.2); }
+
+.swipe-stamp {
+  padding: 10px 20px;
+  border: 6px solid currentColor;
+  border-radius: 12px;
+  font-size: 32px;
+  font-weight: 900;
+  text-transform: uppercase;
+  transform: rotate(-15deg);
+}
+.swipe-stamp.like { color: #13ec5b; }
+.swipe-stamp.skip { color: #ef4444; transform: rotate(15deg); }
+
+/* ── Filter Chips ────────────────────────── */
+.filter-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 12px 20px;
+  scrollbar-width: none;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--surface-light);
+  border: 1.5px solid var(--border-light);
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+html.dark .chip { background: var(--surface-dark); border-color: var(--border-dark); }
+.chip.active {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+html.dark .chip.active { background: rgba(19, 236, 91, 0.1); }

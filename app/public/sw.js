@@ -1,4 +1,4 @@
-// Service Worker Neutralizado para v31 - Estabilização Urgente
+// Service Worker Neutralizado para v32 - Swipe UX Update
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => {
   event.waitUntil(

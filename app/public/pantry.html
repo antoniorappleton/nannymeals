@@ -86,9 +86,30 @@
     <main class="flex-1 overflow-y-auto px-4 lg:px-6 py-5 pb-safe space-y-4" id="pantry-container">
       
       <!-- Search -->
-      <div class="relative mb-6">
+      <div class="relative mb-2">
         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
         <input type="text" id="pantry-search" placeholder="Procurar ingrediente..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark font-bold text-sm outline-none focus:border-primary transition-all shadow-sm" />
+      </div>
+
+      <!-- Filter Chips (Categories) -->
+      <div class="filter-scroll no-scrollbar" id="category-filters">
+        <button class="chip active" data-cat="all">Todos</button>
+        <button class="chip" data-cat="Talho">Talho</button>
+        <button class="chip" data-cat="Peixaria">Peixaria</button>
+        <button class="chip" data-cat="Hortifrutis">Frutas e Legumes</button>
+        <button class="chip" data-cat="Laticínios / Frescos">Laticínios</button>
+        <button class="chip" data-cat="Despensa">Despensa</button>
+        <button class="chip" data-cat="Padaria">Padaria</button>
+        <button class="chip" data-cat="Bebidas">Bebidas</button>
+        <button class="chip" data-cat="Congelados">Congelados</button>
+      </div>
+
+      <!-- Status Quick Filters -->
+      <div class="flex gap-2 px-1 mb-4">
+        <button class="flex-1 py-2 px-3 rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-[10px] font-black uppercase tracking-widest transition-all status-filter" data-status="all">Tudo</button>
+        <button class="flex-1 py-2 px-3 rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-[10px] font-black uppercase tracking-widest text-green-500 transition-all status-filter" data-status="ok">Em Stock</button>
+        <button class="flex-1 py-2 px-3 rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-[10px] font-black uppercase tracking-widest text-amber-500 transition-all status-filter" data-status="low">Baixo</button>
+        <button class="flex-1 py-2 px-3 rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-[10px] font-black uppercase tracking-widest text-red-500 transition-all status-filter" data-status="out">Falta</button>
       </div>
 
       <!-- Loading State -->
@@ -115,10 +136,28 @@
   <script type="module">
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { auth } from "./src/firebase-init.js";
-    import { getPantry, updatePantryItem, removePantryItem } from "./src/db.js";
+    import { getPantry, updatePantryItem, removePantryItem, normalizeIngredientName } from "./src/db.js";
 
     let pantryData = { items: {} };
     let currentUser = null;
+    let activeCategory = 'all';
+    let activeStatus = 'all';
+
+    // Helper to categorize (ideally shared or imported)
+    const categorize = (name) => {
+       const n = name.toLowerCase();
+       if (n.includes('frango') || n.includes('carne') || n.includes('bife')) return 'Talho';
+       if (n.includes('peixe') || n.includes('salmão') || n.includes('bacalhau')) return 'Peixaria';
+       if (n.includes('tomate') || n.includes('alface') || n.includes('cenoura') || n.includes('batata')) return 'Hortifrutis';
+       if (n.includes('leite') || n.includes('iogurte') || n.includes('queijo') || n.includes('ovos')) return 'Laticínios / Frescos';
+       if (n.includes('arroz') || n.includes('massa') || n.includes('azeite')) return 'Despensa';
+       if (n.includes('pão') || n.includes('bolacha')) return 'Padaria';
+       return 'Geral';
+    };
+
+    const catIcons = {
+       'Talho': '🥩', 'Peixaria': '🐟', 'Hortifrutis': '🥦', 'Laticínios / Frescos': '🥛', 'Despensa': '🫙', 'Padaria': '🍞', 'Geral': '📦'
+    };
 
     onAuthStateChanged(auth, async user => {
       if (!user) { window.location.href='index.html'; return; }
@@ -134,44 +173,81 @@
       finally { document.getElementById('pantry-loading').classList.add('hidden'); }
     }
 
-    function renderPantry(filter = '') {
+    function renderPantry(searchTerm = '') {
       const list = document.getElementById('items-list');
       const items = pantryData.items || {};
-      const sortedKeys = Object.keys(items).sort().filter(k => k.toLowerCase().includes(filter.toLowerCase()));
+      
+      let filteredKeys = Object.keys(items).filter(k => k.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      if (sortedKeys.length === 0 && !filter) {
+      if (activeCategory !== 'all') {
+         filteredKeys = filteredKeys.filter(k => categorize(k) === activeCategory);
+      }
+      if (activeStatus !== 'all') {
+         filteredKeys = filteredKeys.filter(k => items[k] === activeStatus);
+      }
+
+      const sortedKeys = filteredKeys.sort();
+
+      if (sortedKeys.length === 0) {
         list.innerHTML = `<div class="text-center py-20 text-muted">
-          <p class="font-black">Despensa vazia</p>
-          <p class="text-xs uppercase tracking-widest mt-2">Clica no + para adicionar itens</p>
+          <p class="font-black">Sem itens aqui</p>
+          <p class="text-xs uppercase tracking-widest mt-2">${searchTerm || activeCategory !== 'all' || activeStatus !== 'all' ? 'Tenta mudar os filtros' : 'Clica no + para adicionar itens'}</p>
         </div>`;
         return;
       }
 
       list.innerHTML = sortedKeys.map(name => {
         const status = items[name];
+        const cat = categorize(name);
+        const icon = catIcons[cat] || '📦';
         return `
           <div class="pantry-card animate-fade-up">
-            <div class="flex-1 min-w-0">
-               <p class="font-black text-slate-700 dark:text-slate-200">${name}</p>
+            <div class="size-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-xl shrink-0">
+               ${icon}
             </div>
-            <div class="flex gap-2 shrink-0">
+            <div class="flex-1 min-w-0">
+               <p class="font-black text-slate-700 dark:text-slate-200 text-sm truncate">${name}</p>
+               <p class="text-[9px] font-bold text-muted uppercase tracking-widest">${cat}</p>
+            </div>
+            <div class="flex gap-1.5 shrink-0">
                <button onclick="toggleStatus('${name}', 'ok')" class="status-btn ${status === 'ok' ? 'active ok' : ''}" title="Tenho">
-                  <span class="material-symbols-outlined text-base">check_circle</span>
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' ${status === 'ok' ? 1 : 0}">check_circle</span>
                </button>
                <button onclick="toggleStatus('${name}', 'low')" class="status-btn ${status === 'low' ? 'active low' : ''}" title="Pouco">
-                  <span class="material-symbols-outlined text-base">warning</span>
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' ${status === 'low' ? 1 : 0}">warning</span>
                </button>
                <button onclick="toggleStatus('${name}', 'out')" class="status-btn ${status === 'out' ? 'active out' : ''}" title="Esgotado">
-                  <span class="material-symbols-outlined text-base">cancel</span>
-               </button>
-               <button onclick="deleteItem('${name}')" class="ml-2 size-10 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
-                  <span class="material-symbols-outlined text-xl">delete</span>
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' ${status === 'out' ? 1 : 0}">cancel</span>
                </button>
             </div>
           </div>
         `;
       }).join('');
     }
+
+    // Add filter event listeners
+    document.querySelectorAll('.chip').forEach(btn => {
+       btn.onclick = () => {
+          document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeCategory = btn.getAttribute('data-cat');
+          renderPantry(document.getElementById('pantry-search').value);
+       };
+    });
+
+    document.querySelectorAll('.status-filter').forEach(btn => {
+       btn.onclick = () => {
+          document.querySelectorAll('.status-filter').forEach(b => {
+             b.classList.remove('active', 'border-primary', 'bg-primary/10');
+          });
+          btn.classList.add('active', 'border-primary', 'bg-primary/10');
+          activeStatus = btn.getAttribute('data-status');
+          renderPantry(document.getElementById('pantry-search').value);
+       };
+    });
+    
+    // Set initial active status filter
+    document.querySelector('.status-filter[data-status="all"]').classList.add('border-primary', 'bg-primary/10');
 
     window.toggleStatus = async (name, status) => {
       const current = pantryData.items[name];
