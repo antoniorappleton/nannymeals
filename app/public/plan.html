@@ -32,6 +32,23 @@
         flex-direction: column;
         justify-content: space-between;
       }
+      .tag-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 99px;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .cat-sopa { background: linear-gradient(135deg, #fdf4e7, #fde8c8); }
+      .cat-carne { background: linear-gradient(135deg, #fdf0f0, #fdd8d8); }
+      .cat-peixe { background: linear-gradient(135deg, #e8f4fd, #c8e2fd); }
+      .cat-massa { background: linear-gradient(135deg, #fdf8e8, #fdf0c8); }
+      .cat-vegetariano { background: linear-gradient(135deg, #edfdf0, #c8fdd4); }
+      .cat-sobremesa { background: linear-gradient(135deg, #fdf0fd, #f6c8fd); }
+      .cat-default { background: linear-gradient(135deg, #f0f8f4, #e2f0e8); }
     </style>
   </head>
 
@@ -99,6 +116,66 @@
       <div id="bottom-nav-placeholder"></div>
     </div>
 
+    <!-- ── Recipe Detail Modal ───────────────────── -->
+    <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end lg:items-center justify-center p-0 lg:p-6">
+      <div class="w-full lg:max-w-xl h-[90dvh] lg:h-auto lg:max-h-[85dvh] bg-white dark:bg-surface-dark rounded-t-3xl lg:rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in">
+        <!-- Modal Header -->
+        <div class="shrink-0 bg-gradient-to-r from-primary/15 to-primary/5 dark:from-primary/10 dark:to-transparent p-5 border-b border-slate-100 dark:border-border-dark">
+          <div id="modal-image-container" class="mb-4 hidden">
+            <img id="modal-recipe-image" alt="Recipe" class="w-full h-44 object-cover rounded-2xl shadow-md" />
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <h2 id="modal-recipe-name" class="text-xl font-black tracking-tight leading-tight"></h2>
+              <div id="modal-tags-container" class="flex flex-wrap gap-1.5 mt-2"></div>
+            </div>
+            <button onclick="closeRecipeModal()" class="shrink-0 size-10 rounded-full bg-white dark:bg-slate-800 shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
+              <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">close</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
+              <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+              <span class="text-sm font-bold text-slate-700 dark:text-slate-200" id="modal-prep-time">--</span>
+            </div>
+            <div id="modal-price-container" class="hidden flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
+              <span class="material-symbols-outlined text-green-600 text-base" style="font-variation-settings:'FILL' 1">euro</span>
+              <span class="text-sm font-bold text-green-600" id="modal-price">--</span>
+            </div>
+            <div id="modal-calories-container" class="hidden flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
+              <span class="material-symbols-outlined text-orange-500 text-base" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+              <span class="text-sm font-bold text-orange-500" id="modal-calories">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-4 pb-12">
+          <!-- Ingredients -->
+          <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">
+            <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">shopping_basket</span>
+              Ingredientes
+            </h3>
+            <ul id="modal-ingredients" class="space-y-1.5"></ul>
+          </div>
+          <!-- Instructions -->
+          <div id="instructions-section" class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 hidden">
+            <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">menu_book</span>
+              Modo de Preparação
+            </h3>
+            <ol id="modal-instructions" class="space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"></ol>
+          </div>
+          <!-- Nutrition -->
+          <div id="nutrition-section" class="hidden">
+            <h3 class="font-black text-xs uppercase tracking-widest text-muted mb-3 px-1">Informação Nutricional</h3>
+            <div id="modal-nutrition" class="grid grid-cols-4 gap-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
       import { auth } from "./src/firebase-init.js";
@@ -107,7 +184,8 @@
         getMealRecommendations,
         getRecipe,
         confirmPlan,
-        generateGroceryListFromPlan
+        generateGroceryListFromPlan,
+        getLastPlan
       } from "./src/db.js";
 
       // State
@@ -175,12 +253,14 @@
         // Fetch recommendations from db.js logic
         const count = 21;
         const recs = await getMealRecommendations(household.id, count);
+        recs.forEach(r => allRecipesMap[r.id] = r);
         
         // Fetch a pool of soups
         const { db } = await import("./src/firebase-init.js");
         const { collection, getDocs, query, where, limit } = await import("https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js");
         const soupPool = await getDocs(query(collection(db, "recipes"), where("tags", "array-contains", "sopa"), limit(5)));
         const soups = soupPool.docs.map(d => ({ id: d.id, ...d.data() }));
+        soups.forEach(s => allRecipesMap[s.id] = s);
 
         // Group them (3 per day for a week)
         suggestions = [];
@@ -249,7 +329,7 @@
               </div>
             </div>
             
-            <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" ${recipe.soup ? `onclick="event.stopPropagation(); openDetails('${recipe.soup.recipeId}')"` : ''}>
               ${recipe.soup?.image ? `<img src="${recipe.soup.image}" class="size-8 rounded-lg object-cover shadow-sm">` : '<span class="text-xl">🥣</span>'}
               <div>
                 <p class="text-[9px] font-black uppercase text-muted tracking-widest">Sugerimos com</p>
@@ -407,10 +487,89 @@
         }
       };
 
+      const allRecipesMap = {};
+
       window.openDetails = async (id) => {
-        // Implement modal logic or redirect to recipe page
-        alert("Detalhes da receita: " + id);
+        const selectedRecipe = allRecipesMap[id];
+        if (!selectedRecipe) return;
+
+        const recipeModal = document.getElementById("recipe-modal");
+        document.getElementById("modal-recipe-name").textContent = selectedRecipe.name;
+        
+        const getTagStyle = (tag) => {
+          const styles = {
+            sopa: 'bg-orange-100 text-orange-700', carne: 'bg-red-100 text-red-700',
+            peixe: 'bg-blue-100 text-blue-700', massa: 'bg-yellow-100 text-yellow-700',
+            vegetarian: 'bg-green-100 text-green-700', vegetariano: 'bg-green-100 text-green-700',
+            sobremesa: 'bg-purple-100 text-purple-700'
+          };
+          return styles[tag] || 'bg-slate-100 text-slate-600';
+        };
+
+        document.getElementById("modal-tags-container").innerHTML = (selectedRecipe.tags||[]).map(tag => `<span class="tag-badge ${getTagStyle(tag)}">${tag}</span>`).join('');
+        document.getElementById("modal-prep-time").textContent = `${selectedRecipe.prepTime||'--'} min`;
+        
+        const pc = document.getElementById("modal-price-container"); const pe = document.getElementById("modal-price");
+        if (selectedRecipe.pricePerServing) { pc.classList.remove("hidden"); pe.textContent = `${selectedRecipe.pricePerServing}€/porção`; } else { pc.classList.add("hidden"); }
+        
+        const cc = document.getElementById("modal-calories-container"); const ce = document.getElementById("modal-calories");
+        const cal = selectedRecipe.calories || selectedRecipe.nutrition?.calories?.amount || selectedRecipe.nutrition?.calories;
+        if (cal) { cc.classList.remove("hidden"); ce.textContent = `${cal} kcal`; } else { cc.classList.add("hidden"); }
+        
+        // Image
+        const imgC = document.getElementById("modal-image-container"); const imgEl = document.getElementById("modal-recipe-image");
+        if (selectedRecipe.image) { imgC.classList.remove("hidden"); imgEl.src = selectedRecipe.image; imgEl.alt = selectedRecipe.name; } else { imgC.classList.add("hidden"); }
+        
+        // Ingredients
+        const ingList = document.getElementById("modal-ingredients");
+        ingList.innerHTML = (selectedRecipe.ingredients||[]).map(ing => {
+          let name = typeof ing === 'string' ? ing : (ing.name || ing.original || '');
+          let amount = typeof ing === 'object' && ing.amount ? `${ing.amount} ${ing.unit||''}` : '';
+          return `<li class="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">check_circle</span><span class="text-slate-700 dark:text-slate-200">${name}</span></span>
+            ${amount ? `<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">${amount}</span>` : ''}
+          </li>`;
+        }).join('');
+        
+        // Instructions
+        const instSec = document.getElementById("instructions-section"); const instList = document.getElementById("modal-instructions");
+        let steps = null;
+        if (selectedRecipe.instructionSteps) { steps = selectedRecipe.instructionSteps; }
+        else if (selectedRecipe.analyzedInstructions?.length > 0) { steps = selectedRecipe.analyzedInstructions.flatMap(i => i.steps ? i.steps.map(s => s.step) : []); }
+        else if (selectedRecipe.instructions) { steps = [selectedRecipe.instructions]; }
+        
+        if (steps?.length > 0) { instSec.classList.remove("hidden"); instList.innerHTML = steps.map((s,i) => `<li class="py-1"><span class="font-black text-primary mr-1">${i+1}.</span>${s}</li>`).join(''); }
+        else { instSec.classList.add("hidden"); }
+        
+        // Nutrition
+        const nutSec = document.getElementById("nutrition-section"); const nutEl = document.getElementById("modal-nutrition");
+        const n = selectedRecipe.nutrition;
+        const hasN = n && (n.nutrients || n.calories || n.protein || n.fat);
+        if (hasN) {
+          nutSec.classList.remove("hidden");
+          const getN = k => { 
+            if (n.nutrients) { const x=n.nutrients.find(x=>x.name===k); return x?Math.round(x.amount):null; } 
+            const v=n[k.toLowerCase()]; 
+            if(v&&typeof v==='object'&&v.amount!==undefined) return Math.round(v.amount); 
+            if(typeof v==='number') return Math.round(v); 
+            return null; 
+          };
+          const c=getN("Calories")||n.calories; const p=getN("Protein")||n.protein; const carb=getN("Carbohydrates")||n.carbohydrates; const f=getN("Fat")||n.fat;
+          nutEl.innerHTML = `<div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-orange-600 uppercase">Cal</p><p class="text-lg font-black text-orange-600">${c||'--'}</p></div><div class="bg-red-50 dark:bg-red-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-red-600 uppercase">Prot</p><p class="text-lg font-black text-red-600">${p?p+'g':'--'}</p></div><div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-blue-600 uppercase">Carb</p><p class="text-lg font-black text-blue-600">${carb?carb+'g':'--'}</p></div><div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-xl text-center"><p class="text-xs font-bold text-yellow-600 uppercase">Gord</p><p class="text-lg font-black text-yellow-600">${f?f+'g':'--'}</p></div>`;
+        } else { nutSec.classList.add("hidden"); }
+        
+        recipeModal.classList.remove("hidden"); 
+        document.body.style.overflow = "hidden";
       };
+
+      window.closeRecipeModal = () => { 
+        document.getElementById("recipe-modal").classList.add("hidden"); 
+        document.body.style.overflow = ""; 
+      };
+      
+      document.getElementById("recipe-modal").addEventListener('click', e => { 
+        if (e.target === document.getElementById("recipe-modal")) closeRecipeModal(); 
+      });
 
       // Import Bottom Nav
       fetch('bottom-nav.html').then(r => r.text()).then(html => {

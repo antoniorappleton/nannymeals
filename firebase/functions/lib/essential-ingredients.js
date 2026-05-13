@@ -1,0 +1,43 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ESSENTIAL_INGREDIENTS = void 0;
+exports.ESSENTIAL_INGREDIENTS = [
+    "Arroz",
+    "Esparguete",
+    "Massa Macarrão",
+    "Leite Meio Gordo",
+    "Ovos",
+    "Manteiga",
+    "Cebola",
+    "Alho",
+    "Batata",
+    "Cenoura",
+    "Tomate",
+    "Alface",
+    "Azeite Virgem Extra",
+    "Óleo Vegetal",
+    "Sal Fino",
+    "Açúcar Branco",
+    "Farinha de Trigo",
+    "Feijão Preto",
+    "Grão de Bico",
+    "Pão de Forma",
+    "Peito de Frango",
+    "Carne de Vaca",
+    "Pescada",
+    "Atum em lata",
+    "Maçã",
+    "Banana",
+    "Laranja",
+    "Curgete",
+    "Brócolos",
+    "Pimento",
+    "Queijo",
+    "Iogurte Natural",
+    "Fiambre",
+    "Chouriço",
+    "Vinho Branco",
+    "Sumo de Laranja",
+    "Bolachas Maria"
+];
+//# sourceMappingURL=essential-ingredients.js.map
