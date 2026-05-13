@@ -452,29 +452,32 @@
       window.handleManualSwipe = (dir) => {
         const topCard = swipeContainer.querySelector('.swipe-card:last-child');
         if (topCard) {
-           activeCard = topCard;
-           swipe(dir);
-           activeCard = null;
+          activeCard = topCard;
+          swipe(dir);
         }
       };
 
       function swipe(dir) {
         if (!activeCard) return;
+        const cardToRemove = activeCard; // Capture reference
+        activeCard = null; // Clear global immediately to avoid double-processing
+
         const moveX = dir === 'right' ? 1000 : -1000;
-        activeCard.style.transform = `translateX(${moveX}px) rotate(${dir === 'right' ? 45 : -45}deg)`;
+        cardToRemove.style.transform = `translateX(${moveX}px) rotate(${dir === 'right' ? 45 : -45}deg)`;
         
         const removedRecipe = activeSuggestions.pop();
         
         if (dir === 'right') {
-          selectMeal(removedRecipe);
+          selectMeal(removedRecipe, cardToRemove);
         } else {
           // Recirculate suggestion to the bottom of the stack for this day
-          // or keep it in the general pool if we implement a global pool
           activeSuggestions.unshift(removedRecipe); 
           
           setTimeout(() => {
-            activeCard.remove();
-            renderDayCards(); // Re-render to show the next card and keep the recycled one at the bottom
+            if (cardToRemove && cardToRemove.parentNode) {
+              cardToRemove.remove();
+            }
+            renderDayCards();
           }, 300);
         }
       }
@@ -496,11 +499,13 @@
         });
       }
 
-      function selectMeal(recipe) {
+      function selectMeal(recipe, card) {
         selectedMeals[currentDayIndex] = recipe;
         updateBalanceUI();
         setTimeout(() => {
-          activeCard.remove();
+          if (card && card.parentNode) {
+            card.remove();
+          }
           renderDayStrip();
           showEmptyState();
           checkIfComplete();
