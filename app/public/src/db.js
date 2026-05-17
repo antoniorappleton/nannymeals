@@ -885,31 +885,35 @@ export const generateGroceryListFromPlan = async (planId) => {
     const personFactor = totalPersons / recipeServings;
 
     (meal.ingredients || []).forEach((ingredient) => {
-      let ingredientText = "";
-      if (!ingredient) return;
-      if (typeof ingredient === "string") ingredientText = ingredient;
-      else if (typeof ingredient === "object")
-        ingredientText =
-          ingredient.original ||
-          ingredient.name ||
-          ingredient.originalString ||
-          JSON.stringify(ingredient);
-
-      // Enhanced regex
-      const match = ingredientText.match(
-        /^([\d.,/]+(?:\s+\d+\/\d+)?)?\s*(g|kg|ml|l|unid|colher|chá|sopa|cup|tbsp|tsp|oz|lb|dente|fatia|filé|un|pcs)?s?\s*(.*)$/i,
-      );
-
       let qty = 1;
       let unit = "unid";
-      let name = ingredientText.toLowerCase().trim();
+      let name = "";
 
-      if (match && (match[1] || match[2])) {
-        qty = parseFraction(match[1]?.replace(",", ".")) || 1;
-        unit = (match[2] || "unid").toLowerCase();
-        name = match[3]?.toLowerCase().trim() || name;
+      if (typeof ingredient === "object" && ingredient.name) {
+        name = ingredient.name.toLowerCase().trim();
+        qty = ingredient.amount !== null && ingredient.amount !== undefined ? ingredient.amount : 1;
+        unit = (ingredient.unit || "unid").toLowerCase();
       } else {
-        name = ingredientText.toLowerCase().trim();
+        let ingredientText = "";
+        if (typeof ingredient === "string") ingredientText = ingredient;
+        else if (typeof ingredient === "object")
+          ingredientText =
+            ingredient.original ||
+            ingredient.originalString ||
+            JSON.stringify(ingredient);
+
+        // Enhanced regex
+        const match = ingredientText.match(
+          /^([\d.,/]+(?:\s+\d+\/\d+)?)?\s*(g|kg|ml|l|unid|colher|chá|sopa|cup|tbsp|tsp|oz|lb|dente|fatia|filé|un|pcs)?s?\s*(.*)$/i,
+        );
+
+        if (match && (match[1] || match[2])) {
+          qty = parseFraction(match[1]?.replace(",", ".")) || 1;
+          unit = (match[2] || "unid").toLowerCase();
+          name = match[3]?.toLowerCase().trim() || ingredientText.toLowerCase().trim();
+        } else {
+          name = ingredientText.toLowerCase().trim();
+        }
       }
 
       // SCALE QUANTITY BY PERSONS
