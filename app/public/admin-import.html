@@ -13,8 +13,8 @@
     <link rel="icon" href="assets/images/hero.webp" />
     <script>
       // Emergency cache clear
-      if (localStorage.getItem("app_version") !== "v27") {
-        localStorage.setItem("app_version", "v27");
+      if (localStorage.getItem('app_version') !== 'v35') {
+        localStorage.setItem('app_version', 'v35');
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => { for (let reg of regs) reg.unregister(); });
         }

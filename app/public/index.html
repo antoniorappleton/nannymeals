@@ -86,8 +86,8 @@
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
     // Cache bust
-    if (localStorage.getItem('app_version') !== 'v34') {
-      localStorage.setItem('app_version', 'v34');
+    if (localStorage.getItem('app_version') !== 'v35') {
+      localStorage.setItem('app_version', 'v35');
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for(let reg of regs) reg.unregister();
@@ -257,7 +257,7 @@
     </div>
   </div>
 
-  <script type="module" src="src/auth.js?v=34"></script>
+  <script type="module" src="src/auth.js?v=35"></script>
   <script type="module">
     // Password visibility toggles
     const setupToggle = (btnId, inputId) => {
@@ -282,7 +282,7 @@
         const email = prompt('Insira o seu email para recuperar a palavra-passe:');
         if (email) {
           try {
-            const { resetPassword } = await import('./src/auth.js?v=34');
+            const { resetPassword } = await import('./src/auth.js?v=35');
             await resetPassword(email);
             alert('Email de recuperação enviado! Verifique a sua caixa de entrada.');
           } catch (err) { alert('Erro: ' + err.message); }
