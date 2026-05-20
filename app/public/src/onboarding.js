@@ -138,6 +138,10 @@ btnAddChild.onclick = () => {
     name: `Criança ${children.length + 1}`,
   });
   renderChildren();
+  // Auto-scroll to ensure the button and the new child row are visible above the footer
+  setTimeout(() => {
+    btnAddChild.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, 50);
 };
 
 /**
