@@ -196,80 +196,95 @@
 
   <!-- ── Recipe Detail Modal ───────────────────── -->
   <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end lg:items-center justify-center p-0 lg:p-6">
-    <div class="w-full lg:max-w-xl h-[90dvh] lg:h-auto lg:max-h-[85dvh] bg-white dark:bg-surface-dark rounded-t-3xl lg:rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in">
-      <!-- Modal Header -->
-      <div class="shrink-0 bg-gradient-to-r from-primary/15 to-primary/5 dark:from-primary/10 dark:to-transparent p-5 border-b border-slate-100 dark:border-border-dark">
-        <div id="modal-image-container" class="mb-4 hidden">
-          <img id="modal-recipe-image" alt="Recipe" class="w-full h-44 object-cover rounded-2xl shadow-md" />
-        </div>
-        <div class="flex items-start gap-3">
-          <div class="flex-1 min-w-0">
-            <h2 id="modal-recipe-name" class="text-xl font-black tracking-tight leading-tight"></h2>
-            <div id="modal-tags-container" class="flex flex-wrap gap-1.5 mt-2"></div>
-          </div>
-          <button onclick="closeRecipeModal()" class="shrink-0 size-10 rounded-full bg-white dark:bg-slate-800 shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
-            <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">close</span>
-          </button>
-        </div>
-        <div class="flex flex-wrap gap-2 mt-3">
-          <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
-            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">schedule</span>
-            <span class="text-sm font-bold text-slate-700 dark:text-slate-200" id="modal-prep-time">--</span>
-          </div>
-          <div id="modal-price-container" class="hidden flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
-            <span class="material-symbols-outlined text-green-600 text-base" style="font-variation-settings:'FILL' 1">euro</span>
-            <span class="text-sm font-bold text-green-600" id="modal-price">--</span>
-          </div>
-          <div id="modal-calories-container" class="hidden flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm">
-            <span class="material-symbols-outlined text-orange-500 text-base" style="font-variation-settings:'FILL' 1">local_fire_department</span>
-            <span class="text-sm font-bold text-orange-500" id="modal-calories">--</span>
-          </div>
-        </div>
+    <div class="w-full lg:max-w-4xl h-[95dvh] lg:h-[85dvh] bg-white dark:bg-surface-dark rounded-t-3xl lg:rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-border-dark animate-scale-in relative">
+      
+      <!-- Close Button (Desktop Only) -->
+      <button onclick="closeRecipeModal()" class="absolute top-4 right-4 z-30 size-10 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-md hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all lg:flex hidden border border-slate-100 dark:border-slate-700">
+        <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">close</span>
+      </button>
+
+      <!-- Sticky Header (Mobile Only) -->
+      <div class="shrink-0 flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-border-dark bg-white dark:bg-surface-dark lg:hidden">
+        <span id="modal-recipe-name-mini" class="font-black text-sm truncate pr-4 text-slate-700 dark:text-slate-300"></span>
+        <button onclick="closeRecipeModal()" class="shrink-0 size-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
+          <span class="material-symbols-outlined text-sm text-slate-600 dark:text-slate-300">close</span>
+        </button>
       </div>
 
-      <!-- Scrollable Content -->
-      <div class="flex-1 overflow-y-auto p-5 space-y-4 pb-12">
-        <!-- Ingredients -->
-        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">
-          <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">shopping_basket</span>
-            Ingredientes
-          </h3>
-          <ul id="modal-ingredients" class="space-y-1.5"></ul>
+      <!-- Split Columns Wrapper -->
+      <div class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden bg-white dark:bg-surface-dark">
+        
+        <!-- Left Column: Image, Details & Badges -->
+        <div class="w-full lg:w-5/12 shrink-0 flex flex-col p-5 space-y-4 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-border-dark lg:h-full lg:overflow-y-auto">
+          <div id="modal-image-container" class="hidden">
+            <img id="modal-recipe-image" alt="Recipe" class="w-full h-48 lg:h-60 object-cover rounded-2xl shadow-md" />
+          </div>
+          <div class="space-y-2">
+            <h2 id="modal-recipe-name" class="text-xl lg:text-2xl font-black tracking-tight leading-tight text-slate-900 dark:text-white"></h2>
+            <div id="modal-tags-container" class="flex flex-wrap gap-1.5"></div>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-850 px-3 py-1.5 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
+              <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-200" id="modal-prep-time">--</span>
+            </div>
+            <div id="modal-price-container" class="hidden flex items-center gap-1.5 bg-slate-50 dark:bg-slate-850 px-3 py-1.5 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
+              <span class="material-symbols-outlined text-green-600 text-base" style="font-variation-settings:'FILL' 1">euro</span>
+              <span class="text-xs font-bold text-green-600" id="modal-price">--</span>
+            </div>
+            <div id="modal-calories-container" class="hidden flex items-center gap-1.5 bg-slate-50 dark:bg-slate-850 px-3 py-1.5 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
+              <span class="material-symbols-outlined text-orange-500 text-base" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+              <span class="text-xs font-bold text-orange-500" id="modal-calories">--</span>
+            </div>
+          </div>
         </div>
-        <!-- Instructions -->
-        <div id="instructions-section" class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 hidden">
-          <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">menu_book</span>
-            Modo de Preparação
-          </h3>
-          <ol id="modal-instructions" class="space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"></ol>
+
+        <!-- Right Column: Ingredients, Instructions & Nutrition -->
+        <div class="w-full lg:w-7/12 flex flex-col p-5 space-y-4 lg:h-full lg:overflow-y-auto">
+          <!-- Ingredients -->
+          <div class="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100/80 dark:border-slate-700/20">
+            <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">shopping_basket</span>
+              Ingredientes
+            </h3>
+            <ul id="modal-ingredients" class="space-y-1.5"></ul>
+          </div>
+          <!-- Instructions -->
+          <div id="instructions-section" class="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100/80 dark:border-slate-700/20 hidden">
+            <h3 class="font-black text-xs uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">menu_book</span>
+              Modo de Preparação
+            </h3>
+            <ol id="modal-instructions" class="space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"></ol>
+          </div>
+          <!-- Nutrition -->
+          <div id="nutrition-section" class="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100/80 dark:border-slate-700/20 hidden">
+            <h3 class="font-black text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">analytics</span>
+              Informação Nutricional
+            </h3>
+            <div id="modal-nutrition" class="grid grid-cols-4 gap-2"></div>
+          </div>
         </div>
-        <!-- Nutrition -->
-        <div id="nutrition-section" class="hidden">
-          <h3 class="font-black text-xs uppercase tracking-widest text-muted mb-3">Informação Nutricional</h3>
-          <div id="modal-nutrition" class="grid grid-cols-4 gap-2"></div>
-        </div>
+
       </div>
 
-      <!-- Action Buttons -->
-      <div class="shrink-0 bg-white dark:bg-surface-dark border-t border-slate-100 dark:border-border-dark p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="addRecipeToNewPlan()" class="flex items-center justify-center gap-2 bg-primary text-slate-900 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-glow hover:bg-primary-dark transition-all active:scale-[0.97]">
+      <!-- Action Buttons (Unified Sticky Footer) -->
+      <div class="shrink-0 bg-white dark:bg-surface-dark border-t border-slate-100 dark:border-border-dark p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 max-w-4xl mx-auto w-full">
+          <button onclick="addRecipeToNewPlan()" class="flex items-center justify-center gap-2 bg-primary text-slate-900 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-glow hover:bg-primary-dark transition-all active:scale-[0.97]">
             <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">add_circle</span>
             Ao Plano
           </button>
-          <button onclick="goToGroceryList()" class="flex items-center justify-center gap-2 bg-green-500 text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-500/30 hover:bg-green-600 transition-all active:scale-[0.97]">
+          <button onclick="goToGroceryList()" class="flex items-center justify-center gap-2 bg-green-500 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-500/30 hover:bg-green-600 transition-all active:scale-[0.97]">
             <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">shopping_cart</span>
             Comprar
           </button>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="saveCurrentRecipe()" class="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+          <button onclick="saveCurrentRecipe()" class="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-[0.97]">
             <span class="material-symbols-outlined text-base">bookmark</span>
             Guardar
           </button>
-          <button onclick="closeRecipeModal()" class="bg-transparent border-2 border-slate-200 dark:border-slate-700 text-muted py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-slate-300 hover:text-slate-600 transition-all">
+          <button onclick="closeRecipeModal()" class="bg-transparent border-2 border-slate-200 dark:border-slate-700 text-muted py-3 rounded-2xl font-bold text-xs uppercase tracking-widest hover:border-slate-300 hover:text-slate-600 transition-all active:scale-[0.97]">
             Fechar
           </button>
         </div>
@@ -437,6 +452,7 @@
       selectedRecipe = allRecipes.find(r => r.id === recipeId);
       if (!selectedRecipe) return;
       document.getElementById("modal-recipe-name").textContent = selectedRecipe.name;
+      document.getElementById("modal-recipe-name-mini").textContent = selectedRecipe.name;
       document.getElementById("modal-tags-container").innerHTML = (selectedRecipe.tags||[]).map(tag => `<span class="tag-badge ${getTagStyle(tag)}">${tag}</span>`).join('');
       document.getElementById("modal-prep-time").textContent = `${selectedRecipe.prepTime||'--'} min`;
       const pc = document.getElementById("modal-price-container"); const pe = document.getElementById("modal-price");
