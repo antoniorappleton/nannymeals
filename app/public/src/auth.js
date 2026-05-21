@@ -14,6 +14,7 @@ import {
   browserSessionPersistence,
   signOut,
   linkWithPopup,
+  sendEmailVerification,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 /**
@@ -116,7 +117,13 @@ if (authForm) {
           showError("A password deve ter pelo menos 6 caracteres.");
           return;
         }
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        try {
+          await sendEmailVerification(userCredential.user);
+          console.log("Email de verificação enviado no registo.");
+        } catch (verifErr) {
+          console.error("Erro ao enviar email de verificação inicial:", verifErr);
+        }
       }
     } catch (error) {
       console.error("Erro de autenticação:", error);
@@ -224,13 +231,23 @@ onAuthStateChanged(auth, async (user) => {
     path.includes("index") ||
     !!document.getElementById("auth-form");
   const isOnboardingPage = path.includes("onboarding");
-  const isProtectedPage =
-    path.includes("dashboard") ||
-    path.includes("plan") ||
-    path.includes("grocery");
+  const isVerifyEmailPage = path.includes("verify-email");
+  const isProtectedPage = !isLoginPage && !isOnboardingPage && !isVerifyEmailPage && !path.includes("assets");
 
   if (user) {
     localStorage.setItem('nm_user_email', user.email);
+
+    // Verificar se o email está verificado (Google providers são automaticamente verificados)
+    const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+    const isEmailVerified = user.emailVerified || isGoogleUser;
+
+    if (!isEmailVerified) {
+      if (!isVerifyEmailPage) {
+        safeReplace("verify-email.html");
+      }
+      return;
+    }
+
     try {
       await syncUserProfile(user);
       const profile = await getUserProfile(user.uid);
@@ -239,15 +256,13 @@ onAuthStateChanged(auth, async (user) => {
       if (!hid) hid = await checkHouseholdExists(user.uid);
 
       if (hid) {
-        // Se tem família e está no login/onboarding, vai para dashboard
-        // Se tem família e está no login, vai para dashboard.
-        // Removemos isOnboardingPage daqui para permitir edição de perfil.
-        if (isLoginPage) {
+        // Se tem família e está no login ou na página de verificação, vai para dashboard
+        if (isLoginPage || isVerifyEmailPage) {
           safeReplace("dashboard.html");
         }
       } else {
-        // Se NÃO tem família e está numa página protegida, vai para onboarding
-        if (isProtectedPage || isLoginPage) {
+        // Se NÃO tem família e está numa página protegida, login ou verificação, vai para onboarding
+        if (isProtectedPage || isLoginPage || isVerifyEmailPage) {
           safeReplace("onboarding.html");
         }
       }
@@ -256,11 +271,9 @@ onAuthStateChanged(auth, async (user) => {
     }
   } else {
     localStorage.removeItem('nm_user_email');
-    // Se não há user e não estamos no login, expulsa
+    // Se não há utilizador e não estamos no login, redireciona para index.html
     if (
-      !isCheckingRedirect &&
       !isLoginPage &&
-      !isOnboardingPage &&
       !path.includes("assets")
     ) {
       safeReplace("index.html");

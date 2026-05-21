@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NannyMeals — Verificar Email</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="src/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="icon" href="assets/images/hero.webp" />
+  <style>
+    body { min-height: 100dvh; background: var(--bg-light); }
+    html.dark body { background: var(--bg-dark); }
+
+    .login-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(19,236,91,0.18) 0%, transparent 70%),
+        var(--bg-light);
+    }
+    html.dark .login-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(19,236,91,0.12) 0%, transparent 70%),
+        var(--bg-dark);
+    }
+
+    .pulse-ring-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+  <script>
+    // Apply theme before render
+    (function() {
+      const saved = localStorage.getItem('nm_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
+    })();
+  </script>
+</head>
+
+<body class="login-bg font-display text-slate-900 dark:text-slate-100 antialiased flex flex-col justify-center items-center px-5 py-10">
+
+  <div class="w-full max-w-md bg-white dark:bg-surface-dark border border-slate-100 dark:border-border-dark p-8 rounded-3xl shadow-card animate-fade-up text-center space-y-6">
+    
+    <!-- Pulse Icon -->
+    <div class="pulse-ring-container py-4">
+      <div class="size-20 rounded-full bg-primary/10 flex items-center justify-center animate-pulse-ring">
+        <div class="size-16 rounded-full bg-primary/20 flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary text-3xl font-bold select-none">mail</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Title & Description -->
+    <div class="space-y-2">
+      <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Confirme o seu email</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400">
+        Enviámos um link de confirmação para o seu email. Por favor, verifique a caixa de entrada (e spam).
+      </p>
+    </div>
+
+    <!-- User Email Capsule -->
+    <div>
+      <div id="user-email" class="inline-block px-4 py-2 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 font-bold rounded-2xl border border-slate-100 dark:border-slate-800 text-sm font-mono break-all select-all">
+        ...
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex flex-col gap-3 pt-2">
+      <!-- I verified button -->
+      <button id="btn-check" class="w-full nm-btn nm-btn-primary flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-lg">check_circle</span>
+        <span>Já verifiquei o meu email</span>
+      </button>
+
+      <!-- Resend button -->
+      <button id="btn-resend" class="w-full nm-btn bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-lg">sync</span>
+        <span>Reenviar Email</span>
+      </button>
+
+      <!-- Sign out button -->
+      <button id="btn-logout" class="w-full nm-btn nm-btn-ghost flex items-center justify-center gap-2 text-xs">
+        <span class="material-symbols-outlined text-lg">logout</span>
+        <span>Terminar Sessão</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Centralized script -->
+  <script type="module" src="src/auth.js?v=36"></script>
+  <script type="module">
+    import { auth } from "./src/firebase-init.js";
+    import { onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { logout } from "./src/auth.js";
+    import { showToast } from "./src/ui-helper.js";
+
+    const emailDisplay = document.getElementById("user-email");
+    const btnCheck = document.getElementById("btn-check");
+    const btnResend = document.getElementById("btn-resend");
+    const btnLogout = document.getElementById("btn-logout");
+
+    let cooldownTimer = null;
+    let secondsLeft = 0;
+
+    // Check auth state to display the user's email
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        emailDisplay.textContent = user.email;
+      }
+    });
+
+    // Check verification status manually
+    btnCheck.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      btnCheck.disabled = true;
+      const originalText = btnCheck.innerHTML;
+      btnCheck.innerHTML = `<span class="material-symbols-outlined animate-spin text-lg">sync</span> <span>A verificar...</span>`;
+
+      try {
+        await user.reload();
+        const updatedUser = auth.currentUser;
+        const isGoogleUser = updatedUser.providerData.some(p => p.providerId === 'google.com');
+
+        if (updatedUser.emailVerified || isGoogleUser) {
+          showToast("Email verificado com sucesso!", "check_circle");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showToast("O email ainda não foi verificado. Verifique a sua caixa de entrada.", "info");
+          btnCheck.disabled = false;
+          btnCheck.innerHTML = originalText;
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Erro ao verificar: " + err.message, "error");
+        btnCheck.disabled = false;
+        btnCheck.innerHTML = originalText;
+      }
+    });
+
+    // Resend confirmation email with 60s cooldown
+    btnResend.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user || secondsLeft > 0) return;
+
+      btnResend.disabled = true;
+      const originalText = btnResend.innerHTML;
+      btnResend.innerHTML = `<span class="material-symbols-outlined animate-spin text-lg">sync</span> <span>A enviar...</span>`;
+
+      try {
+        await sendEmailVerification(user);
+        showToast("Email de verificação enviado!", "mail");
+        
+        // Cooldown timer
+        secondsLeft = 60;
+        updateCooldownButton();
+        cooldownTimer = setInterval(() => {
+          secondsLeft--;
+          if (secondsLeft <= 0) {
+            clearInterval(cooldownTimer);
+            btnResend.disabled = false;
+            btnResend.innerHTML = originalText;
+          } else {
+            updateCooldownButton();
+          }
+        }, 1000);
+
+      } catch (err) {
+        console.error(err);
+        showToast("Erro ao enviar: " + err.message, "error");
+        btnResend.disabled = false;
+        btnResend.innerHTML = originalText;
+      }
+    });
+
+    function updateCooldownButton() {
+      btnResend.innerHTML = `<span class="material-symbols-outlined text-lg">timer</span> <span>Aguarde (${secondsLeft}s)</span>`;
+    }
+
+    btnLogout.addEventListener("click", async () => {
+      try {
+        await logout();
+      } catch (err) {
+        console.error(err);
+        showToast("Erro ao terminar sessão", "error");
+      }
+    });
+  </script>
+</body>
+</html>
