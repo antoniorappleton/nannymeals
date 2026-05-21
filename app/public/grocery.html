@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/global.css" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script type="module" src="src/auth.js?v=35"></script>
+  <script type="module" src="src/auth.js?v=36"></script>
   <style>
     body { min-height: 100dvh; }
 
@@ -84,8 +84,8 @@
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (saved === 'dark' || (!saved && prefersDark)) document.documentElement.classList.add('dark');
     })();
-    if (localStorage.getItem('app_version') !== 'v35') {
-      localStorage.setItem('app_version', 'v35');
+    if (localStorage.getItem('app_version') !== 'v36') {
+      localStorage.setItem('app_version', 'v36');
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
       if ('caches' in window) caches.keys().then(names => { names.forEach(n => caches.delete(n)); setTimeout(() => window.location.reload(true), 500); });
     }

@@ -23,9 +23,9 @@
     </style>
     <script>
       // VERSÃO V24: Correção de bugs e melhorias
-      if (localStorage.getItem('app_version') !== 'v35') {
+      if (localStorage.getItem('app_version') !== 'v36') {
         console.log("URGENTE: Limpando ambientes para v24...");
-        localStorage.setItem('app_version', 'v35');
+        localStorage.setItem('app_version', 'v36');
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             for (let reg of regs) reg.unregister();
@@ -425,7 +425,7 @@
       </footer>
     </div>
 
-    <script type="module" src="src/auth.js?v=35"></script>
+    <script type="module" src="src/auth.js?v=36"></script>
     <script type="module" src="src/onboarding.js"></script>
   </body>
   <script>
