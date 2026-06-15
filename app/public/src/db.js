@@ -1021,15 +1021,28 @@ export const generateGroceryListFromPlan = async (planId) => {
                item.prices = prices; // Anexar à view para detalhe
                
                // Definir o preço principal da item (cheapest available ou de um supermercado preferido)
-               const availablePrices = Object.values(prices).filter(p => p > 0);
+               const storeLabels = {
+                 continente: "Continente",
+                 pingodoce: "Pingo Doce",
+                 auchan: "Auchan",
+                 lidl: "Lidl"
+               };
+               const availablePrices = Object.entries(prices)
+                 .map(([store, price]) => [store, Number(price)])
+                 .filter(([, price]) => price > 0)
+                 .sort((a, b) => a[1] - b[1]);
                if (availablePrices.length > 0) {
-                  item.price = Math.min(...availablePrices).toFixed(2);
+                  const [bestStore, bestPrice] = availablePrices[0];
+                  item.price = bestPrice.toFixed(2);
+                  item.bestStore = bestStore;
+                  item.bestStoreName = storeLabels[bestStore] || bestStore;
                }
                
                // Somamos o preço unitário 
                ['continente', 'pingodoce', 'auchan', 'lidl'].forEach(store => {
-                  if (prices[store] !== undefined && prices[store] > 0) {
-                     supermarketTotals[store] += prices[store];
+                  const storePrice = Number(prices[store]);
+                  if (storePrice > 0) {
+                     supermarketTotals[store] += storePrice;
                      hasPrices = true;
                   }
                });

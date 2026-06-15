@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e9]: restaurant
+        - generic [ref=e10]: NannyMeals
+      - paragraph [ref=e11]: O planeamento de refeições da tua família
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e15]: calendar_today
+        - generic [ref=e16]:
+          - paragraph [ref=e17]: Planos Semanais Inteligentes
+          - paragraph [ref=e18]: Gerados automaticamente com base nas preferências da família
+      - generic [ref=e19]:
+        - generic [ref=e21]: shopping_basket
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Lista de Compras Automática
+          - paragraph [ref=e24]: Integração com Continente, Pingo Doce e muito mais
+      - generic [ref=e25]:
+        - generic [ref=e27]: favorite
+        - generic [ref=e28]:
+          - paragraph [ref=e29]: Receitas para Toda a Família
+          - paragraph [ref=e30]: Adaptadas às alergias e preferências de adultos e crianças
+    - paragraph [ref=e31]: © 2026 NannyMeals
+  - generic [ref=e33]:
+    - generic [ref=e34]:
+      - heading "Bem-vindo de volta!" [level=2] [ref=e35]
+      - paragraph [ref=e36]: Pronto para planear a próxima refeição?
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - text: Email
+        - generic [ref=e39]:
+          - generic [ref=e40]: mail
+          - textbox "chef@familia.com" [ref=e41]
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]: Palavra-passe
+          - link "Esqueceu-se?" [ref=e45] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e46]:
+          - generic [ref=e47]: lock
+          - textbox "••••••••" [ref=e48]
+          - button "visibility" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: visibility
+      - button "Entrar" [ref=e51] [cursor=pointer]
+      - generic [ref=e54]: ou continuar com
+      - button "Continuar com Google" [ref=e56] [cursor=pointer]:
+        - img [ref=e57]
+        - generic [ref=e62]: Continuar com Google
+    - paragraph [ref=e63]:
+      - text: Novo por aqui?
+      - button "Registe-se grátis" [ref=e64] [cursor=pointer]
+```

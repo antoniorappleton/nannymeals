@@ -284,6 +284,28 @@
       return '📦';
     };
 
+    const STORE_LABELS = {
+      continente: "Continente",
+      pingodoce: "Pingo Doce",
+      auchan: "Auchan",
+      lidl: "Lidl",
+      minipreco: "Mini Preco",
+      intermarche: "Intermarche",
+      supersave: "SuperSave"
+    };
+
+    function getBestStoreForItem(item) {
+      if (item.bestStoreName) return item.bestStoreName;
+      if (item.bestPrice?.store) return STORE_LABELS[item.bestPrice.store] || item.bestPrice.store;
+      if (!item.prices) return "";
+
+      const best = Object.entries(item.prices)
+        .filter(([, price]) => Number(price) > 0)
+        .sort((a, b) => Number(a[1]) - Number(b[1]))[0];
+
+      return best ? (STORE_LABELS[best[0]] || best[0]) : "";
+    }
+
     function renderGroceryList(categories) {
       loadingState.classList.add("hidden");
       emptyState.classList.add("hidden");
@@ -311,6 +333,7 @@
           const normName = normalizeIngredientName(item.name);
           const pantryStatus = pantryData[normName] || pantryData[Object.keys(pantryData).find(k => normName.includes(k) || k.includes(normName))];
           const hasInPantry = pantryStatus === 'ok';
+          const bestStoreName = getBestStoreForItem(item);
 
           const itemEl = document.createElement("div");
           itemEl.className = `grocery-item ${hasInPantry ? 'opacity-60 bg-slate-50 dark:bg-slate-900/40' : ''}`;
@@ -333,9 +356,10 @@
               </div>
               ${item.price ? `
                 <div class="shrink-0 flex flex-col items-end">
-                  <div class="text-[10px] font-black px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                  <div class="text-[10px] font-black px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
                     ${item.price}€
                   </div>
+                  ${bestStoreName ? `<span class="mt-1 text-[9px] font-black uppercase tracking-wider text-muted">${bestStoreName}</span>` : ''}
                 </div>
               ` : ''}
             </div>`;
